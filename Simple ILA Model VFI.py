@@ -102,7 +102,7 @@ gamma = 2.5
 delta = .08
 chi = 10.
 theta = 2.
-tau = .05
+tau = .05   # the 1st stochastic shock
 rho_z = .9
 sigma_z = .01
 
@@ -148,9 +148,167 @@ print ('cbar:   ', cbar)
 print ('ibar:   ', ibar)
 print ('ubar:   ', ubar)
 
-# Solve for policy function using VFI
+
+"""That's where I start"""
+# Solve for policy function using VFI 
 # get PF1 and JF1
-#######
+
+# find value function and transition function
+converge = .001
+distance = 1.0
+maxwhile = 100
+count = 0
+value = np.zeros(kpts, zpts)
+newval = np.zeros(kpts, zpts)
+
+# set up the 2-dimensional arrays 
+PF1 = np.zeros(kpts, zpts)
+JF1 = np.zeros(kpts, zpts)
+
+# Discretize z
+def rouwen(rho, mu, step, num):
+    '''
+    Adapted from Lu Zhang and Karen Kopecky. Python by Ben Tengelsen.
+    Construct transition probability matrix for discretizing an AR(1)
+    process. This procedure is from Rouwenhorst (1995), which works
+    well for very persistent processes.
+
+    INPUTS:
+    rho  - persistence (close to one)
+    mu   - mean and the middle point of the discrete state space
+    step - step size of the even-spaced grid
+    num  - number of grid points on the discretized process
+
+    OUTPUT:
+    dscSp  - discrete state space (num by 1 vector)
+    transP - transition probability matrix over the grid
+    '''
+
+    # discrete state space
+    dscSp = np.linspace(mu -(num-1)/2*step, mu +(num-1)/2*step, num).T
+
+    # transition probability matrix
+    q = p = (rho + 1)/2.
+    transP = np.array([[p**2, p*(1-q), (1-q)**2], \
+                    [2*p*(1-p), p*q+(1-p)*(1-q), 2*q*(1-q)], \
+                    [(1-p)**2, (1-p)*q, q**2]]).T
+
+
+    while transP.shape[0] <= num - 1:
+
+        # see Rouwenhorst 1995
+        len_P = transP.shape[0]
+        transP = p * np.vstack((np.hstack((transP, np.zeros((len_P, 1)))), np.zeros((1, len_P+1)))) \
+                + (1 - p) * np.vstack((np.hstack((np.zeros((len_P, 1)), transP)), np.zeros((1, len_P+1)))) \
+                + (1 - q) * np.vstack((np.zeros((1, len_P+1)), np.hstack((transP, np.zeros((len_P, 1)))))) \
+                + q * np.vstack((np.zeros((1, len_P+1)), np.hstack((np.zeros((len_P, 1)), transP))))
+
+        transP[1:-1] /= 2.
+
+
+    # ensure columns sum to 1
+    if np.max(np.abs(np.sum(transP, axis=1) - np.ones(transP.shape))) >= 1e-12:
+        print('Problem in rouwen routine!')
+        return None
+    else:
+        return transP.T, dscSp
+
+# set up Markov approximation of AR(1) process using Rouwenhorst method
+spread = 5.  # number of standard deviations above and below 0
+znpts = 25
+zstep = 4.*spread*sigma_z/(znpts-1)
+# Markov transition probabilities, current z in cols, next z in rows
+Pimat, zgrid = rouwen(rho, 0., zstep, znpts)
+
+# discretize k
+klow = .5*Kbar
+khigh = 1.5*Kbar
+knpts = 25
+kgrid = np.linspace(klow, khigh, num = knpts)
+
+# discretize ell
+elllow = 0.0
+ellhigh = 1.0
+ellnpts = 25
+ellgrid = np.linspace(elllow, ellhigh, num = ellnpts)
+
+# initialize VF and PF
+VF1 = np.zeros((knpts, znpts))
+VF2 = np.zeros((knpts, znpts))
+PF = np.zeros((knpts, znpts))
+
+# set VF iteration parameters
+ccrit = 1.0E-10
+maxit = 1000
+dist = 1.0E+99
+iters = 0
+
+# run the program to get the value function (VF1)
+nconv = True
+while (conv):
+    #count = count + 1
+    #if count > maxwhile:
+        #break
+    for i1 in range(0, kpts): # over kt
+        for i2 in range(0, zpts): # over zt, searching the value for the stochastic shock
+            maxval = -100000000000
+            for i3 in range(0, kpts): # over k_t+1
+                for i4 in range(0, kpts): # over ell_t
+                    temp = 0
+                    for i5 in range(0, zpts): # over z_t+1
+                        r = alpha*kgrid[i1]**(alpha-1)*(np.exp(zgrid[i2])*ell)**(1-alpha)
+                        w = ((1-alpha)*kgrid[i1]**alpha*np.exp(zgrid[i2]*(1-alpha))) / ellgrid[i4] 
+                        t = tau * (w * ellgrid[i4] + (r - delta)*kgrid[i1])
+                        c = (1 - tau) * (w*ellgrid[i4] + (r-delta)*kgrid[i1]) + kgrid[i1] + t - kgrid[i3]
+                        temp = temp + (-1/c**sigma_z) + beta * VF1[i3,i5] * Pimat[i2,i5]) # check why it's not working
+                        # V(k;theta) = (((r - delta)*(1-tau)+1)/c**sigma_z) 
+                        # u_c(C) = 1/c**sigma_z
+                        
+                        #if theta == 1:
+                            #temp = (c**(1-gamma)/(1-gamma) - chi*ell**(1+theta)/(1+theta) 
+                            #+ beta*value[i3]) 
+                            #temp = (c**(1-gamma)/(1-gamma) - chi*ell**(1+theta)/(1+theta) 
+                            #       + beta*(((r - delta)*(1-tau)+1)/c))
+                            #else:
+                            #    temp = (((kvec[i]**alpha+(1-delta)*kvec[i]-kvec[j]*(1+g)
+                            #              *(1+n))**(1-theta)-1)/(1-theta)+beta*value[j])
+                            #    temp = (((kvec[i]**alpha+(1-delta)*kvec[i]-kvec[j]*(1+g)
+                            #              *(1+n))**(1-theta)-1)/(1-theta)+beta*
+                                # print i, j, temp (keep all of them)
+                                if np.iscomplex(temp):
+                                    temp = -1000000000
+                                if np.isnan(temp):
+                                    temp = -1000000000
+                                if temp > maxval:
+                                    maxval = temp
+                                    VF2[i1, i2] = temp # or VF?
+                                    PF1[i1, i2] = kgrid[i3]
+                                    JF1[i1, i2] = ellgrid[i4]
+
+
+
+# calculate the new distance measure, we use maximum absolute difference
+# which one should i keep? #1 or #2?
+dist = np.amax(np.abs(VF1 - VF2)) #1
+
+if sum(VF1 - VF2): #2
+    nconv = False
+# report the results of the current iteration
+print 'iteration: ', iters, 'distance: ', dist
+
+# replace the value function with the new one
+VF1 = 1.*VF2
+
+print 'Converged after', iters, 'iterations'
+print 'Policy function at (', (kpts-1)/2, ',', (zpts-1)/2, ') should be', \
+    kgrid[(kpts-1)/2], 'and is', PF[(kpts-1)/2, (zpts-1)/2]
+
+# Alternative approach
+#print (count, distance)
+#distance = np.mean(np.abs(value/newval - 1.0))
+#for i in range(0, npts):
+#value[i] = newval[i]
+
 
 
 # generate a history of Z's
@@ -166,7 +324,8 @@ Y0 = np.array([ellbar])
 
 
 
-## CHANGE POLICY
+## CHANGE POLICY (PF1)
+# see line 282 - 286
 
 # set new tax rate
 tau2 = .055
@@ -208,8 +367,76 @@ print ('ibar:   ', ibar2)
 print ('ubar:   ', ubar2)
 
 # Solve for new policy function using VFI
+
+# caclulate and plot closed form solution for policy function
+TruePF = np.zeros((kpts, zpts))
+for i in range (0, kpts):
+    for j in range(0, zpts):
+        TruePF[i, j] = alpha*beta*kgrid[i1]**alpha*np.exp(zgrid[i2])
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_surface(kmesh, zmesh, TruePF)
+ax.view_init(30, 150)
+plt.title('True Policy Function')
+plt.xlabel('k(t)')
+plt.ylabel('z(t)')
+plt.show()
+
 # get PF2 and JF2
-#######
+# find value function and transition function
+nconv = True
+while (conv):
+    #count = count + 1
+    #if count > maxwhile:
+        #break
+    for i1 in range(0, kpts): # over kt
+        for i2 in range(0, zpts): # over zt, searching the value for the stochastic shock
+            maxval = -100000000000
+            for i3 in range(0, kpts): # over k_t+1
+                for i4 in range(0, kpts): # over ell_t
+                    temp = 0
+                    for i5 in range(0, zpts): # over z_t+1
+                        r = alpha*kgrid[i1]**(alpha-1)*(np.exp(zgrid[i2])*ell)**(1-alpha)
+                        w = ((1-alpha)*kgrid[i1]**alpha*np.exp(zgrid[i2]*(1-alpha))) / ellgrid[i4] 
+                        t = tau2 * (w * ellgrid[i4] + (r - delta)*kgrid[i1])
+                        c = (1 - tau) * (w*ellgrid[i4] + (r-delta)*kgrid[i1]) + kgrid[i1] + t - kgrid[i3]
+                        temp = temp + (-1/c**sigma_z) + beta * VF1[i3,i5] * Pimat[i2,i5]) # check why it's not working
+                        # V(k;theta) = (((r - delta)*(1-tau)+1)/c**sigma_z) 
+                        # u_c(C) = 1/c**sigma_z
+                        
+                        #if theta == 1:
+                            #temp = (c**(1-gamma)/(1-gamma) - chi*ell**(1+theta)/(1+theta) 
+                            #+ beta*value[i3]) 
+                            #temp = (c**(1-gamma)/(1-gamma) - chi*ell**(1+theta)/(1+theta) 
+                            #       + beta*(((r - delta)*(1-tau)+1)/c))
+                            #else:
+                            #    temp = (((kvec[i]**alpha+(1-delta)*kvec[i]-kvec[j]*(1+g)
+                            #              *(1+n))**(1-theta)-1)/(1-theta)+beta*value[j])
+                            #    temp = (((kvec[i]**alpha+(1-delta)*kvec[i]-kvec[j]*(1+g)
+                            #              *(1+n))**(1-theta)-1)/(1-theta)+beta*
+                                # print i, j, temp (keep all of them)
+                                if np.iscomplex(temp):
+                                    temp = -1000000000
+                                if np.isnan(temp):
+                                    temp = -1000000000
+                                if temp > maxval:
+                                    maxval = temp
+                                    VF2[i1, i2] = temp # or VF?
+                                    PF2[i1, i2] = kgrid[i3]
+                                    JF2[i1, i2] = ellgrid[i4]
+
+if sum(VF1 - VF2): #2
+    nconv = False
+# report the results of the current iteration
+print 'iteration: ', iters, 'distance: ', dist
+
+# replace the value function with the new one
+VF1 = 1.*VF2
+                                 
+#print (count, distance)
+#distance = np.mean(np.abs(value/newval - 1.0))
+#for i in range(0, npts):
+#value[i] = newval[i]
 
 
 def PolSim(initial, nobs, ts, PF1, JF1, state1, params1, PF2, JF2, state2, \
@@ -223,12 +450,12 @@ def PolSim(initial, nobs, ts, PF1, JF1, state1, params1, PF2, JF2, state2, \
     initial: list of values for k & z (k0, z0) in the first period.
     nobs: number of periods to simulate.
     ts: period in which the shift occurs.
-    PF1: 
-    JF1:
+    PF1: the 1st policy function with the tax rate = 0.05 
+    JF1: the 1st jump function with the tax rate = 0.05
     state1: numpy array of XYbar under the baseline regime.
     params1: list of parameters under the baseline regime.
-    PF2: 
-    JF2:
+    PF2: the 2nd policy function with the tax rate = 0.055 
+    JF2: the 2nd jump function with the tax rate = 0.055
     state2: numpy array of XYbar2 under the new regime.
     params2: list of parameters under the new regime.
     
@@ -270,11 +497,13 @@ def PolSim(initial, nobs, ts, PF1, JF1, state1, params1, PF2, JF2, state2, \
         
     # generate histories for k and ell for the first ts-1 periods
     for t in range(0, ts-1):
-        #######
-    
+        # is this actually k_t-1?
+        khist[t] = beta * ( (r[t+1]-delta)*(1 - tau) / c[t+1]*sigma_z + 1) # i dont think that's correct
+        
     for t in range(ts-1, nobs):
         ########
-    
+        ellhist[t] = (w[t]*(1-tau)/ (chi*c[t])**(1/theta)
+        
     return khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, \
         uhist
 
