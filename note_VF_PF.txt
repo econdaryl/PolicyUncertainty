@@ -1,0 +1,44 @@
+Endogenous state variable: k (5 + 6 = 18)
+Exogenous state variable: z (23)
+jump variable: ell (19)
+definition: {c, w, r, T}
+
+Quasi Code:
+
+Set up 2- dimensional arrays
+a value function - VF
+new value function(the one that i need to update) = VF2
+policy function = PF
+jump function = JF
+
+Discretize k, ell, and z
+For z, we will use rowen.py (Phillips will give it to me)
+
+not_converge = True
+While (not_converge):
+
+For i1 in range(0, nk):   # over k(t)
+ For i2 in range(0, nz):  # over z(t)
+  Maz = -9999999 (gues the fake value function at the begining)
+  For i3 in range(0, nk):  # search over k(t+1)
+   For i4 in range(0,nl):  # over ell(t)
+    Temp = 0
+
+    For i5 in range(0,nz): # over z(t+1)
+    R = r(i1, i2)
+    W = w(i1,i2)
+    T = tau*w*ell(i4) + r*k(i1)
+    C = w*ell + r*k - k(i3)
+    Temp = Temp + u(i1, i2, i3, i4) + beta*VF(i3, i5) *Pi(i2, i5)
+
+   If Temp > Max:
+      Max = Temp
+      VF2(i1, i2) = Temp   # new value function
+      PF(i1, i2) = k(i3)
+      JF(i1, i2) = ell(i4)
+
+Once finished all loop
+VF = VF*1.0
+if sum(VF - VF2)**2 < 0.001, (distance matrix, like the norm)  # study norm again
+then noconv = FALSE
+VF = VF2*1.0
