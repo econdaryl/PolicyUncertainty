@@ -13,7 +13,7 @@ from mpl_toolkits.mplot3d import Axes3D
 # import the modules from LinApp
 from LinApp_FindSS import LinApp_FindSS
 
-def Modeldefs(Xp, X, Y, Z, params):
+def Modeldefs1(Xp, X, Y, Z, params):
     '''
     This function takes vectors of endogenous and exogenous state variables
     along with a vector of 'jump' variables and returns explicitly defined
@@ -56,7 +56,7 @@ def Modeldefs(Xp, X, Y, Z, params):
     return Y, w, r, T, c, i, u
 
 
-def Modeldyn(theta0, params):
+def Modeldyn1(theta0, params):
     '''
     This function takes vectors of endogenous and exogenous state variables
     along with a vector of 'jump' variables and returns values from the
@@ -86,8 +86,8 @@ def Modeldyn(theta0, params):
     
     # find definitions for now and next period
     ell = Y
-    Y, w, r, T, c, i, u = Modeldefs(Xp, X, Y, Z, params)
-    Yp, wp, rp, Tp, cp, ip, up = Modeldefs(Xpp, Xp, Yp, Zp, params)
+    Y, w, r, T, c, i, u = Modeldefs1(Xp, X, Y, Z, params)
+    Yp, wp, rp, Tp, cp, ip, up = Modeldefs1(Xpp, Xp, Yp, Zp, params)
     
     # Evaluate Euler equations
     E1 = (c**(-gamma)*(1-tau)*w) / (chi*ell**theta) - 1
@@ -122,21 +122,21 @@ Sylv = 0
 guessXY = np.array([.1, .25])
 
 # find the steady state values using LinApp_FindSS
-XYbar = LinApp_FindSS(Modeldyn, params, guessXY, Zbar, nx, ny)
+XYbar = LinApp_FindSS(Modeldyn1, params, guessXY, Zbar, nx, ny)
 (kbar, ellbar) = XYbar
 
 # set up steady state input vector
 theta0 = np.array([kbar, kbar, kbar, ellbar, ellbar, 0., 0.])
 
 # check SS solution
-check = Modeldyn(theta0, params)
+check = Modeldyn1(theta0, params)
 print ('check SS: ', check)
 if np.max(np.abs(check)) > 1.E-6:
     print ('Have NOT found steady state')
     
 # find the steady state values for the definitions
 Ybar, wbar, rbar, Tbar, cbar, ibar, ubar = \
-    Modeldefs(kbar, kbar, ellbar, 0., params)
+    Modeldefs1(kbar, kbar, ellbar, 0., params)
 
 # display all steady state values
 print ('kbar:   ', kbar)
@@ -225,13 +225,13 @@ PF1 = np.zeros((knpts, znpts))
 JF1 = np.zeros((knpts, znpts))
 
 # set VF iteration parameters
-ccrit = .01
+ccrit = 1.0E-1000 
 count = 0
 dist = 100.
-maxwhile = 100
+maxwhile = 2685 #is the convergent number
 
 # run the program to get the value function (VF1)
-nconv = True
+nconv = True 
 while (nconv):
     count = count + 1
     if count > maxwhile:
@@ -269,11 +269,9 @@ while (nconv):
     # replace the value function with the new one
     VF1 = 1.0*VF1new
 
-#print ('Converged after', count, 'iterations') 
-#print ('Policy function at (', (knpts-1)/2, ',', (znpts-1)/2, ') should be', \
-#kgrid[(knpts-1)/2], 'and is', PF1[(knpts-1)/2, (znpts-1)/2])
-
-
+print ('Converged after', count, 'iterations') 
+print ('Policy function at (', (knpts-1)/2, ',', (znpts-1)/2, ') should be', \
+kgrid[int((knpts-1)/2)], 'and is', PF1[int((knpts-1)/2)], int((znpts-1)/2))
 
 # generate a history of Z's
 nobs = 250
@@ -285,7 +283,6 @@ for t in range(1, nobs):
 XYbar = np.array([kbar, ellbar])
 X0 = np.array([kbar])
 Y0 = np.array([ellbar])
-
 
 
 ## CHANGE POLICY (PF1)
@@ -303,21 +300,21 @@ params2 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z,
 guessXY = XYbar
 
 # find the steady state values using LinApp_FindSS
-XYbar2 = LinApp_FindSS(Modeldyn, params2, guessXY, Zbar, nx, ny)
+XYbar2 = LinApp_FindSS(Modeldyn1, params2, guessXY, Zbar, nx, ny)
 (kbar2, ellbar2) = XYbar2
 
 # set up steady state input vector
 theta02 = np.array([kbar2, kbar2, kbar2, ellbar2, ellbar2, 0., 0.])
 
 # check SS solution
-check = Modeldyn(theta02, params2)
+check = Modeldyn1(theta02, params2)
 print ('check SS: ', check)
 if np.max(np.abs(check)) > 1.E-6:
     print ('Have NOT found steady state')
     
 # find the steady state values for the definitions
 Ybar2, wbar2, rbar2, Tbar2, cbar2, ibar2, ubar2 = \
-    Modeldefs(kbar2, kbar2, ellbar2, 0., params2)
+    Modeldefs1(kbar2, kbar2, ellbar2, 0., params2)
 
 # display all steady state values
 print ('kbar:   ', kbar2)
@@ -378,18 +375,24 @@ while (nconv):
                         JF2[i1, i2] = ellgrid[i4]
 
     # calculate the new distance measure, we use maximum absolute difference
-    dist = np.amax(np.abs(VF1 - VF1new))
+    dist = np.amax(np.abs(VF2 - VF2new))
     if dist < ccrit:
         nconv = False
     # report the results of the current iteration
     print ('iteration: ', count, 'distance: ', dist)
     
     # replace the value function with the new one
-    VF2 = 1.*VF1new
+    VF2 = 1.*VF2new
 
-#print ('Converged after', count, 'iterations')
-#print ('Policy function at (', (knpts-1)/2, ',', (znpts-1)/2, ') should be', \
-    #kgrid[(knpts-1)/2], 'and is', PF2[(knpts-1)/2, (znpts-1)/2])
+print ('Converged after', count, 'iterations')
+print ('Policy function at (', (knpts-1)/2, ',', (znpts-1)/2, ') should be', \
+    kgrid[int((knpts-1)/2)], 'and is', PF2[int((knpts-1)/2), int((znpts-1)/2)])
+
+
+
+
+
+
 
 # fit PF1 and PF2, Jf1 and JF2 with polynomials
 
@@ -440,10 +443,17 @@ YPF2 = PF2.flatten()
 YJF2 = JF2.flatten()
 
 coeffsPF1 = np.dot(np.linalg.inv(np.dot(X,np.transpose(X))),np.dot(X,YPF1))
-print(coeffsPF1)
+coeffsPF1 = coeffsPF1.reshape((10,1))
+
 coeffsJF1 = np.dot(np.linalg.inv(np.dot(X,np.transpose(X))),np.dot(X,YJF1))
+coeffsJF1 = coeffsJF1.reshape((10,1))
+
 coeffsPF2 = np.dot(np.linalg.inv(np.dot(X,np.transpose(X))),np.dot(X,YPF2))
+coeffsPF2 = coeffsPF2.reshape((10,1))
+
 coeffsJF2 = np.dot(np.linalg.inv(np.dot(X,np.transpose(X))),np.dot(X,YJF2))
+coeffsJF2 = coeffsJF2.reshape((10,1))
+
 
 
 def PolSim(initial, nobs, ts, PF1, JF1, state1, params1, PF2, JF2, state2, \
@@ -504,19 +514,20 @@ def PolSim(initial, nobs, ts, PF1, JF1, state1, params1, PF2, JF2, state2, \
         
     Xvec = np.array([[1.0], [khist[t]], [khist[t]**2], [khist[t]**3], \
                          [zhist[t]], [zhist[t]**2], [zhist[t]**3], \
-                         [khist[t]**2*zhist[t]], [khist[t]**zhist[t]**2]])            
+                         [khist[t]**2*zhist[t]], [khist[t]**zhist[t]**2], \
+                         [khist[t]**zhist[t]**3]])            
     # generate histories for k and ell for the first ts-1 periods
     for t in range(0, ts-1):
-        khist[t+1] = np.dot(Xvec, coeffsPF1)
-        ellhist[t] = np.dot(Xvec, coeffsJF1)
+        khist[t+1] = np.vdot(Xvec, coeffsPF1)
+        ellhist[t] = np.vdot(Xvec, coeffsJF1)
         Yhist[t], whist[t], rhist[t], Thist[t], chist[t], ihist[t], uhist[t] \
-            = Modeldefs(khist[t+1], khist[t], ellhist[t], zhist[t], params)
+            = Modeldefs1(khist[t+1], khist[t], ellhist[t], zhist[t], params)
         
     for t in range(ts-1, nobs):
-        khist[t+1] = np.dot(Xvec, coeffsPF2)
-        ellhist[t] = np.dot(Xvec, coeffsJF2)
+        khist[t+1] = np.vdot(Xvec, coeffsPF2)
+        ellhist[t] = np.vdot(Xvec, coeffsJF2)
         Yhist[t], whist[t], rhist[t], Thist[t], chist[t], ihist[t], uhist[t] \
-            = Modeldefs(khist[t+1], khist[t], ellhist[t], zhist[t], params)
+            = Modeldefs1(khist[t+1], khist[t], ellhist[t], zhist[t], params)
         
     return khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, \
         uhist
