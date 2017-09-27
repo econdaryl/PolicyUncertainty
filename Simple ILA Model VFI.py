@@ -225,7 +225,7 @@ PF1 = np.zeros((knpts, znpts))
 JF1 = np.zeros((knpts, znpts))
 
 # set VF iteration parameters
-ccrit = 1.0E-1000 
+ccrit = 1.0E-01
 count = 0
 dist = 100.
 maxwhile = 2685 #is the convergent number
@@ -390,10 +390,6 @@ print ('Policy function at (', (knpts-1)/2, ',', (znpts-1)/2, ') should be', \
 
 
 
-
-
-
-
 # fit PF1 and PF2, Jf1 and JF2 with polynomials
 
 # create meshgrid
@@ -441,6 +437,7 @@ YPF1 = PF1.flatten()
 YJF1 = JF1.flatten()
 YPF2 = PF2.flatten()
 YJF2 = JF2.flatten()
+
 
 coeffsPF1 = np.dot(np.linalg.inv(np.dot(X,np.transpose(X))),np.dot(X,YPF1))
 coeffsPF1 = coeffsPF1.reshape((10,1))
@@ -514,8 +511,9 @@ def PolSim(initial, nobs, ts, PF1, JF1, state1, params1, PF2, JF2, state2, \
         
     Xvec = np.array([[1.0], [khist[t]], [khist[t]**2], [khist[t]**3], \
                          [zhist[t]], [zhist[t]**2], [zhist[t]**3], \
-                         [khist[t]**2*zhist[t]], [khist[t]**zhist[t]**2], \
-                         [khist[t]**zhist[t]**3]])            
+                         [khist[t]**zhist[t]], [khist[t]**2*zhist[t]], \
+                         [khist[t]**zhist[t]**2]])        
+    
     # generate histories for k and ell for the first ts-1 periods
     for t in range(0, ts-1):
         khist[t+1] = np.vdot(Xvec, coeffsPF1)
@@ -534,7 +532,7 @@ def PolSim(initial, nobs, ts, PF1, JF1, state1, params1, PF2, JF2, state2, \
 
 
 # specify the number of simulations and observations per simulation
-nsim = 10000
+nsim = 100
 nobs = 120
 
 # specify the period policy shifts
@@ -652,6 +650,8 @@ plt.savefig('ILAfig1.eps', format='eps', dpi=2000)
 
 plt.show()
 
+
+
 plt.subplot(3,2,1)
 plt.plot(range(wavg.size), wavg, 'k-',
          range(wupp.size), wupp, 'k:',
@@ -753,6 +753,83 @@ plt.title('u')
 plt.savefig('ILAfig4.eps', format='eps', dpi=2000)
 
 plt.show()
+<<<<<<< HEAD
+
+
+
+## Additional Work: plot grid approximation of policy functions and jump functions
+# plot grid approximation of PF1
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_surface(kmesh, zmesh, PF1)
+ax.view_init(30, 150)
+plt.title('PF1 Grid')
+plt.xlabel('k(t)')
+plt.ylabel('z(t)')
+plt.show()
+
+# plot grid approximation of PF2
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_surface(kmesh, zmesh, PF2)
+ax.view_init(30, 150)
+plt.title('PF2 Grid')
+plt.xlabel('k(t)')
+plt.ylabel('z(t)')
+plt.show()
+
+# plot grid approximation of JF1
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_surface(kmesh, zmesh, JF1)
+ax.view_init(30, 150)
+plt.title('JF1 Grid')
+plt.xlabel('k(t)')
+plt.ylabel('z(t)')
+plt.show()
+
+# plot grid approximation of JF2
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_surface(kmesh, zmesh, JF2)
+ax.view_init(30, 150)
+plt.title('JF2 Grid')
+plt.xlabel('k(t)')
+plt.ylabel('z(t)')
+plt.show()
+
+
+
+
+
+## Get the polynomial approximation
+
+PF1approx = np.zeros(10)
+#PF1approx = PF1approx.reshape((10,1))
+#PF2approx = np.zeros()
+#JF1approx = np.zeros()
+#JF2approx = np.zeros()
+
+for i in range(0,knpts):
+    for j in range(0,znpts):
+        PF1approx[i,j] = np.array([[coeffsPF1[i]], [kmesh[i]], [kmesh[i]**2], \
+                                  [kmesh[i]**3], [zmesh[j]], [zmesh[j]**2], \
+                                  [zmesh[j]**3], [kmesh[i]*zmesh[j]], \
+                                  [zmesh[j]*kmesh[i]**2], [kmesh[i]*zmesh[j]**2]])
+    
+# plot polynomial approximation of PF1
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_surface(kmesh, zmesh, JF2)
+ax.view_init(30, 150)
+plt.title('JF2 Grid')
+plt.xlabel('k(t)')
+plt.ylabel('z(t)')
+plt.show()
+        
+
+
+=======
 =======
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
@@ -1459,3 +1536,4 @@ plt.title('u')
 plt.savefig('ILAfig4.eps', format='eps', dpi=2000)
 
 plt.show()
+>>>>>>> 232dc30e58c83816a0dc73d888f616b239886ad0
