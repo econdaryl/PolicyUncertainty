@@ -225,7 +225,7 @@ PF1 = np.zeros((knpts, znpts))
 JF1 = np.zeros((knpts, znpts))
 
 # set VF iteration parameters
-ccrit = 1.0E-01
+ccrit = 1.0E-0
 count = 0
 dist = 100.
 maxwhile = 2685 #is the convergent number
@@ -334,7 +334,7 @@ zmesh, kmesh = np.meshgrid(zgrid, kgrid)
 # find value function and transition function
 
 # initialize VF2 and PF2
-VF2 = np.ones((knpts, znpts)) * (-100)
+VF2 = VF1*1.
 VF2new = np.zeros((knpts, znpts))
 PF2 = np.zeros((knpts, znpts))
 JF2 = np.zeros((knpts, znpts))
@@ -750,7 +750,7 @@ plt.savefig('ILAfig4.eps', format='eps', dpi=2000)
 
 plt.show()
 
-
+'''
 ## Additional Work: plot grid approximation of policy functions and jump functions
 # plot grid approximation of PF1
 fig = plt.figure()
@@ -794,26 +794,25 @@ plt.show()
 
 
 
+## Get the polynomial approximations
 
-
-## Get the polynomial approximation
-
-PF1approx = np.zeros(10)
-#PF1approx = PF1approx.reshape((10,1))
-#PF2approx = np.zeros()
-#JF1approx = np.zeros()
-#JF2approx = np.zeros()
+PF1approx = 0.*PF1
+PF2approx = 0.*PF2
+JF1approx = 0.*JF1
+JF2approx = 0.*JF2
 
 for i in range(0,knpts):
     for j in range(0,znpts):
-        print(i, j, kmesh[i], zmesh[j])
-        PF1approx[i,j] = np.dot(np.transpose(coeffsPF1), 
-            np.array([[1.0], [kmesh[i]], [kmesh[i]**2], \
-                     [kmesh[i]**3], [zmesh[j]], [zmesh[j]**2], \
-                     [zmesh[j]**3], [kmesh[i]*zmesh[j]], \
-                     [zmesh[j]*kmesh[i]**2], [kmesh[i]*zmesh[j]**2]]))
+        temp = np.array([[1.0], [kmesh[i,j]], [kmesh[i,j]**2], \
+                     [kmesh[i,j]**3], [zmesh[i,j]], [zmesh[i,j]**2], \
+                     [zmesh[i,j]**3], [kmesh[i,j]*zmesh[i,j]], \
+                     [zmesh[i,j]*kmesh[i,j]**2], [kmesh[i,j]*zmesh[i,j]**2]])
+        PF1approx[i,j] = np.dot(np.transpose(coeffsPF1), temp)
+        PF2approx[i,j] = np.dot(np.transpose(coeffsPF2), temp)
+        JF1approx[i,j] = np.dot(np.transpose(coeffsJF1), temp)
+        JF2approx[i,j] = np.dot(np.transpose(coeffsJF2), temp)
     
-# plot polynomial approximation of PF1
+# plot polynomial approximations
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 ax.plot_surface(kmesh, zmesh, PF1approx)
@@ -822,3 +821,31 @@ plt.title('PF1 polynomial')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
 plt.show()
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_surface(kmesh, zmesh, PF2approx)
+ax.view_init(30, 150)
+plt.title('PF2 polynomial')
+plt.xlabel('k(t)')
+plt.ylabel('z(t)')
+plt.show()
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_surface(kmesh, zmesh, JF1approx)
+ax.view_init(30, 150)
+plt.title('PJ1 polynomial')
+plt.xlabel('k(t)')
+plt.ylabel('z(t)')
+plt.show()
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_surface(kmesh, zmesh, JF2approx)
+ax.view_init(30, 150)
+plt.title('JF2 polynomial')
+plt.xlabel('k(t)')
+plt.ylabel('z(t)')
+plt.show()
+'''
