@@ -482,6 +482,7 @@ def PolSim(initial, nobs, ts, PF1, JF1, state1, params1, PF2, JF2, state2, \
     '''
     
     # preallocate histories
+    
     khist = np.zeros(nobs+1)
     ellhist = np.zeros(nobs)
     zhist = np.zeros(nobs)
@@ -750,7 +751,7 @@ plt.savefig('ILAfig4.eps', format='eps', dpi=2000)
 
 plt.show()
 
-'''
+
 ## Additional Work: plot grid approximation of policy functions and jump functions
 # plot grid approximation of PF1
 fig = plt.figure()
@@ -835,7 +836,7 @@ fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 ax.plot_surface(kmesh, zmesh, JF1approx)
 ax.view_init(30, 150)
-plt.title('PJ1 polynomial')
+plt.title('JF1 polynomial')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
 plt.show()
@@ -848,4 +849,3 @@ plt.title('JF2 polynomial')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
 plt.show()
-'''
