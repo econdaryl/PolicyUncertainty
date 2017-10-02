@@ -482,10 +482,9 @@ def PolSim(initial, nobs, ts, PF1, JF1, state1, params1, PF2, JF2, state2, \
     '''
     
     # preallocate histories
-    
     khist = np.zeros(nobs+1)
     ellhist = np.zeros(nobs)
-    zhist = np.zeros(nobs)
+    zhist = np.zeros(nobs+1)
     Yhist = np.zeros(nobs)
     whist = np.zeros(nobs)
     rhist = np.zeros(nobs)
@@ -494,35 +493,37 @@ def PolSim(initial, nobs, ts, PF1, JF1, state1, params1, PF2, JF2, state2, \
     ihist = np.zeros(nobs)
     uhist = np.zeros(nobs)
     
+    # upack simulation parameters
+    rho_z = params1[7] 
+    sigma_z = params1[8]
+    
     # set starting values
     khist[0] = k0
-    zhist[0] = z0
+    zhist[0] = 0.
     
     # unpack state1 and state2
     (kbar, ellbar) = XYbar
     (kbar2, ellbar2) = XYbar2
     
     # generate history of random shocks
-    for t in range(1, nobs):
-        zhist[t] = rho_z*zhist[t] + sigma_z*np.random.normal(0., 1.)
-        
-    Xvec = np.array([[1.0], [khist[t]], [khist[t]**2], [khist[t]**3], \
+    for t in range(0, nobs):
+        zhist[t+1] = rho_z*zhist[t] + sigma_z*np.random.normal(0., 1.)
+        Xvec = np.array([[1.0], [khist[t]], [khist[t]**2], [khist[t]**3], \
                          [zhist[t]], [zhist[t]**2], [zhist[t]**3], \
-                         [khist[t]**zhist[t]], [khist[t]**2*zhist[t]], \
-                         [khist[t]**zhist[t]**2]])        
-    
-    # generate histories for k and ell for the first ts-1 periods
-    for t in range(0, ts-1):
-        khist[t+1] = np.vdot(Xvec, coeffsPF1)
-        ellhist[t] = np.vdot(Xvec, coeffsJF1)
-        Yhist[t], whist[t], rhist[t], Thist[t], chist[t], ihist[t], uhist[t] \
-            = Modeldefs1(khist[t+1], khist[t], ellhist[t], zhist[t], params)
+                         [khist[t]*zhist[t]], [khist[t]**2*zhist[t]], \
+                         [khist[t]*zhist[t]**2]])  
+        if t < ts:
+            khist[t+1] = np.vdot(Xvec, coeffsPF1)
+            ellhist[t] = np.vdot(Xvec, coeffsJF1)
+            Yhist[t], whist[t], rhist[t], Thist[t], chist[t], ihist[t], uhist[t] \
+                = Modeldefs1(khist[t+1], khist[t], ellhist[t], zhist[t], params1)
+        else:
+            khist[t+1] = np.vdot(Xvec, coeffsPF2)
+            ellhist[t] = np.vdot(Xvec, coeffsJF2)
+            Yhist[t], whist[t], rhist[t], Thist[t], chist[t], ihist[t], uhist[t] \
+                = Modeldefs1(khist[t+1], khist[t], ellhist[t], zhist[t], params2)
+            
         
-    for t in range(ts-1, nobs):
-        khist[t+1] = np.vdot(Xvec, coeffsPF2)
-        ellhist[t] = np.vdot(Xvec, coeffsJF2)
-        Yhist[t], whist[t], rhist[t], Thist[t], chist[t], ihist[t], uhist[t] \
-            = Modeldefs1(khist[t+1], khist[t], ellhist[t], zhist[t], params)
         
     return khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, \
         uhist
@@ -530,7 +531,7 @@ def PolSim(initial, nobs, ts, PF1, JF1, state1, params1, PF2, JF2, state2, \
 
 # specify the number of simulations and observations per simulation
 nsim = 100
-nobs = 120
+nobs = 40
 
 # specify the period policy shifts
 ts = 20
@@ -617,7 +618,18 @@ clow = cmc[low,:]
 ilow = imc[low,:]
 ulow = umc[low,:]
 
-# plot
+'''
+# find the predicted path with no randomness
+# run first simulation and store in Monte Carlo matrices
+params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0])
+params4 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z, 0.])
+
+kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred \
+    = PolSim(initial, nobs, ts, PF1, JF1, XYbar, params3, PF2, JF2, XYbar2, \
+           params4)
+'''
+
+# plot predicted with upper and lower bounds
 plt.subplot(2,2,1)
 plt.plot(range(kavg.size), kavg, 'k-',
          range(kupp.size), kupp, 'k:',
@@ -646,8 +658,6 @@ plt.title('Y')
 plt.savefig('ILAfig1.eps', format='eps', dpi=2000)
 
 plt.show()
-
-
 
 plt.subplot(3,2,1)
 plt.plot(range(wavg.size), wavg, 'k-',
@@ -690,7 +700,8 @@ plt.savefig('ILAfig2.eps', format='eps', dpi=2000)
 
 plt.show()
 
-# plot
+
+# plot avgicted with typical simulation
 plt.subplot(2,2,1)
 plt.plot(range(khist.size), khist, 'k-',
          range(kavg.size), kavg, 'r-')
