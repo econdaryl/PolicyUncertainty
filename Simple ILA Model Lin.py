@@ -376,7 +376,7 @@ def PolSim(initial, nobs, ts, coeffs1, state1, params1, coeffs2, state2, \
 
 
 # specify the number of simulations and observations per simulation
-nsim = 100
+nsim = 10000
 nobs = 120
 
 # specify the period policy shifts
@@ -494,7 +494,7 @@ plt.plot(range(Yavg.size), Yavg, 'k-',
 plt.title('Y')
 
 # save high quality version to external file
-plt.savefig('ILAfig1.eps', format='eps', dpi=2000)
+plt.savefig('ILALinfig1.eps', format='eps', dpi=2000)
 
 plt.show()
 
@@ -535,7 +535,7 @@ plt.plot(range(uavg.size), uavg, 'k-',
 plt.title('u')
 
 # save high quality version to external file
-plt.savefig('ILAfig2.eps', format='eps', dpi=2000)
+plt.savefig('ILALinfig2.eps', format='eps', dpi=2000)
 
 plt.show()
 
@@ -561,7 +561,7 @@ plt.plot(range(Yhist.size), Yhist, 'k-',
 plt.title('Y')
 
 # save high quality version to external file
-plt.savefig('ILAfig3.eps', format='eps', dpi=2000)
+plt.savefig('ILALinfig3.eps', format='eps', dpi=2000)
 
 plt.show()
 
@@ -596,6 +596,19 @@ plt.plot(range(uhist.size), uhist, 'k-',
 plt.title('u')
 
 # save high quality version to external file
-plt.savefig('ILAfig4.eps', format='eps', dpi=2000)
+plt.savefig('ILALinfig4.eps', format='eps', dpi=2000)
 
 plt.show()
+
+# save results in pickle file
+import pickle as pkl
+
+output = open('ILALin.pkl', 'wb')
+
+polsimpars = (initial, nobs, ts, coeffs1, XYbar, params, coeffs2, XYbar2, \
+             params2)
+pkl.dump(polsimpars, output)
+mcdata = (kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc)
+pkl.dump(mcdata, output)
+
+output.close()
