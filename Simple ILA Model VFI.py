@@ -9,6 +9,7 @@ Created on Thu Aug 10 16:08:19 2017
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import pickle as pkl
 
 a = np.array([[1.23,2],[1,2]])
 # import the modules from LinApp
@@ -202,7 +203,7 @@ def rouwen(rho, mu, step, num):
 
 # set up Markov approximation of AR(1) process using Rouwenhorst method
 spread = 5.  # number of standard deviations above and below 0
-znpts = 11
+znpts = 21
 zstep = 4.*spread*sigma_z/(znpts-1)
 # Markov transition probabilities, current z in cols, next z in rows
 Pimat, zgrid = rouwen(rho_z, 0., zstep, znpts)
@@ -210,66 +211,36 @@ Pimat, zgrid = rouwen(rho_z, 0., zstep, znpts)
 # discretize k
 klow = .5*kbar
 khigh = 1.5*kbar
-knpts = 11
+knpts = 21
 kgrid = np.linspace(klow, khigh, num = knpts)
 
 # discretize ell
 elllow = 0.0
 ellhigh = 1.0
-ellnpts = 11
+ellnpts = 21
 ellgrid = np.linspace(elllow, ellhigh, num = ellnpts)
 
-
+readVF = False
 
 # initialize VF and PF
+if readVF:
+    infile = open('ILAVFI.pkl', 'rb')
+    pkl.load(infile)
+    infile.close()
+else:
+    Vf1 = np.ones((knpts, znpts)) * (-100)
+    Vf2 = np.ones((knpts, znpts)) * (-100)
 
-#value = np.array([[-6.547,-22.65,-66.89,-148.9,-240.7,-281.7,-238.4,-145.5,-64.00,-20.81,-5.641], \
-#[-5.675,-21.50,-65.14,-146.9,-238.3,-279.2,-236.2,-143.7,-62.51,-19.87,-4.970], \
-#[-5.111,-20.70,-63.83,-145.1,-236.2,-277.0,-234.2,-142.1,-61.39,-19.22,-4.530], \
-#[-4.745,-19.94,-62.68,-143.5,-234.4,-275.1,-232.5,-140.7,-60.41,-18.61,-4.221], \
-#[-4.387,-19.29,-61.68,-142.0,-232.8,-273.4,-230.9,-139.5,-59.54,-18.07,-3.939], \
-#[-4.149,-18.71,-60.82,-140.8,-231.3,-271.9,-229.5,-138.3,-58.78,-17.59,-3.738], \
-#[-3.921,-18.23,-60.10,-139.7,-230.0,-270.4,-228.2,-137.3,-58.13,-17.18,-3.555], \
-#[-3.738,-17.82,-59.43,-138.6,-228.7,-269.1,-227.0,-136.4,-57.57,-16.83,-3.401], \
-#[-3.582,-17.48,-58.78,-137.7,-227.5,-267.8,-225.9,-135.5,-57.02,-16.54,-3.269], \
-#[-3.435,-17.14,-58.17,-136.8,-226.4,-266.7,-224.8,-134.7,-56.50,-16.25,-3.150], \
-#[-3.313,-16.84,-57.60,-136.0,-225.3,-265.6,-223.8,-133.9,-56.00,-16.00,-3.042]])
-
-#Vf1 = np.ones((knpts, znpts)) * (-100)
-
-Vf1 = np.array([[-6.791, -25.196, -78.671, -180.857, -2.972, -349.678, -294.754, -177.271, -75.644, -23.312, -5.879], \
-                [-5.918, -24.039, -76.906, -178.830, -2.948, -347.090, -292.421, -175.429, -74.134, -22.368,	-5.209], \
-                [-5.355, -23.242, -75.586, -177.032, -2.926, -344.857, -290.405, -173.845, -73.003, -21.715,	-4.768], \
-                [-4.988, -22.485, -74.429, -175.440, -2.907, -342.886, -288.621, -172.442, -72.013, -21.105,	-4.460], \
-                [-4.630, -21.829, -73.412, -173.976, -2.891, -341.123, -287.019, -171.164, -71.138, -20.564,	-4.177], \
-                [-4.392, -21.249, -72.536, -172.656, -2.875, -339.521, -285.577, -169.955, -70.364, -20.084,	-3.976], \
-                [-4.164, -20.764, -71.797, -171.511, -2.862, -338.047, -284.260, -168.886, -69.697, -19.675,	-3.793], \
-                [-3.982, -20.353, -71.123, -170.474, -2.849, -336.677, -283.034, -167.939, -69.124, -19.324,	-3.639], \
-                [-3.826, -20.006, -70.470, -169.505, -2.837, -335.399, -281.883, -167.056, -68.572, -19.025,	-3.507], \
-                [-3.678, -19.664, -69.859, -168.600, -2.825, -334.209, -280.792, -166.224, -68.045, -18.738,	-3.388], \
-                [-3.556, -19.367, -69.285, -167.751, -2.814, -333.119, -279.735, -165.441, -67.544, -18.483,	-3.279]])
 Vf1new = np.zeros((knpts, znpts))
-
 Pf1 = np.zeros((knpts, znpts))
-#Pf1 = np.array([[2.073, 2.073, 2.073, 2.488, 2.488, 2.488,  2.488,	2.488, 2.079, 2.073, 2.073], \
-#			[2.073, 2.488, 2.488, 2.903, 2.903, 2.903, 2.903,	 2.903, 2.488, 2.488, 2.073], \
-#			[2.488, 2.488, 2.903, 3.318, 3.318, 3.318, 3.318,	 3.318, 2.903, 2.903, 2.488], \
-#			[2.488, 2.903, 3.318, 3.733, 3.733, 3.733, 3.733,	 3.733, 3.318, 2.903, 2.488], \
-#			[2.903, 3.318, 3.733, 3.733, 4.147, 4.147, 4.147,	 4.147, 3.733, 3.318, 2.903], \
-#			[3.318, 3.733, 4.147, 4.147, 4.562, 4.562, 4.562, 4.147, 4.147, 3.733, 3.318], \
-#			[3.733, 4.147, 4.562, 4.562, 4.977, 4.977, 4.977,	 4.562, 4.562, 4.147, 3.733], \
-#			[3.733, 4.562, 4.562, 4.977, 5.392, 5.395, 5.392,	 4.977, 4.977, 4.562, 3.733], \
-#			[4.147, 4.977, 4.977, 5.392, 5.807, 5.807, 5.807,	 5.392, 4.977, 4.977, 4.147], \
-#			[4.562, 4.977, 5.392, 5.807, 5.807, 6.221, 6.221,	 5.807, 5.392, 4.977, 4.562], \
-#			[4.562, 5.392, 5.807, 6.221, 6.221, 6.221, 6.221,	 6.221, 5.807, 5.392, 4.562]])
 Jf1 = np.zeros((knpts, znpts))
 
 # set VF iteration parameters
 #ccrit = 1.0E-20
-ccrit = 1.0E-20
+ccrit = 1.0E-0
 count = 0
 dist = 100.
-maxwhile = 3103 #is the convergent number
+maxwhile = 10000 #is the convergent number
 
 # run the program to get the value function (VF1)
 nconv = True 
@@ -375,8 +346,9 @@ zmesh, kmesh = np.meshgrid(zgrid, kgrid)
 # find value function and transition function
 
 # initialize VF2 and PF2
-Vf2 = Vf1*1.
-# VF2 = np.zeros((knpts, znpts))
+if not(readVF):
+    Vf2 = Vf1*1.
+
 Vf2new = np.zeros((knpts, znpts))
 Pf2 = np.zeros((knpts, znpts))
 Jf2 = np.zeros((knpts, znpts))
@@ -490,6 +462,21 @@ coeffsJF2 = np.dot(np.linalg.inv(np.dot(X,np.transpose(X))),np.dot(X,YJF2))
 coeffsJF2 = coeffsJF2.reshape((10,1))
 
 
+# save grids and polynomials
+output = open('ILAVFI.pkl', 'wb')
+pkl.dump(Vf1, output)
+pkl.dump(Vf2, output)
+pkl.dump(Pf1, output)
+pkl.dump(Pf2, output)
+pkl.dump(Jf1, output)
+pkl.dump(Jf2, output)
+pkl.dump(coeffsPF1, output)
+pkl.dump(coeffsPF2, output)
+pkl.dump(coeffsJF1, output)
+pkl.dump(coeffsJF2, output)
+output.close()
+
+
 
 def PolSim(initial, nobs, ts, PF1, JF1, state1, params1, PF2, JF2, state2, \
            params2):
@@ -573,7 +560,7 @@ def PolSim(initial, nobs, ts, PF1, JF1, state1, params1, PF2, JF2, state2, \
 
 # specify the number of simulations and observations per simulation
 nsim = 100
-nobs = 150
+nobs = 120
 
 # specify the period policy shifts
 ts = 20
@@ -697,7 +684,7 @@ plt.plot(range(Yavg.size), Yavg, 'k-',
 plt.title('Y')
 
 # save high quality version to external file
-plt.savefig('ILAfig1.eps', format='eps', dpi=2000)
+plt.savefig('ILAVFIfig1.eps', format='eps', dpi=2000)
 
 plt.show()
 
@@ -738,7 +725,7 @@ plt.plot(range(uavg.size), uavg, 'k-',
 plt.title('u')
 
 # save high quality version to external file
-plt.savefig('ILAfig2.eps', format='eps', dpi=2000)
+plt.savefig('ILAVFIfig2.eps', format='eps', dpi=2000)
 
 plt.show()
 
@@ -765,7 +752,7 @@ plt.plot(range(Yhist.size), Yhist, 'k-',
 plt.title('Y')
 
 # save high quality version to external file
-plt.savefig('ILAfig3.eps', format='eps', dpi=2000)
+plt.savefig('ILAVFIfig3.eps', format='eps', dpi=2000)
 
 plt.show()
 
@@ -800,7 +787,7 @@ plt.plot(range(uhist.size), uhist, 'k-',
 plt.title('u')
 
 # save high quality version to external file
-plt.savefig('ILAfig4.eps', format='eps', dpi=2000)
+plt.savefig('ILAVFIfig4.eps', format='eps', dpi=2000)
 
 plt.show()
 
