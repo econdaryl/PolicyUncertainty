@@ -220,7 +220,7 @@ ellhigh = ellbar + .4
 ellnpts = 11
 ellgrid = np.linspace(elllow, ellhigh, num = ellnpts)
 
-readVF = True
+readVF = False
 
 # initialize VF and PF
 if readVF:
@@ -236,7 +236,7 @@ Jf1 = np.zeros((knpts, znpts))
 
 # set VF iteration parameters
 #ccrit = 1.0E-20
-ccrit = 1.0E-06
+ccrit = 1.0E-0
 count = 0
 dist = 100.
 maxwhile = 10000 #is the convergent number
@@ -488,9 +488,8 @@ pkl.dump(coeffsJF1, output)
 pkl.dump(coeffsJF2, output)
 output.close()
 
-
-
-def PolSim(initial, nobs, ts, PF1, JF1, state1, params1, PF2, JF2, state2, \
+def PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, state1, params1, \
+           coeffsPF2, coeffsJF2, state2, \
            params2):
     
     '''
@@ -570,15 +569,29 @@ def PolSim(initial, nobs, ts, PF1, JF1, state1, params1, PF2, JF2, state2, \
         uhist
 
 
+# find the actual steady state for Pf1
+# simulate using coeffsPF1 for N periods with zero shock
+# specify initial values
+k0 = kbar
+z0 = 0.
+initial = (k0, z0)
+nobs = 20
+ts = 20
+params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0.])
+
+khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, uhist = \
+    PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, XYbar, params3, \
+           coeffsPF2, coeffsJF2, XYbar2, params3)        
+
 # specify the number of simulations and observations per simulation
-nsim = 100
+nsim = 1000
 nobs = 120
 
 # specify the period policy shifts
 ts = 20
 
 # specify initial values
-k0 = kbar
+k0 = khist[19]
 z0 = 0.
 initial = (k0, z0)
 
@@ -586,14 +599,14 @@ initial = (k0, z0)
 
 # run first simulation and store in Monte Carlo matrices
 kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc \
-    = PolSim(initial, nobs, ts, Pf1, Jf1, XYbar, params, Pf2, Jf2, XYbar2, \
-           params2)
+    = PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, XYbar, params, \
+      coeffsPF2, coeffsJF2, XYbar2, params2)
 
 for i in range(1, nsim):
     # run remaining simulations
     khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, uhist = \
-        PolSim(initial, nobs, ts, Pf1, Jf1, XYbar, params, Pf2, Jf2, XYbar2, \
-           params2)
+        PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, XYbar, params, \
+        coeffsPF2, coeffsJF2, XYbar2, params2)
     # stack results in Monte Carlo matrices
     kmc = np.vstack((kmc, khist))
     ellmc = np.vstack((ellmc, ellhist))
@@ -671,10 +684,11 @@ kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred \
 '''
 
 # plot predicted with upper and lower bounds
+################ divide all series by relevant bar values ##########################
 plt.subplot(2,2,1)
-plt.plot(range(kavg.size), kavg, 'k-',
-         range(kupp.size), kupp, 'k:',
-         range(klow.size), klow, 'k:')
+plt.plot(range(kavg.size), kavg/kbar, 'k-',
+         range(kupp.size), kupp/kbar, 'k:',
+         range(klow.size), klow/kbar, 'k:')
 plt.title('k')
 
 plt.subplot(2,2,2)
@@ -685,7 +699,7 @@ plt.title('ell')
 
 plt.subplot(2,2,3)
 plt.plot(range(zavg.size), zavg, 'k-',
-         range(zupp.size), zupp, 'k:',
+         range(zupp.size), zupp, 'k:',    ### Not these
          range(zlow.size), zlow, 'k:')
 plt.title('z')
 
@@ -803,6 +817,7 @@ plt.savefig('ILAVFIfig4.eps', format='eps', dpi=2000)
 
 plt.show()
 
+#####################################################################################
 '''
 ## Additional Work: plot grid approximation of policy functions and jump functions
 # plot grid approximation of PF1
