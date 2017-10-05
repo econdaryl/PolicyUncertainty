@@ -376,7 +376,7 @@ def PolSim(initial, nobs, ts, coeffs1, state1, params1, coeffs2, state2, \
 
 
 # specify the number of simulations and observations per simulation
-nsim = 10000
+nsim = 1000
 nobs = 120
 
 # specify the period policy shifts

@@ -203,21 +203,21 @@ def rouwen(rho, mu, step, num):
 
 # set up Markov approximation of AR(1) process using Rouwenhorst method
 spread = 5.  # number of standard deviations above and below 0
-znpts = 21
+znpts = 11
 zstep = 4.*spread*sigma_z/(znpts-1)
 # Markov transition probabilities, current z in cols, next z in rows
 Pimat, zgrid = rouwen(rho_z, 0., zstep, znpts)
 
 # discretize k
-klow = .5*kbar
-khigh = 1.5*kbar
-knpts = 21
+klow = .6*kbar
+khigh = 1.4*kbar
+knpts = 11
 kgrid = np.linspace(klow, khigh, num = knpts)
 
 # discretize ell
-elllow = 0.0
-ellhigh = 1.0
-ellnpts = 21
+elllow = ellbar - .4
+ellhigh = ellbar + .4
+ellnpts = 11
 ellgrid = np.linspace(elllow, ellhigh, num = ellnpts)
 
 readVF = True
@@ -229,7 +229,6 @@ if readVF:
     infile.close()
 else:
     Vf1 = np.ones((knpts, znpts)) * (-100)
-    Vf2 = np.ones((knpts, znpts)) * (-100)
 
 Vf1new = np.zeros((knpts, znpts))
 Pf1 = np.zeros((knpts, znpts))
@@ -281,7 +280,7 @@ while (nconv):
 
 print ('Converged after', count, 'iterations') 
 print ('Policy function at (', (knpts-1)/2, ',', (znpts-1)/2, ') should be', \
-kgrid[int((knpts-1)/2)], 'and is', Pf1[int((knpts-1)/2)], int((znpts-1)/2))
+kgrid[int((knpts-1)/2)], 'and is', Pf1[int((knpts-1)/2), int((znpts-1)/2)])
 
 # generate a history of Z's
 nobs = 150
@@ -348,6 +347,18 @@ zmesh, kmesh = np.meshgrid(zgrid, kgrid)
 # initialize VF2 and PF2
 if not(readVF):
     Vf2 = Vf1*1.
+    # Vf2 = np.ones((knpts, znpts)) * (-100)
+    
+# discretize k
+klow = .6*kbar2
+khigh = 1.4*kbar2
+kgrid2 = np.linspace(klow, khigh, num = knpts)
+
+# discretize ell
+# discretize ell
+elllow = ellbar2 - .4
+ellhigh = ellbar2 + .4
+ellgrid2 = np.linspace(elllow, ellhigh, num = ellnpts)
 
 Vf2new = np.zeros((knpts, znpts))
 Pf2 = np.zeros((knpts, znpts))
@@ -368,8 +379,8 @@ while (nconv):
             maxval = -100000000000
             for i3 in range(0, knpts): # over k_t+1
                 for i4 in range(0, knpts): # over ell_t
-                    Y, w, r, T, c, i, u = Modeldefs1(kgrid[i3], kgrid[i1], \
-                        ellgrid[i4], zgrid[i2], params)
+                    Y, w, r, T, c, i, u = Modeldefs1(kgrid2[i3], kgrid2[i1], \
+                        ellgrid2[i4], zgrid[i2], params2)
                     temp = u
                     for i5 in range(0, znpts): # over z_t+1
                         temp = temp + beta * Vf2[i3,i5] * Pimat[i2,i5]
@@ -381,8 +392,8 @@ while (nconv):
                     if temp > maxval:
                         maxval = temp
                         Vf2new[i1, i2] = temp
-                        Pf2[i1, i2] = kgrid[i3]
-                        Jf2[i1, i2] = ellgrid[i4]
+                        Pf2[i1, i2] = kgrid2[i3]
+                        Jf2[i1, i2] = ellgrid2[i4]
 
     # calculate the new distance measure, we use maximum absolute difference
     dist = np.amax(np.abs(Vf2 - Vf2new))
@@ -396,9 +407,10 @@ while (nconv):
 
 print ('Converged after', count, 'iterations')
 print ('Policy function at (', (knpts-1)/2, ',', (znpts-1)/2, ') should be', \
-    kgrid[int((knpts-1)/2)], 'and is', Pf2[int((knpts-1)/2), int((znpts-1)/2)])
+    kgrid2[int((knpts-1)/2)], 'and is', Pf2[int((knpts-1)/2), int((znpts-1)/2)])
 
-
+Pfdiff = Pf1 - Pf2
+Jfdiff = Jf1 - Jf2
 
 # fit PF1 and PF2, Jf1 and JF2 with polynomials
 
@@ -476,9 +488,8 @@ pkl.dump(coeffsJF1, output)
 pkl.dump(coeffsJF2, output)
 output.close()
 
-
-
-def PolSim(initial, nobs, ts, PF1, JF1, state1, params1, PF2, JF2, state2, \
+def PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, state1, params1, \
+           coeffsPF2, coeffsJF2, state2, \
            params2):
     
     '''
@@ -558,15 +569,29 @@ def PolSim(initial, nobs, ts, PF1, JF1, state1, params1, PF2, JF2, state2, \
         uhist
 
 
+# find the actual steady state for Pf1
+# simulate using coeffsPF1 for N periods with zero shock
+# specify initial values
+k0 = kbar
+z0 = 0.
+initial = (k0, z0)
+nobs = 20
+ts = 20
+params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0.])
+
+khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, uhist = \
+    PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, XYbar, params3, \
+           coeffsPF2, coeffsJF2, XYbar2, params3)        
+
 # specify the number of simulations and observations per simulation
-nsim = 100
+nsim = 1000
 nobs = 120
 
 # specify the period policy shifts
 ts = 20
 
 # specify initial values
-k0 = kbar
+k0 = khist[19]
 z0 = 0.
 initial = (k0, z0)
 
@@ -574,14 +599,14 @@ initial = (k0, z0)
 
 # run first simulation and store in Monte Carlo matrices
 kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc \
-    = PolSim(initial, nobs, ts, Pf1, Jf1, XYbar, params, Pf2, Jf2, XYbar2, \
-           params2)
+    = PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, XYbar, params, \
+      coeffsPF2, coeffsJF2, XYbar2, params2)
 
 for i in range(1, nsim):
     # run remaining simulations
     khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, uhist = \
-        PolSim(initial, nobs, ts, Pf1, Jf1, XYbar, params, Pf2, Jf2, XYbar2, \
-           params2)
+        PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, XYbar, params, \
+        coeffsPF2, coeffsJF2, XYbar2, params2)
     # stack results in Monte Carlo matrices
     kmc = np.vstack((kmc, khist))
     ellmc = np.vstack((ellmc, ellhist))
@@ -659,10 +684,11 @@ kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred \
 '''
 
 # plot predicted with upper and lower bounds
+################ divide all series by relevant bar values ##########################
 plt.subplot(2,2,1)
-plt.plot(range(kavg.size), kavg, 'k-',
-         range(kupp.size), kupp, 'k:',
-         range(klow.size), klow, 'k:')
+plt.plot(range(kavg.size), kavg/kbar, 'k-',
+         range(kupp.size), kupp/kbar, 'k:',
+         range(klow.size), klow/kbar, 'k:')
 plt.title('k')
 
 plt.subplot(2,2,2)
@@ -673,7 +699,7 @@ plt.title('ell')
 
 plt.subplot(2,2,3)
 plt.plot(range(zavg.size), zavg, 'k-',
-         range(zupp.size), zupp, 'k:',
+         range(zupp.size), zupp, 'k:',    ### Not these
          range(zlow.size), zlow, 'k:')
 plt.title('z')
 
@@ -791,12 +817,13 @@ plt.savefig('ILAVFIfig4.eps', format='eps', dpi=2000)
 
 plt.show()
 
+#####################################################################################
 '''
 ## Additional Work: plot grid approximation of policy functions and jump functions
 # plot grid approximation of PF1
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-ax.plot_surface(kmesh, zmesh, PF1)
+ax.plot_surface(kmesh, zmesh, Pf1)
 ax.view_init(30, 150)
 plt.title('PF1 Grid')
 plt.xlabel('k(t)')
@@ -806,7 +833,7 @@ plt.show()
 # plot grid approximation of PF2
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-ax.plot_surface(kmesh, zmesh, PF2)
+ax.plot_surface(kmesh, zmesh, Pf2)
 ax.view_init(30, 150)
 plt.title('PF2 Grid')
 plt.xlabel('k(t)')
@@ -816,7 +843,7 @@ plt.show()
 # plot grid approximation of JF1
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-ax.plot_surface(kmesh, zmesh, JF1)
+ax.plot_surface(kmesh, zmesh, Jf1)
 ax.view_init(30, 150)
 plt.title('JF1 Grid')
 plt.xlabel('k(t)')
@@ -826,7 +853,7 @@ plt.show()
 # plot grid approximation of JF2
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-ax.plot_surface(kmesh, zmesh, JF2)
+ax.plot_surface(kmesh, zmesh, Jf2)
 ax.view_init(30, 150)
 plt.title('JF2 Grid')
 plt.xlabel('k(t)')
@@ -837,10 +864,10 @@ plt.show()
 
 ## Get the polynomial approximations
 
-PF1approx = 0.*PF1
-PF2approx = 0.*PF2
-JF1approx = 0.*JF1
-JF2approx = 0.*JF2
+PF1approx = 0.*Pf1
+PF2approx = 0.*Pf2
+JF1approx = 0.*Jf1
+JF2approx = 0.*Jf2
 
 for i in range(0,knpts):
     for j in range(0,znpts):
