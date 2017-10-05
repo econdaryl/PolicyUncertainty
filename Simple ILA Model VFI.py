@@ -220,7 +220,7 @@ ellhigh = 1.0
 ellnpts = 21
 ellgrid = np.linspace(elllow, ellhigh, num = ellnpts)
 
-readVF = False
+readVF = True
 
 # initialize VF and PF
 if readVF:
@@ -237,7 +237,7 @@ Jf1 = np.zeros((knpts, znpts))
 
 # set VF iteration parameters
 #ccrit = 1.0E-20
-ccrit = 1.0E-0
+ccrit = 1.0E-09
 count = 0
 dist = 100.
 maxwhile = 10000 #is the convergent number
