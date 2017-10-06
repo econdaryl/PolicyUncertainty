@@ -403,7 +403,7 @@ kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred = \
 
 # begin Monte Carlos
 # specify the number of simulations
-nsim = 10000
+nsim = 1000
 
 # run first simulation and store in Monte Carlo matrices
 kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc \
@@ -496,16 +496,16 @@ data = (kpred/kbar, kupp/kbar, klow/kbar, khist/kbar, \
 from ILAplots import ILAplots
 ILAplots(data, name)
 
-# save results in pickle file
-import pickle as pkl
-
-output = open(name + '.pkl', 'wb')
-
-polsimpars = (initial, nobs, ts, coeffs1, XYbar, params, coeffs2, XYbar2, \
-             params2)
-pkl.dump(polsimpars, output)
-
-mcdata = (kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc)
-pkl.dump(mcdata, output)
-
-output.close()
+## save results in pickle file
+#import pickle as pkl
+#
+#output = open(name + '.pkl', 'wb')
+#
+#polsimpars = (initial, nobs, ts, coeffs1, XYbar, params, coeffs2, XYbar2, \
+#             params2)
+#pkl.dump(polsimpars, output)
+#
+#mcdata = (kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc)
+#pkl.dump(mcdata, output)
+#
+#output.close()
