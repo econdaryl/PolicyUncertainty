@@ -7,7 +7,6 @@ Created on Thu Aug 10 16:08:19 2017
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 # import the modules from LinApp
 from LinApp_FindSS import LinApp_FindSS
@@ -97,6 +96,8 @@ def Modeldyn(theta0, params):
     
     return np.array([E1, E2])
 
+# set name for external files written
+name = 'ILALin'
 
 # set parameter values
 alpha = .35
@@ -334,6 +335,10 @@ def PolSim(initial, nobs, ts, coeffs1, state1, params1, coeffs2, state2, \
     ihist = np.zeros(nobs)
     uhist = np.zeros(nobs)
     
+    # upack simulation parameters
+    rho_z = params1[7] 
+    sigma_z = params1[8]
+    
     # set starting values
     khist[0] = k0
     zhist[0] = z0
@@ -374,9 +379,7 @@ def PolSim(initial, nobs, ts, coeffs1, state1, params1, coeffs2, state2, \
     return khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, \
         uhist
 
-
-# specify the number of simulations and observations per simulation
-nsim = 1000
+# specify the number of observations per simulation
 nobs = 120
 
 # specify the period policy shifts
@@ -391,7 +394,16 @@ initial = (k0, z0)
 coeffs1 = (PP, QQ, UU, RR, SS, VV)
 coeffs2 = (PP2, QQ2, UU2, RR2, SS2, VV2)
 
+# get a time zero prediction
+params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0.])
+
+kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred = \
+    PolSim(initial, nobs, ts, coeffs1, XYbar, params3, coeffs2, XYbar2, \
+           params3)
+
 # begin Monte Carlos
+# specify the number of simulations
+nsim = 10000
 
 # run first simulation and store in Monte Carlo matrices
 kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc \
@@ -468,146 +480,31 @@ clow = cmc[low,:]
 ilow = imc[low,:]
 ulow = umc[low,:]
 
-# plot
-plt.subplot(2,2,1)
-plt.plot(range(kavg.size), kavg, 'k-',
-         range(kupp.size), kupp, 'k:',
-         range(klow.size), klow, 'k:')
-plt.title('k')
+# create a list of time series to plot
+data = (kpred/kbar, kupp/kbar, klow/kbar, khist/kbar, \
+        ellpred/ellbar, ellupp/ellbar, elllow/ellbar, ellhist/ellbar, \
+        zpred, zupp, zlow, zhist, \
+        Ypred/Ybar, Yupp/Ybar, Ylow/Ybar, Yhist/Ybar, \
+        wpred/wbar, wupp/wbar, wlow/wbar, whist/wbar, \
+        rpred/rbar, rupp/rbar, rlow/rbar, rhist/rbar, \
+        Tpred/Tbar, Tupp/Tbar, Tlow/Tbar, Thist/Tbar, \
+        cpred/cbar, cupp/cbar, clow/cbar, chist/cbar, \
+        ipred/ibar, iupp/ibar, ilow/ibar, ihist/ibar, \
+        upred/ubar, uupp/ubar, ulow/ubar, uhist/ubar)
 
-plt.subplot(2,2,2)
-plt.plot(range(ellavg.size), ellavg, 'k-',
-         range(ellupp.size), ellupp, 'k:',
-         range(elllow.size), elllow, 'k:')
-plt.title('ell')
-
-plt.subplot(2,2,3)
-plt.plot(range(zavg.size), zavg, 'k-',
-         range(zupp.size), zupp, 'k:',
-         range(zlow.size), zlow, 'k:')
-plt.title('z')
-
-plt.subplot(2,2,4)
-plt.plot(range(Yavg.size), Yavg, 'k-',
-         range(Yupp.size), Yupp, 'k:',
-         range(Ylow.size), Ylow, 'k:')
-plt.title('Y')
-
-# save high quality version to external file
-plt.savefig('ILALinfig1.eps', format='eps', dpi=2000)
-
-plt.show()
-
-plt.subplot(3,2,1)
-plt.plot(range(wavg.size), wavg, 'k-',
-         range(wupp.size), wupp, 'k:',
-         range(wlow.size), wlow, 'k:')
-plt.title('w')
-
-plt.subplot(3,2,2)
-plt.plot(range(ravg.size), ravg, 'k-',
-         range(rupp.size), rupp, 'k:',
-         range(rlow.size), rlow, 'k:')
-plt.title('r')
-
-plt.subplot(3,2,3)
-plt.plot(range(Tavg.size), Tavg, 'k-',
-         range(Tupp.size), Tupp, 'k:',
-         range(Tlow.size), Tlow, 'k:')
-plt.title('T')
-
-plt.subplot(3,2,4)
-plt.plot(range(cavg.size), cavg, 'k-',
-         range(cupp.size), cupp, 'k:',
-         range(clow.size), clow, 'k:')
-plt.title('c')
-
-plt.subplot(3,2,5)
-plt.plot(range(iavg.size), iavg, 'k-',
-         range(iupp.size), iupp, 'k:',
-         range(ilow.size), ilow, 'k:')
-plt.title('iT')
-
-plt.subplot(3,2,6)
-plt.plot(range(uavg.size), uavg, 'k-',
-         range(uupp.size), uupp, 'k:',
-         range(ulow.size), ulow, 'k:')
-plt.title('u')
-
-# save high quality version to external file
-plt.savefig('ILALinfig2.eps', format='eps', dpi=2000)
-
-plt.show()
-
-# plot
-plt.subplot(2,2,1)
-plt.plot(range(khist.size), khist, 'k-',
-         range(kavg.size), kavg, 'r-')
-plt.title('k')
-
-plt.subplot(2,2,2)
-plt.plot(range(ellhist.size), ellhist, 'k-',
-         range(ellavg.size), ellavg, 'r-')
-plt.title('ell')
-
-plt.subplot(2,2,3)
-plt.plot(range(zhist.size), zhist, 'k-',
-         range(zavg.size), zavg, 'r-')
-plt.title('z')
-
-plt.subplot(2,2,4)
-plt.plot(range(Yhist.size), Yhist, 'k-',
-         range(Yavg.size), Yavg, 'r-')
-plt.title('Y')
-
-# save high quality version to external file
-plt.savefig('ILALinfig3.eps', format='eps', dpi=2000)
-
-plt.show()
-
-plt.subplot(3,2,1)
-plt.plot(range(whist.size), whist, 'k-',
-         range(wavg.size), wavg, 'r-')
-plt.title('w')
-
-plt.subplot(3,2,2)
-plt.plot(range(rhist.size), rhist, 'k-',
-         range(ravg.size), ravg, 'r-')
-plt.title('r')
-
-plt.subplot(3,2,3)
-plt.plot(range(Thist.size), Thist, 'k-',
-         range(Tavg.size), Tavg, 'r-')
-plt.title('T')
-
-plt.subplot(3,2,4)
-plt.plot(range(chist.size), chist, 'k-',
-         range(cavg.size), cavg, 'r-')
-plt.title('c')
-
-plt.subplot(3,2,5)
-plt.plot(range(ihist.size), ihist, 'k-',
-         range(iavg.size), iavg, 'r-')
-plt.title('iT')
-
-plt.subplot(3,2,6)
-plt.plot(range(uhist.size), uhist, 'k-',
-         range(uavg.size), uavg, 'r-')
-plt.title('u')
-
-# save high quality version to external file
-plt.savefig('ILALinfig4.eps', format='eps', dpi=2000)
-
-plt.show()
+# plot using Simple ILA Model Plot.py
+from ILAplots import ILAplots
+ILAplots(data, name)
 
 # save results in pickle file
 import pickle as pkl
 
-output = open('ILALin.pkl', 'wb')
+output = open(name + '.pkl', 'wb')
 
 polsimpars = (initial, nobs, ts, coeffs1, XYbar, params, coeffs2, XYbar2, \
              params2)
 pkl.dump(polsimpars, output)
+
 mcdata = (kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc)
 pkl.dump(mcdata, output)
 
