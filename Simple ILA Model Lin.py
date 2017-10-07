@@ -14,6 +14,7 @@ from LinApp_Deriv import LinApp_Deriv
 from LinApp_Solve import LinApp_Solve
 from LinApp_SSL import LinApp_SSL
 
+
 def Modeldefs(Xp, X, Y, Z, params):
     '''
     This function takes vectors of endogenous and exogenous state variables
@@ -27,8 +28,8 @@ def Modeldefs(Xp, X, Y, Z, params):
         Z: value of productivity this period
         params: list of parameter values
     
-    Output are:
-        Y: GDP
+    Outputs are:
+        GDP: GDP
         w: wage rate
         r: rental rate on capital
         T: transfer payments
@@ -41,18 +42,22 @@ def Modeldefs(Xp, X, Y, Z, params):
     kp = Xp
     k = X
     ell = Y
+    if ell > 0.9999:
+        ell = 0.9999
+    elif ell < 0.0001:
+        ell = 0.0001
     z = Z
     
     # unpack params
-    [alpha, beta, gamma, delta, chi, theta, tau, rho_z, sigma_z] = params
+    [alpha, beta, gamma, delta, chi, theta, tau, rho, sigma] = params
     
     # find definintion values
-    Y = k**alpha*(np.exp(z)*ell)**(1-alpha)
-    w = (1-alpha)*Y/ell
-    r = alpha*Y/k
+    GDP = k**alpha*(np.exp(z)*ell)**(1-alpha)
+    w = (1-alpha)*GDP/ell
+    r = alpha*GDP/k
     T = tau*(w*ell + (r - delta)*k)
     c = (1-tau)*(w*ell + (r - delta)*k) + k + T - kp
-    i = Y - c
+    i = GDP - c
     u = c**(1-gamma)/(1-gamma) - chi*ell**(1+theta)/(1+theta)
     return Y, w, r, T, c, i, u
 
@@ -83,12 +88,16 @@ def Modeldyn(theta0, params):
     (Xpp, Xp, X, Yp, Y, Zp, Z) = theta0
     
     # unpack params
-    [alpha, beta, gamma, delta, chi, theta, tau, rho_z, sigma_z] = params
+    [alpha, beta, gamma, delta, chi, theta, tau, rho, sigma] = params
     
     # find definitions for now and next period
     ell = Y
-    Y, w, r, T, c, i, u = Modeldefs(Xp, X, Y, Z, params)
-    Yp, wp, rp, Tp, cp, ip, up = Modeldefs(Xpp, Xp, Yp, Zp, params)
+    if ell > 1:
+        ell = 0.9999
+    elif ell < 0.0001:
+        ell = 0.0001
+    GDP, w, r, T, c, i, u = Modeldefs(Xp, X, Y, Z, params)
+    GDPp, wp, rp, Tp, cp, ip, up = Modeldefs(Xpp, Xp, Yp, Zp, params)
     
     # Evaluate Euler equations
     E1 = (c**(-gamma)*(1-tau)*w) / (chi*ell**theta) - 1
@@ -403,7 +412,7 @@ kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred = \
 
 # begin Monte Carlos
 # specify the number of simulations
-nsim = 1000
+nsim = 10000
 
 # run first simulation and store in Monte Carlo matrices
 kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc \
