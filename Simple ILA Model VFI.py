@@ -54,7 +54,7 @@ def Modeldefs1(Xp, X, Y, Z, params):
     T = tau*(w*ell + (r - delta)*k)
     c = (1-tau)*(w*ell + (r - delta)*k) + k + T - kp
     i = Y - c
-    u = c**(1-gamma)/(1-gamma) - chi*ell**(1+theta)/(1+theta)
+    u = (c**(1-gamma)-1)/(1-gamma) - chi*ell**(1+theta)/(1+theta)
     return Y, w, r, T, c, i, u
 
 
@@ -522,30 +522,53 @@ def PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, state1, params1, \
         
     return khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, \
         uhist
-
+        
+        
+# parameters with zero variance for shocks
+params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0.])
+params4 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z, 0.])
 
 # specify the number of observations per simulation
-nobs = 120
+nobs = 1000
 
 # specify the period policy shifts
-ts = 20
+ts = nobs
 
 # specify initial values
 k0 = kbar
 z0 = 0.
 initial = (k0, z0)
 
-# get a time zero prediction
-params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0.])
-
+# find actual steady state for baseline
+# simulate with zero shocks and see what k converges to in last period
 kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred = \
     PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, XYbar, params3, \
            coeffsPF2, coeffsJF2, XYbar2, params3)
 
+# find actual (uncertainty) steady state values for baseline
+kact = kpred[nobs-1]
+ellact = ellpred[nobs-1]
+Yact, wact, ract, Tact, cact, iact, uact = \
+    Modeldefs1(kact, kact, ellact, 0., params)
+
+# reset nobs and ts
+ts = 20
+nobs = 120
+    
+# respecify initial values
+k0 = kact
+z0 = 0.
+initial = (k0, z0)
+
+# get a time zero prediction
+kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred = \
+    PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, XYbar, params3, \
+           coeffsPF2, coeffsJF2, XYbar2, params4)
+
 
 # begin Monte Carlos
 # specify the number of simulations
-nsim = 10000
+nsim = 100
 
 # run first simulation and store in Monte Carlo matrices
 kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc \
@@ -623,16 +646,16 @@ ilow = imc[low,:]
 ulow = umc[low,:]
 
 # create a list of time series to plot
-data = (kpred/kbar, kupp/kbar, klow/kbar, khist/kbar, \
-        ellpred/ellbar, ellupp/ellbar, elllow/ellbar, ellhist/ellbar, \
+data = (kpred/kact, kupp/kact, klow/kact, khist/kact, \
+        ellpred/ellact, ellupp/ellact, elllow/ellact, ellhist/ellact, \
         zpred, zupp, zlow, zhist, \
-        Ypred/Ybar, Yupp/Ybar, Ylow/Ybar, Yhist/Ybar, \
-        wpred/wbar, wupp/wbar, wlow/wbar, whist/wbar, \
-        rpred/rbar, rupp/rbar, rlow/rbar, rhist/rbar, \
-        Tpred/Tbar, Tupp/Tbar, Tlow/Tbar, Thist/Tbar, \
-        cpred/cbar, cupp/cbar, clow/cbar, chist/cbar, \
-        ipred/ibar, iupp/ibar, ilow/ibar, ihist/ibar, \
-        upred/ubar, uupp/ubar, ulow/ubar, uhist/ubar)
+        Ypred/Yact, Yupp/Yact, Ylow/Yact, Yhist/Yact, \
+        wpred/wact, wupp/wact, wlow/wact, whist/wact, \
+        rpred/ract, rupp/ract, rlow/ract, rhist/ract, \
+        Tpred/Tact, Tupp/Tact, Tlow/Tact, Thist/Tact, \
+        cpred/cact, cupp/cact, clow/cact, chist/cact, \
+        ipred/iact, iupp/iact, ilow/iact, ihist/iact, \
+        upred/uact, uupp/uact, ulow/uact, uhist/uact)
 
 # plot using Simple ILA Model Plot.py
 from ILAplots import ILAplots
