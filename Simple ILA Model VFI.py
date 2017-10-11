@@ -97,6 +97,8 @@ def Modeldyn1(theta0, params):
     
     return np.array([E1, E2])
 
+# set name for external files written
+name = 'ILAVFI'
 
 # set parameter values
 alpha = .35
@@ -152,54 +154,7 @@ print ('ibar:   ', ibar)
 print ('ubar:   ', ubar)
 
 
-"""That's where I start"""
-
-def rouwen(rho, mu, step, num):
-    '''
-    Adapted from Lu Zhang and Karen Kopecky. Python by Ben Tengelsen.
-    Construct transition probability matrix for discretizing an AR(1)
-    process. This procedure is from Rouwenhorst (1995), which works
-    well for very persistent processes.
-
-    INPUTS:
-    rho  - persistence (close to one)
-    mu   - mean and the middle point of the discrete state space
-    step - step size of the even-spaced grid
-    num  - number of grid points on the discretized process
-
-    OUTPUT:
-    dscSp  - discrete state space (num by 1 vector)
-    transP - transition probability matrix over the grid
-    '''
-
-    # discrete state space
-    dscSp = np.linspace(mu -(num-1)/2*step, mu +(num-1)/2*step, num).T
-
-    # transition probability matrix
-    q = p = (rho + 1)/2.
-    transP = np.array([[p**2, p*(1-q), (1-q)**2], \
-                    [2*p*(1-p), p*q+(1-p)*(1-q), 2*q*(1-q)], \
-                    [(1-p)**2, (1-p)*q, q**2]]).T
-
-
-    while transP.shape[0] <= num - 1:
-
-        # see Rouwenhorst 1995
-        len_P = transP.shape[0]
-        transP = p * np.vstack((np.hstack((transP, np.zeros((len_P, 1)))), np.zeros((1, len_P+1)))) \
-                + (1 - p) * np.vstack((np.hstack((np.zeros((len_P, 1)), transP)), np.zeros((1, len_P+1)))) \
-                + (1 - q) * np.vstack((np.zeros((1, len_P+1)), np.hstack((transP, np.zeros((len_P, 1)))))) \
-                + q * np.vstack((np.zeros((1, len_P+1)), np.hstack((np.zeros((len_P, 1)), transP))))
-
-        transP[1:-1] /= 2.
-
-
-    # ensure columns sum to 1
-    if np.max(np.abs(np.sum(transP, axis=1) - np.ones(transP.shape))) >= 1e-12:
-        print('Problem in rouwen routine!')
-        return None
-    else:
-        return transP.T, dscSp
+from rouwen.py import rouwen
 
 # set up Markov approximation of AR(1) process using Rouwenhorst method
 spread = 5.  # number of standard deviations above and below 0
@@ -569,33 +524,28 @@ def PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, state1, params1, \
         uhist
 
 
-# find the actual steady state for Pf1
-# simulate using coeffsPF1 for N periods with zero shock
-# specify initial values
-k0 = kbar
-z0 = 0.
-initial = (k0, z0)
-nobs = 20
-ts = 20
-params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0.])
-
-khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, uhist = \
-    PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, XYbar, params3, \
-           coeffsPF2, coeffsJF2, XYbar2, params3)        
-
-# specify the number of simulations and observations per simulation
-nsim = 1000
+# specify the number of observations per simulation
 nobs = 120
 
 # specify the period policy shifts
 ts = 20
 
 # specify initial values
-k0 = khist[19]
+k0 = kbar
 z0 = 0.
 initial = (k0, z0)
 
+# get a time zero prediction
+params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0.])
+
+kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred = \
+    PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, XYbar, params3, \
+           coeffsPF2, coeffsJF2, XYbar2, params3)
+
+
 # begin Monte Carlos
+# specify the number of simulations
+nsim = 10000
 
 # run first simulation and store in Monte Carlo matrices
 kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc \
@@ -672,152 +622,23 @@ clow = cmc[low,:]
 ilow = imc[low,:]
 ulow = umc[low,:]
 
-'''
-# find the predicted path with no randomness
-# run first simulation and store in Monte Carlo matrices
-params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0])
-params4 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z, 0.])
+# create a list of time series to plot
+data = (kpred/kbar, kupp/kbar, klow/kbar, khist/kbar, \
+        ellpred/ellbar, ellupp/ellbar, elllow/ellbar, ellhist/ellbar, \
+        zpred, zupp, zlow, zhist, \
+        Ypred/Ybar, Yupp/Ybar, Ylow/Ybar, Yhist/Ybar, \
+        wpred/wbar, wupp/wbar, wlow/wbar, whist/wbar, \
+        rpred/rbar, rupp/rbar, rlow/rbar, rhist/rbar, \
+        Tpred/Tbar, Tupp/Tbar, Tlow/Tbar, Thist/Tbar, \
+        cpred/cbar, cupp/cbar, clow/cbar, chist/cbar, \
+        ipred/ibar, iupp/ibar, ilow/ibar, ihist/ibar, \
+        upred/ubar, uupp/ubar, ulow/ubar, uhist/ubar)
 
-kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred \
-    = PolSim(initial, nobs, ts, PF1, JF1, XYbar, params3, PF2, JF2, XYbar2, \
-           params4)
-'''
-
-# plot predicted with upper and lower bounds
-################ divide all series by relevant bar values ##########################
-plt.subplot(2,2,1)
-plt.plot(range(kavg.size), kavg/kbar, 'k-',
-         range(kupp.size), kupp/kbar, 'k:',
-         range(klow.size), klow/kbar, 'k:')
-plt.title('k')
-
-plt.subplot(2,2,2)
-plt.plot(range(ellavg.size), ellavg, 'k-',
-         range(ellupp.size), ellupp, 'k:',
-         range(elllow.size), elllow, 'k:')
-plt.title('ell')
-
-plt.subplot(2,2,3)
-plt.plot(range(zavg.size), zavg, 'k-',
-         range(zupp.size), zupp, 'k:',    ### Not these
-         range(zlow.size), zlow, 'k:')
-plt.title('z')
-
-plt.subplot(2,2,4)
-plt.plot(range(Yavg.size), Yavg, 'k-',
-         range(Yupp.size), Yupp, 'k:',
-         range(Ylow.size), Ylow, 'k:')
-plt.title('Y')
-
-# save high quality version to external file
-plt.savefig('ILAVFIfig1.eps', format='eps', dpi=2000)
-
-plt.show()
-
-plt.subplot(3,2,1)
-plt.plot(range(wavg.size), wavg, 'k-',
-         range(wupp.size), wupp, 'k:',
-         range(wlow.size), wlow, 'k:')
-plt.title('w')
-
-plt.subplot(3,2,2)
-plt.plot(range(ravg.size), ravg, 'k-',
-         range(rupp.size), rupp, 'k:',
-         range(rlow.size), rlow, 'k:')
-plt.title('r')
-
-plt.subplot(3,2,3)
-plt.plot(range(Tavg.size), Tavg, 'k-',
-         range(Tupp.size), Tupp, 'k:',
-         range(Tlow.size), Tlow, 'k:')
-plt.title('T')
-
-plt.subplot(3,2,4)
-plt.plot(range(cavg.size), cavg, 'k-',
-         range(cupp.size), cupp, 'k:',
-         range(clow.size), clow, 'k:')
-plt.title('c')
-
-plt.subplot(3,2,5)
-plt.plot(range(iavg.size), iavg, 'k-',
-         range(iupp.size), iupp, 'k:',
-         range(ilow.size), ilow, 'k:')
-plt.title('iT')
-
-plt.subplot(3,2,6)
-plt.plot(range(uavg.size), uavg, 'k-',
-         range(uupp.size), uupp, 'k:',
-         range(ulow.size), ulow, 'k:')
-plt.title('u')
-
-# save high quality version to external file
-plt.savefig('ILAVFIfig2.eps', format='eps', dpi=2000)
-
-plt.show()
+# plot using Simple ILA Model Plot.py
+from ILAplots import ILAplots
+ILAplots(data, name)
 
 
-# plot avgicted with typical simulation
-plt.subplot(2,2,1)
-plt.plot(range(khist.size), khist, 'k-',
-         range(kavg.size), kavg, 'r-')
-plt.title('k')
-
-plt.subplot(2,2,2)
-plt.plot(range(ellhist.size), ellhist, 'k-',
-         range(ellavg.size), ellavg, 'r-')
-plt.title('ell')
-
-plt.subplot(2,2,3)
-plt.plot(range(zhist.size), zhist, 'k-',
-         range(zavg.size), zavg, 'r-')
-plt.title('z')
-
-plt.subplot(2,2,4)
-plt.plot(range(Yhist.size), Yhist, 'k-',
-         range(Yavg.size), Yavg, 'r-')
-plt.title('Y')
-
-# save high quality version to external file
-plt.savefig('ILAVFIfig3.eps', format='eps', dpi=2000)
-
-plt.show()
-
-plt.subplot(3,2,1)
-plt.plot(range(whist.size), whist, 'k-',
-         range(wavg.size), wavg, 'r-')
-plt.title('w')
-
-plt.subplot(3,2,2)
-plt.plot(range(rhist.size), rhist, 'k-',
-         range(ravg.size), ravg, 'r-')
-plt.title('r')
-
-plt.subplot(3,2,3)
-plt.plot(range(Thist.size), Thist, 'k-',
-         range(Tavg.size), Tavg, 'r-')
-plt.title('T')
-
-plt.subplot(3,2,4)
-plt.plot(range(chist.size), chist, 'k-',
-         range(cavg.size), cavg, 'r-')
-plt.title('c')
-
-plt.subplot(3,2,5)
-plt.plot(range(ihist.size), ihist, 'k-',
-         range(iavg.size), iavg, 'r-')
-plt.title('iT')
-
-plt.subplot(3,2,6)
-plt.plot(range(uhist.size), uhist, 'k-',
-         range(uavg.size), uavg, 'r-')
-plt.title('u')
-
-# save high quality version to external file
-plt.savefig('ILAVFIfig4.eps', format='eps', dpi=2000)
-
-plt.show()
-
-#####################################################################################
 '''
 ## Additional Work: plot grid approximation of policy functions and jump functions
 # plot grid approximation of PF1
