@@ -154,7 +154,7 @@ print ('ibar:   ', ibar)
 print ('ubar:   ', ubar)
 
 
-from rouwen.py import rouwen
+from rouwen import rouwen
 
 # set up Markov approximation of AR(1) process using Rouwenhorst method
 spread = 5.  # number of standard deviations above and below 0
