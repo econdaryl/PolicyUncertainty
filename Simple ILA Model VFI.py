@@ -11,11 +11,12 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import pickle as pkl
 
-a = np.array([[1.23,2],[1,2]])
 # import the modules from LinApp
 from LinApp_FindSS import LinApp_FindSS
 
-def Modeldefs1(Xp, X, Y, Z, params):
+# Define the model
+
+def Modeldefs(Xp, X, Y, Z, params):
     '''
     This function takes vectors of endogenous and exogenous state variables
     along with a vector of 'jump' variables and returns explicitly defined
@@ -28,8 +29,8 @@ def Modeldefs1(Xp, X, Y, Z, params):
         Z: value of productivity this period
         params: list of parameter values
     
-    Output are:
-        Y: GDP
+    Outputs are:
+        GDP: GDP
         w: wage rate
         r: rental rate on capital
         T: transfer payments
@@ -42,23 +43,27 @@ def Modeldefs1(Xp, X, Y, Z, params):
     kp = Xp
     k = X
     ell = Y
+    if ell > 0.9999:
+        ell = 0.9999
+    elif ell < 0.0001:
+        ell = 0.0001
     z = Z
     
     # unpack params
-    [alpha, beta, gamma, delta, chi, theta, tau, rho_z, sigma_z] = params
+    [alpha, beta, gamma, delta, chi, theta, tau, rho, sigma] = params
     
     # find definintion values
-    Y = k**alpha*(np.exp(z)*ell)**(1-alpha)
-    w = (1-alpha)*Y/ell
-    r = alpha*Y/k
+    GDP = k**alpha*(np.exp(z)*ell)**(1-alpha)
+    w = (1-alpha)*GDP/ell
+    r = alpha*GDP/k
     T = tau*(w*ell + (r - delta)*k)
     c = (1-tau)*(w*ell + (r - delta)*k) + k + T - kp
-    i = Y - c
-    u = c**(1-gamma)/(1-gamma) - chi*ell**(1+theta)/(1+theta)
+    i = GDP - c
+    u = (c**(1-gamma)-1)/(1-gamma) - (chi*ell**(1+theta))/(1+theta)
     return Y, w, r, T, c, i, u
 
 
-def Modeldyn1(theta0, params):
+def Modeldyn(theta0, params):
     '''
     This function takes vectors of endogenous and exogenous state variables
     along with a vector of 'jump' variables and returns values from the
@@ -84,19 +89,22 @@ def Modeldyn1(theta0, params):
     (Xpp, Xp, X, Yp, Y, Zp, Z) = theta0
     
     # unpack params
-    [alpha, beta, gamma, delta, chi, theta, tau, rho_z, sigma_z] = params
+    [alpha, beta, gamma, delta, chi, theta, tau, rho, sigma] = params
     
     # find definitions for now and next period
     ell = Y
-    Y, w, r, T, c, i, u = Modeldefs1(Xp, X, Y, Z, params)
-    Yp, wp, rp, Tp, cp, ip, up = Modeldefs1(Xpp, Xp, Yp, Zp, params)
+    if ell > 1:
+        ell = 0.9999
+    elif ell < 0.0001:
+        ell = 0.0001
+    GDP, w, r, T, c, i, u = Modeldefs(Xp, X, Y, Z, params)
+    GDPp, wp, rp, Tp, cp, ip, up = Modeldefs(Xpp, Xp, Yp, Zp, params)
     
     # Evaluate Euler equations
     E1 = (c**(-gamma)*(1-tau)*w) / (chi*ell**theta) - 1
     E2 = (c**(-gamma)) / (beta*cp**(-gamma)*(1 + (1-tau)*(rp - delta))) - 1
     
     return np.array([E1, E2])
-
 
 # set parameter values
 alpha = .35
@@ -124,21 +132,21 @@ Sylv = 0
 guessXY = np.array([.1, .25])
 
 # find the steady state values using LinApp_FindSS
-XYbar = LinApp_FindSS(Modeldyn1, params, guessXY, Zbar, nx, ny)
+XYbar = LinApp_FindSS(Modeldyn, params, guessXY, Zbar, nx, ny)
 (kbar, ellbar) = XYbar
 
 # set up steady state input vector
 theta0 = np.array([kbar, kbar, kbar, ellbar, ellbar, 0., 0.])
 
 # check SS solution
-check = Modeldyn1(theta0, params)
+check = Modeldyn(theta0, params)
 print ('check SS: ', check)
 if np.max(np.abs(check)) > 1.E-6:
     print ('Have NOT found steady state')
     
 # find the steady state values for the definitions
 Ybar, wbar, rbar, Tbar, cbar, ibar, ubar = \
-    Modeldefs1(kbar, kbar, ellbar, 0., params)
+    Modeldefs(kbar, kbar, ellbar, 0., params)
 
 # display all steady state values
 print ('kbar:   ', kbar)
@@ -203,29 +211,30 @@ def rouwen(rho, mu, step, num):
 
 # set up Markov approximation of AR(1) process using Rouwenhorst method
 spread = 5.  # number of standard deviations above and below 0
-znpts = 11
+znpts = 21
 zstep = 4.*spread*sigma_z/(znpts-1)
+
 # Markov transition probabilities, current z in cols, next z in rows
 Pimat, zgrid = rouwen(rho_z, 0., zstep, znpts)
 
 # discretize k
 klow = .6*kbar
 khigh = 1.4*kbar
-knpts = 11
+knpts = 21
 kgrid = np.linspace(klow, khigh, num = knpts)
 
 # discretize ell
 elllow = ellbar - .4
 ellhigh = ellbar + .4
-ellnpts = 11
+ellnpts = 21
 ellgrid = np.linspace(elllow, ellhigh, num = ellnpts)
 
-readVF = True
+readVF = False
 
 # initialize VF and PF
 if readVF:
     infile = open('ILAVFI.pkl', 'rb')
-    pkl.load(infile)
+    Vf1 = pkl.load(infile)
     infile.close()
 else:
     Vf1 = np.ones((knpts, znpts)) * (-100)
@@ -236,10 +245,10 @@ Jf1 = np.zeros((knpts, znpts))
 
 # set VF iteration parameters
 #ccrit = 1.0E-20
-ccrit = 1.0E-09
+ccrit = 1.0E-01
 count = 0
 dist = 100.
-maxwhile = 10000 #is the convergent number
+maxwhile = 4000  #2432?
 
 # run the program to get the value function (VF1)
 nconv = True 
@@ -252,7 +261,7 @@ while (nconv):
             maxval = -100000000000
             for i3 in range(0, knpts): # over k_t+1
                 for i4 in range(0, knpts): # over ell_t
-                    Y, w, r, T, c, i, u = Modeldefs1(kgrid[i3], kgrid[i1], \
+                    Y, w, r, T, c, i, u = Modeldefs(kgrid[i3], kgrid[i1], \
                         ellgrid[i4], zgrid[i2], params)
                     temp = u
                     for i5 in range(0, znpts): # over z_t+1
@@ -309,21 +318,21 @@ params2 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z,
 guessXY = XYbar
 
 # find the steady state values using LinApp_FindSS
-XYbar2 = LinApp_FindSS(Modeldyn1, params2, guessXY, Zbar, nx, ny)
+XYbar2 = LinApp_FindSS(Modeldyn, params2, guessXY, Zbar, nx, ny)
 (kbar2, ellbar2) = XYbar2
 
 # set up steady state input vector
 theta02 = np.array([kbar2, kbar2, kbar2, ellbar2, ellbar2, 0., 0.])
 
 # check SS solution
-check = Modeldyn1(theta02, params2)
+check = Modeldyn(theta02, params2)
 print ('check SS: ', check)
 if np.max(np.abs(check)) > 1.E-6:
     print ('Have NOT found steady state')
     
 # find the steady state values for the definitions
 Ybar2, wbar2, rbar2, Tbar2, cbar2, ibar2, ubar2 = \
-    Modeldefs1(kbar2, kbar2, ellbar2, 0., params2)
+    Modeldefs(kbar2, kbar2, ellbar2, 0., params2)
 
 # display all steady state values
 print ('kbar:   ', kbar2)
@@ -345,9 +354,9 @@ zmesh, kmesh = np.meshgrid(zgrid, kgrid)
 # find value function and transition function
 
 # initialize VF2 and PF2
-if not(readVF):
-    Vf2 = Vf1*1.
-    # Vf2 = np.ones((knpts, znpts)) * (-100)
+Vf2 = Vf1*1.
+# Vf2 = np.ones((knpts, znpts)) * (-100)
+
     
 # discretize k
 klow = .6*kbar2
@@ -379,7 +388,7 @@ while (nconv):
             maxval = -100000000000
             for i3 in range(0, knpts): # over k_t+1
                 for i4 in range(0, knpts): # over ell_t
-                    Y, w, r, T, c, i, u = Modeldefs1(kgrid2[i3], kgrid2[i1], \
+                    Y, w, r, T, c, i, u = Modeldefs(kgrid2[i3], kgrid2[i1], \
                         ellgrid2[i4], zgrid[i2], params2)
                     temp = u
                     for i5 in range(0, znpts): # over z_t+1
@@ -475,7 +484,7 @@ coeffsJF2 = coeffsJF2.reshape((10,1))
 
 
 # save grids and polynomials
-output = open('ILAVFI.pkl', 'wb')
+output = open("ILAVFI.pkl", "wb")
 pkl.dump(Vf1, output)
 pkl.dump(Vf2, output)
 pkl.dump(Pf1, output)
@@ -556,12 +565,12 @@ def PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, state1, params1, \
             khist[t+1] = np.vdot(Xvec, coeffsPF1)
             ellhist[t] = np.vdot(Xvec, coeffsJF1)
             Yhist[t], whist[t], rhist[t], Thist[t], chist[t], ihist[t], uhist[t] \
-                = Modeldefs1(khist[t+1], khist[t], ellhist[t], zhist[t], params1)
+                = Modeldefs(khist[t+1], khist[t], ellhist[t], zhist[t], params1)
         else:
             khist[t+1] = np.vdot(Xvec, coeffsPF2)
             ellhist[t] = np.vdot(Xvec, coeffsJF2)
             Yhist[t], whist[t], rhist[t], Thist[t], chist[t], ihist[t], uhist[t] \
-                = Modeldefs1(khist[t+1], khist[t], ellhist[t], zhist[t], params2)
+                = Modeldefs(khist[t+1], khist[t], ellhist[t], zhist[t], params2)
             
         
         
@@ -684,141 +693,161 @@ kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred \
 '''
 
 # plot predicted with upper and lower bounds
+
+# create a list of time series to plot
+data = (kavg/kbar, kupp/kbar, klow/kbar, khist/kbar, \
+        ellavg/ellbar, ellupp/ellbar, elllow/ellbar, ellhist/ellbar, \
+        zavg, zupp, zlow, zhist, \
+        Yavg/Ybar, Yupp/Ybar, Ylow/Ybar, Yhist/Ybar, \
+        wavg/wbar, wupp/wbar, wlow/wbar, whist/wbar, \
+        ravg/rbar, rupp/rbar, rlow/rbar, rhist/rbar, \
+        Tavg/Tbar, Tupp/Tbar, Tlow/Tbar, Thist/Tbar, \
+        cavg/cbar, cupp/cbar, clow/cbar, chist/cbar, \
+        iavg/ibar, iupp/ibar, ilow/ibar, ihist/ibar, \
+        uavg/ubar, uupp/ubar, ulow/ubar, uhist/ubar)
+ 
+# plot using Simple ILA Model Plot.py
+from ILAplots import ILAplots
+ILAplots(data, 'ILAVFI')
+
+
 ################ divide all series by relevant bar values ##########################
-plt.subplot(2,2,1)
-plt.plot(range(kavg.size), kavg/kbar, 'k-',
-         range(kupp.size), kupp/kbar, 'k:',
-         range(klow.size), klow/kbar, 'k:')
-plt.title('k')
-
-plt.subplot(2,2,2)
-plt.plot(range(ellavg.size), ellavg, 'k-',
-         range(ellupp.size), ellupp, 'k:',
-         range(elllow.size), elllow, 'k:')
-plt.title('ell')
-
-plt.subplot(2,2,3)
-plt.plot(range(zavg.size), zavg, 'k-',
-         range(zupp.size), zupp, 'k:',    ### Not these
-         range(zlow.size), zlow, 'k:')
-plt.title('z')
-
-plt.subplot(2,2,4)
-plt.plot(range(Yavg.size), Yavg, 'k-',
-         range(Yupp.size), Yupp, 'k:',
-         range(Ylow.size), Ylow, 'k:')
-plt.title('Y')
-
-# save high quality version to external file
-plt.savefig('ILAVFIfig1.eps', format='eps', dpi=2000)
-
-plt.show()
-
-plt.subplot(3,2,1)
-plt.plot(range(wavg.size), wavg, 'k-',
-         range(wupp.size), wupp, 'k:',
-         range(wlow.size), wlow, 'k:')
-plt.title('w')
-
-plt.subplot(3,2,2)
-plt.plot(range(ravg.size), ravg, 'k-',
-         range(rupp.size), rupp, 'k:',
-         range(rlow.size), rlow, 'k:')
-plt.title('r')
-
-plt.subplot(3,2,3)
-plt.plot(range(Tavg.size), Tavg, 'k-',
-         range(Tupp.size), Tupp, 'k:',
-         range(Tlow.size), Tlow, 'k:')
-plt.title('T')
-
-plt.subplot(3,2,4)
-plt.plot(range(cavg.size), cavg, 'k-',
-         range(cupp.size), cupp, 'k:',
-         range(clow.size), clow, 'k:')
-plt.title('c')
-
-plt.subplot(3,2,5)
-plt.plot(range(iavg.size), iavg, 'k-',
-         range(iupp.size), iupp, 'k:',
-         range(ilow.size), ilow, 'k:')
-plt.title('iT')
-
-plt.subplot(3,2,6)
-plt.plot(range(uavg.size), uavg, 'k-',
-         range(uupp.size), uupp, 'k:',
-         range(ulow.size), ulow, 'k:')
-plt.title('u')
+#plt.subplot(2,2,1)
+#plt.plot(range(kavg.size), kavg/kbar, 'k-',
+#         range(kupp.size), kupp/kbar, 'k:',
+#         range(klow.size), klow/kbar, 'k:')
+#plt.title('k')
+#
+#plt.subplot(2,2,2)
+#plt.plot(range(ellavg.size), ellavg, 'k-',
+#         range(ellupp.size), ellupp, 'k:',
+#         range(elllow.size), elllow, 'k:')
+#plt.title('ell')
+#
+#plt.subplot(2,2,3)
+#plt.plot(range(zavg.size), zavg, 'k-',
+#         range(zupp.size), zupp, 'k:',    ### Not these
+#         range(zlow.size), zlow, 'k:')
+#plt.title('z')
+#
+#plt.subplot(2,2,4)
+#plt.plot(range(Yavg.size), Yavg, 'k-',
+#         range(Yupp.size), Yupp, 'k:',
+#         range(Ylow.size), Ylow, 'k:')
+#plt.title('Y')
 
 # save high quality version to external file
-plt.savefig('ILAVFIfig2.eps', format='eps', dpi=2000)
-
-plt.show()
-
-
-# plot avgicted with typical simulation
-plt.subplot(2,2,1)
-plt.plot(range(khist.size), khist, 'k-',
-         range(kavg.size), kavg, 'r-')
-plt.title('k')
-
-plt.subplot(2,2,2)
-plt.plot(range(ellhist.size), ellhist, 'k-',
-         range(ellavg.size), ellavg, 'r-')
-plt.title('ell')
-
-plt.subplot(2,2,3)
-plt.plot(range(zhist.size), zhist, 'k-',
-         range(zavg.size), zavg, 'r-')
-plt.title('z')
-
-plt.subplot(2,2,4)
-plt.plot(range(Yhist.size), Yhist, 'k-',
-         range(Yavg.size), Yavg, 'r-')
-plt.title('Y')
-
-# save high quality version to external file
-plt.savefig('ILAVFIfig3.eps', format='eps', dpi=2000)
-
-plt.show()
-
-plt.subplot(3,2,1)
-plt.plot(range(whist.size), whist, 'k-',
-         range(wavg.size), wavg, 'r-')
-plt.title('w')
-
-plt.subplot(3,2,2)
-plt.plot(range(rhist.size), rhist, 'k-',
-         range(ravg.size), ravg, 'r-')
-plt.title('r')
-
-plt.subplot(3,2,3)
-plt.plot(range(Thist.size), Thist, 'k-',
-         range(Tavg.size), Tavg, 'r-')
-plt.title('T')
-
-plt.subplot(3,2,4)
-plt.plot(range(chist.size), chist, 'k-',
-         range(cavg.size), cavg, 'r-')
-plt.title('c')
-
-plt.subplot(3,2,5)
-plt.plot(range(ihist.size), ihist, 'k-',
-         range(iavg.size), iavg, 'r-')
-plt.title('iT')
-
-plt.subplot(3,2,6)
-plt.plot(range(uhist.size), uhist, 'k-',
-         range(uavg.size), uavg, 'r-')
-plt.title('u')
-
-# save high quality version to external file
-plt.savefig('ILAVFIfig4.eps', format='eps', dpi=2000)
-
-plt.show()
+#plt.savefig('ILAVFIfig1.eps', format='eps', dpi=2000)
+#
+#plt.show()
+#
+#plt.subplot(3,2,1)
+#plt.plot(range(wavg.size), wavg, 'k-',
+#         range(wupp.size), wupp, 'k:',
+#         range(wlow.size), wlow, 'k:')
+#plt.title('w')
+#
+#plt.subplot(3,2,2)
+#plt.plot(range(ravg.size), ravg, 'k-',
+#         range(rupp.size), rupp, 'k:',
+#         range(rlow.size), rlow, 'k:')
+#plt.title('r')
+#
+#plt.subplot(3,2,3)
+#plt.plot(range(Tavg.size), Tavg, 'k-',
+#         range(Tupp.size), Tupp, 'k:',
+#         range(Tlow.size), Tlow, 'k:')
+#plt.title('T')
+#
+#plt.subplot(3,2,4)
+#plt.plot(range(cavg.size), cavg, 'k-',
+#         range(cupp.size), cupp, 'k:',
+#         range(clow.size), clow, 'k:')
+#plt.title('c')
+#
+#plt.subplot(3,2,5)
+#plt.plot(range(iavg.size), iavg, 'k-',
+#         range(iupp.size), iupp, 'k:',
+#         range(ilow.size), ilow, 'k:')
+#plt.title('iT')
+#
+#plt.subplot(3,2,6)
+#plt.plot(range(uavg.size), uavg, 'k-',
+#         range(uupp.size), uupp, 'k:',
+#         range(ulow.size), ulow, 'k:')
+#plt.title('u')
+#
+## save high quality version to external file
+#plt.savefig('ILAVFIfig2.eps', format='eps', dpi=2000)
+#
+#plt.show()
+#
+#
+## plot avgicted with typical simulation
+#plt.subplot(2,2,1)
+#plt.plot(range(khist.size), khist/kbar, 'k-',
+#         range(kavg.size), kavg/kbar, 'r-')
+#plt.title('k')
+#
+#plt.subplot(2,2,2)
+#plt.plot(range(ellhist.size), ellhist/ellbar, 'k-',
+#         range(ellavg.size), ellavg/ellbar, 'r-')
+#plt.title('ell')
+#
+#plt.subplot(2,2,3)
+#plt.plot(range(zhist.size), zhist, 'k-',
+#         range(zavg.size), zavg, 'r-')
+#plt.title('z')
+#
+#plt.subplot(2,2,4)
+#plt.plot(range(Yhist.size), Yhist/Ybar, 'k-',
+#         range(Yavg.size), Yavg/Ybar, 'r-')
+#plt.title('Y')
+#
+## save high quality version to external file
+#plt.savefig('ILAVFIfig3.eps', format='eps', dpi=2000)
+#
+#plt.show()
+#
+#plt.subplot(3,2,1)
+#plt.plot(range(whist.size), whist/wbar, 'k-',
+#         range(wavg.size), wavg/wbar, 'r-')
+#plt.title('w')
+#
+#plt.subplot(3,2,2)
+#plt.plot(range(rhist.size), rhist/rbar, 'k-',
+#         range(ravg.size), ravg/rbar, 'r-')
+#plt.title('r')
+#
+#plt.subplot(3,2,3)
+#plt.plot(range(Thist.size), Thist/Tbar, 'k-',
+#         range(Tavg.size), Tavg/Tbar, 'r-')
+#plt.title('T')
+#
+#plt.subplot(3,2,4)
+#plt.plot(range(chist.size), chist/cbar, 'k-',
+#         range(cavg.size), cavg/cbar, 'r-')
+#plt.title('c')
+#
+#plt.subplot(3,2,5)
+#plt.plot(range(ihist.size), ihist/ibar, 'k-',
+#         range(iavg.size), iavg/ibar, 'r-')
+#plt.title('iT')
+#
+#plt.subplot(3,2,6)
+#plt.plot(range(uhist.size), uhist/ubar, 'k-',
+#         range(uavg.size), uavg/ubar, 'r-')
+#plt.title('u')
+#
+## save high quality version to external file
+#plt.savefig('ILAVFIfig4.eps', format='eps', dpi=2000)
+#
+#plt.show()
 
 #####################################################################################
-'''
+
+
+
 ## Additional Work: plot grid approximation of policy functions and jump functions
 # plot grid approximation of PF1
 fig = plt.figure()
@@ -828,7 +857,8 @@ ax.view_init(30, 150)
 plt.title('PF1 Grid')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
-plt.show()
+#plt.show()
+plt.savefig('PF1 Grid.png')
 
 # plot grid approximation of PF2
 fig = plt.figure()
@@ -838,7 +868,8 @@ ax.view_init(30, 150)
 plt.title('PF2 Grid')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
-plt.show()
+#plt.show()
+plt.savefig('PF2 Grid.png')
 
 # plot grid approximation of JF1
 fig = plt.figure()
@@ -848,7 +879,8 @@ ax.view_init(30, 150)
 plt.title('JF1 Grid')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
-plt.show()
+#plt.show()
+plt.savefig('JF1 Grid.png')
 
 # plot grid approximation of JF2
 fig = plt.figure()
@@ -858,7 +890,8 @@ ax.view_init(30, 150)
 plt.title('JF2 Grid')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
-plt.show()
+#plt.show()
+plt.savefig('JF2 Grid.png')
 
 
 
@@ -888,7 +921,9 @@ ax.view_init(30, 150)
 plt.title('PF1 polynomial')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
-plt.show()
+#plt.show()
+plt.savefig('PF1 Polynomial.png')
+
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
@@ -897,7 +932,9 @@ ax.view_init(30, 150)
 plt.title('PF2 polynomial')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
-plt.show()
+#plt.show()
+plt.savefig('PF2 Polynomial.png')
+
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
@@ -906,7 +943,9 @@ ax.view_init(30, 150)
 plt.title('JF1 polynomial')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
-plt.show()
+#plt.show()
+plt.savefig('JF1 Polynomial.png')
+
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
@@ -915,5 +954,5 @@ ax.view_init(30, 150)
 plt.title('JF2 polynomial')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
-plt.show()
-'''
+#plt.show()
+plt.savefig('JF2 Polynomial.png')
