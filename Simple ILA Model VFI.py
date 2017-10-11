@@ -58,13 +58,9 @@ def Modeldefs(Xp, X, Y, Z, params):
     r = alpha*GDP/k
     T = tau*(w*ell + (r - delta)*k)
     c = (1-tau)*(w*ell + (r - delta)*k) + k + T - kp
-<<<<<<< HEAD
     i = GDP - c
-    u = (c**(1-gamma)-1)/(1-gamma) - (chi*ell**(1+theta))/(1+theta)
-=======
-    i = Y - c
     u = (c**(1-gamma)-1)/(1-gamma) - chi*ell**(1+theta)/(1+theta)
->>>>>>> Kerk's-branch
+
     return Y, w, r, T, c, i, u
 
 
@@ -111,12 +107,10 @@ def Modeldyn(theta0, params):
     
     return np.array([E1, E2])
 
-<<<<<<< HEAD
-=======
+
 # set name for external files written
 name = 'ILAVFI'
 
->>>>>>> Kerk's-branch
 # set parameter values
 alpha = .35
 beta = .99
@@ -175,7 +169,7 @@ from rouwen import rouwen
 
 # set up Markov approximation of AR(1) process using Rouwenhorst method
 spread = 5.  # number of standard deviations above and below 0
-znpts = 21
+znpts = 11
 zstep = 4.*spread*sigma_z/(znpts-1)
 
 # Markov transition probabilities, current z in cols, next z in rows
@@ -184,13 +178,13 @@ Pimat, zgrid = rouwen(rho_z, 0., zstep, znpts)
 # discretize k
 klow = .6*kbar
 khigh = 1.4*kbar
-knpts = 21
+knpts = 11
 kgrid = np.linspace(klow, khigh, num = knpts)
 
 # discretize ell
 elllow = ellbar - .4
 ellhigh = ellbar + .4
-ellnpts = 21
+ellnpts = 11
 ellgrid = np.linspace(elllow, ellhigh, num = ellnpts)
 
 readVF = False
@@ -567,7 +561,7 @@ kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred = \
 kact = kpred[nobs-1]
 ellact = ellpred[nobs-1]
 Yact, wact, ract, Tact, cact, iact, uact = \
-    Modeldefs1(kact, kact, ellact, 0., params)
+    Modeldefs(kact, kact, ellact, 0., params)
 
 # reset nobs and ts
 ts = 20
@@ -663,7 +657,7 @@ clow = cmc[low,:]
 ilow = imc[low,:]
 ulow = umc[low,:]
 
-<<<<<<< HEAD
+
 '''
 # find the predicted path with no randomness
 # run first simulation and store in Monte Carlo matrices
@@ -688,150 +682,8 @@ data = (kavg/kbar, kupp/kbar, klow/kbar, khist/kbar, \
         cavg/cbar, cupp/cbar, clow/cbar, chist/cbar, \
         iavg/ibar, iupp/ibar, ilow/ibar, ihist/ibar, \
         uavg/ubar, uupp/ubar, ulow/ubar, uhist/ubar)
- 
-# plot using Simple ILA Model Plot.py
-from ILAplots import ILAplots
-ILAplots(data, 'ILAVFI')
 
 
-################ divide all series by relevant bar values ##########################
-#plt.subplot(2,2,1)
-#plt.plot(range(kavg.size), kavg/kbar, 'k-',
-#         range(kupp.size), kupp/kbar, 'k:',
-#         range(klow.size), klow/kbar, 'k:')
-#plt.title('k')
-#
-#plt.subplot(2,2,2)
-#plt.plot(range(ellavg.size), ellavg, 'k-',
-#         range(ellupp.size), ellupp, 'k:',
-#         range(elllow.size), elllow, 'k:')
-#plt.title('ell')
-#
-#plt.subplot(2,2,3)
-#plt.plot(range(zavg.size), zavg, 'k-',
-#         range(zupp.size), zupp, 'k:',    ### Not these
-#         range(zlow.size), zlow, 'k:')
-#plt.title('z')
-#
-#plt.subplot(2,2,4)
-#plt.plot(range(Yavg.size), Yavg, 'k-',
-#         range(Yupp.size), Yupp, 'k:',
-#         range(Ylow.size), Ylow, 'k:')
-#plt.title('Y')
-
-# save high quality version to external file
-#plt.savefig('ILAVFIfig1.eps', format='eps', dpi=2000)
-#
-#plt.show()
-#
-#plt.subplot(3,2,1)
-#plt.plot(range(wavg.size), wavg, 'k-',
-#         range(wupp.size), wupp, 'k:',
-#         range(wlow.size), wlow, 'k:')
-#plt.title('w')
-#
-#plt.subplot(3,2,2)
-#plt.plot(range(ravg.size), ravg, 'k-',
-#         range(rupp.size), rupp, 'k:',
-#         range(rlow.size), rlow, 'k:')
-#plt.title('r')
-#
-#plt.subplot(3,2,3)
-#plt.plot(range(Tavg.size), Tavg, 'k-',
-#         range(Tupp.size), Tupp, 'k:',
-#         range(Tlow.size), Tlow, 'k:')
-#plt.title('T')
-#
-#plt.subplot(3,2,4)
-#plt.plot(range(cavg.size), cavg, 'k-',
-#         range(cupp.size), cupp, 'k:',
-#         range(clow.size), clow, 'k:')
-#plt.title('c')
-#
-#plt.subplot(3,2,5)
-#plt.plot(range(iavg.size), iavg, 'k-',
-#         range(iupp.size), iupp, 'k:',
-#         range(ilow.size), ilow, 'k:')
-#plt.title('iT')
-#
-#plt.subplot(3,2,6)
-#plt.plot(range(uavg.size), uavg, 'k-',
-#         range(uupp.size), uupp, 'k:',
-#         range(ulow.size), ulow, 'k:')
-#plt.title('u')
-#
-## save high quality version to external file
-#plt.savefig('ILAVFIfig2.eps', format='eps', dpi=2000)
-#
-#plt.show()
-#
-#
-## plot avgicted with typical simulation
-#plt.subplot(2,2,1)
-#plt.plot(range(khist.size), khist/kbar, 'k-',
-#         range(kavg.size), kavg/kbar, 'r-')
-#plt.title('k')
-#
-#plt.subplot(2,2,2)
-#plt.plot(range(ellhist.size), ellhist/ellbar, 'k-',
-#         range(ellavg.size), ellavg/ellbar, 'r-')
-#plt.title('ell')
-#
-#plt.subplot(2,2,3)
-#plt.plot(range(zhist.size), zhist, 'k-',
-#         range(zavg.size), zavg, 'r-')
-#plt.title('z')
-#
-#plt.subplot(2,2,4)
-#plt.plot(range(Yhist.size), Yhist/Ybar, 'k-',
-#         range(Yavg.size), Yavg/Ybar, 'r-')
-#plt.title('Y')
-#
-## save high quality version to external file
-#plt.savefig('ILAVFIfig3.eps', format='eps', dpi=2000)
-#
-#plt.show()
-#
-#plt.subplot(3,2,1)
-#plt.plot(range(whist.size), whist/wbar, 'k-',
-#         range(wavg.size), wavg/wbar, 'r-')
-#plt.title('w')
-#
-#plt.subplot(3,2,2)
-#plt.plot(range(rhist.size), rhist/rbar, 'k-',
-#         range(ravg.size), ravg/rbar, 'r-')
-#plt.title('r')
-#
-#plt.subplot(3,2,3)
-#plt.plot(range(Thist.size), Thist/Tbar, 'k-',
-#         range(Tavg.size), Tavg/Tbar, 'r-')
-#plt.title('T')
-#
-#plt.subplot(3,2,4)
-#plt.plot(range(chist.size), chist/cbar, 'k-',
-#         range(cavg.size), cavg/cbar, 'r-')
-#plt.title('c')
-#
-#plt.subplot(3,2,5)
-#plt.plot(range(ihist.size), ihist/ibar, 'k-',
-#         range(iavg.size), iavg/ibar, 'r-')
-#plt.title('iT')
-#
-#plt.subplot(3,2,6)
-#plt.plot(range(uhist.size), uhist/ubar, 'k-',
-#         range(uavg.size), uavg/ubar, 'r-')
-#plt.title('u')
-#
-## save high quality version to external file
-#plt.savefig('ILAVFIfig4.eps', format='eps', dpi=2000)
-#
-#plt.show()
-
-#####################################################################################
-
-
-
-=======
 # create a list of time series to plot
 data = (kpred/kact, kupp/kact, klow/kact, khist/kact, \
         ellpred/ellact, ellupp/ellact, elllow/ellact, ellhist/ellact, \
@@ -850,7 +702,6 @@ ILAplots(data, name)
 
 
 '''
->>>>>>> Kerk's-branch
 ## Additional Work: plot grid approximation of policy functions and jump functions
 # plot grid approximation of PF1
 fig = plt.figure()
@@ -860,7 +711,7 @@ ax.view_init(30, 150)
 plt.title('PF1 Grid')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
-#plt.show()
+plt.show()
 plt.savefig('PF1 Grid.png')
 
 # plot grid approximation of PF2
@@ -871,7 +722,7 @@ ax.view_init(30, 150)
 plt.title('PF2 Grid')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
-#plt.show()
+plt.show()
 plt.savefig('PF2 Grid.png')
 
 # plot grid approximation of JF1
@@ -882,7 +733,7 @@ ax.view_init(30, 150)
 plt.title('JF1 Grid')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
-#plt.show()
+plt.show()
 plt.savefig('JF1 Grid.png')
 
 # plot grid approximation of JF2
@@ -893,7 +744,7 @@ ax.view_init(30, 150)
 plt.title('JF2 Grid')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
-#plt.show()
+plt.show()
 plt.savefig('JF2 Grid.png')
 
 
@@ -924,7 +775,7 @@ ax.view_init(30, 150)
 plt.title('PF1 polynomial')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
-#plt.show()
+plt.show()
 plt.savefig('PF1 Polynomial.png')
 
 
@@ -935,7 +786,7 @@ ax.view_init(30, 150)
 plt.title('PF2 polynomial')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
-#plt.show()
+plt.show()
 plt.savefig('PF2 Polynomial.png')
 
 
@@ -946,7 +797,7 @@ ax.view_init(30, 150)
 plt.title('JF1 polynomial')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
-#plt.show()
+plt.show()
 plt.savefig('JF1 Polynomial.png')
 
 
@@ -957,5 +808,6 @@ ax.view_init(30, 150)
 plt.title('JF2 polynomial')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
-#plt.show()
+plt.show()
 plt.savefig('JF2 Polynomial.png')
+'''
