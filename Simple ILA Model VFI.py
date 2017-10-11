@@ -58,8 +58,13 @@ def Modeldefs(Xp, X, Y, Z, params):
     r = alpha*GDP/k
     T = tau*(w*ell + (r - delta)*k)
     c = (1-tau)*(w*ell + (r - delta)*k) + k + T - kp
+<<<<<<< HEAD
     i = GDP - c
     u = (c**(1-gamma)-1)/(1-gamma) - (chi*ell**(1+theta))/(1+theta)
+=======
+    i = Y - c
+    u = (c**(1-gamma)-1)/(1-gamma) - chi*ell**(1+theta)/(1+theta)
+>>>>>>> Kerk's-branch
     return Y, w, r, T, c, i, u
 
 
@@ -106,6 +111,12 @@ def Modeldyn(theta0, params):
     
     return np.array([E1, E2])
 
+<<<<<<< HEAD
+=======
+# set name for external files written
+name = 'ILAVFI'
+
+>>>>>>> Kerk's-branch
 # set parameter values
 alpha = .35
 beta = .99
@@ -160,54 +171,7 @@ print ('ibar:   ', ibar)
 print ('ubar:   ', ubar)
 
 
-"""That's where I start"""
-
-def rouwen(rho, mu, step, num):
-    '''
-    Adapted from Lu Zhang and Karen Kopecky. Python by Ben Tengelsen.
-    Construct transition probability matrix for discretizing an AR(1)
-    process. This procedure is from Rouwenhorst (1995), which works
-    well for very persistent processes.
-
-    INPUTS:
-    rho  - persistence (close to one)
-    mu   - mean and the middle point of the discrete state space
-    step - step size of the even-spaced grid
-    num  - number of grid points on the discretized process
-
-    OUTPUT:
-    dscSp  - discrete state space (num by 1 vector)
-    transP - transition probability matrix over the grid
-    '''
-
-    # discrete state space
-    dscSp = np.linspace(mu -(num-1)/2*step, mu +(num-1)/2*step, num).T
-
-    # transition probability matrix
-    q = p = (rho + 1)/2.
-    transP = np.array([[p**2, p*(1-q), (1-q)**2], \
-                    [2*p*(1-p), p*q+(1-p)*(1-q), 2*q*(1-q)], \
-                    [(1-p)**2, (1-p)*q, q**2]]).T
-
-
-    while transP.shape[0] <= num - 1:
-
-        # see Rouwenhorst 1995
-        len_P = transP.shape[0]
-        transP = p * np.vstack((np.hstack((transP, np.zeros((len_P, 1)))), np.zeros((1, len_P+1)))) \
-                + (1 - p) * np.vstack((np.hstack((np.zeros((len_P, 1)), transP)), np.zeros((1, len_P+1)))) \
-                + (1 - q) * np.vstack((np.zeros((1, len_P+1)), np.hstack((transP, np.zeros((len_P, 1)))))) \
-                + q * np.vstack((np.zeros((1, len_P+1)), np.hstack((np.zeros((len_P, 1)), transP))))
-
-        transP[1:-1] /= 2.
-
-
-    # ensure columns sum to 1
-    if np.max(np.abs(np.sum(transP, axis=1) - np.ones(transP.shape))) >= 1e-12:
-        print('Problem in rouwen routine!')
-        return None
-    else:
-        return transP.T, dscSp
+from rouwen import rouwen
 
 # set up Markov approximation of AR(1) process using Rouwenhorst method
 spread = 5.  # number of standard deviations above and below 0
@@ -576,35 +540,53 @@ def PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, state1, params1, \
         
     return khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, \
         uhist
+        
+        
+# parameters with zero variance for shocks
+params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0.])
+params4 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z, 0.])
 
+# specify the number of observations per simulation
+nobs = 1000
 
-# find the actual steady state for Pf1
-# simulate using coeffsPF1 for N periods with zero shock
+# specify the period policy shifts
+ts = nobs
+
 # specify initial values
 k0 = kbar
 z0 = 0.
 initial = (k0, z0)
-nobs = 20
-ts = 20
-params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0.])
 
-khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, uhist = \
+# find actual steady state for baseline
+# simulate with zero shocks and see what k converges to in last period
+kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred = \
     PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, XYbar, params3, \
-           coeffsPF2, coeffsJF2, XYbar2, params3)        
+           coeffsPF2, coeffsJF2, XYbar2, params3)
 
-# specify the number of simulations and observations per simulation
-nsim = 1000
-nobs = 120
+# find actual (uncertainty) steady state values for baseline
+kact = kpred[nobs-1]
+ellact = ellpred[nobs-1]
+Yact, wact, ract, Tact, cact, iact, uact = \
+    Modeldefs1(kact, kact, ellact, 0., params)
 
-# specify the period policy shifts
+# reset nobs and ts
 ts = 20
-
-# specify initial values
-k0 = khist[19]
+nobs = 120
+    
+# respecify initial values
+k0 = kact
 z0 = 0.
 initial = (k0, z0)
 
+# get a time zero prediction
+kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred = \
+    PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, XYbar, params3, \
+           coeffsPF2, coeffsJF2, XYbar2, params4)
+
+
 # begin Monte Carlos
+# specify the number of simulations
+nsim = 100
 
 # run first simulation and store in Monte Carlo matrices
 kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc \
@@ -681,6 +663,7 @@ clow = cmc[low,:]
 ilow = imc[low,:]
 ulow = umc[low,:]
 
+<<<<<<< HEAD
 '''
 # find the predicted path with no randomness
 # run first simulation and store in Monte Carlo matrices
@@ -848,6 +831,26 @@ ILAplots(data, 'ILAVFI')
 
 
 
+=======
+# create a list of time series to plot
+data = (kpred/kact, kupp/kact, klow/kact, khist/kact, \
+        ellpred/ellact, ellupp/ellact, elllow/ellact, ellhist/ellact, \
+        zpred, zupp, zlow, zhist, \
+        Ypred/Yact, Yupp/Yact, Ylow/Yact, Yhist/Yact, \
+        wpred/wact, wupp/wact, wlow/wact, whist/wact, \
+        rpred/ract, rupp/ract, rlow/ract, rhist/ract, \
+        Tpred/Tact, Tupp/Tact, Tlow/Tact, Thist/Tact, \
+        cpred/cact, cupp/cact, clow/cact, chist/cact, \
+        ipred/iact, iupp/iact, ilow/iact, ihist/iact, \
+        upred/uact, uupp/uact, ulow/uact, uhist/uact)
+
+# plot using Simple ILA Model Plot.py
+from ILAplots import ILAplots
+ILAplots(data, name)
+
+
+'''
+>>>>>>> Kerk's-branch
 ## Additional Work: plot grid approximation of policy functions and jump functions
 # plot grid approximation of PF1
 fig = plt.figure()

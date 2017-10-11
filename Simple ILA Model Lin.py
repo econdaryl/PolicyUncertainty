@@ -190,65 +190,6 @@ XYbar = np.array([kbar, ellbar])
 X0 = np.array([kbar])
 Y0 = np.array([ellbar])
 
-## simulate the model
-#khist, ellhist = \
-#    LinApp_SSL(X0, Zhist, XYbar, logX, PP, QQ, UU, Y0, RR, SS, VV)
-#    
-## plot k and ell
-#plt.subplot(2, 1, 1)
-#plt.plot(khist)
-#plt.title('Capital Stock')
-#plt.subplot(2, 1, 2)
-#plt.plot(ellhist)
-#plt.title('Labor')
-#plt.show()
-#
-## find other variables and plot
-## preallocate histories
-#Yhist = np.zeros(nobs-1)
-#whist = np.zeros(nobs-1)
-#rhist = np.zeros(nobs-1)
-#Thist = np.zeros(nobs-1)
-#chist = np.zeros(nobs-1)
-#ihist = np.zeros(nobs-1)
-#uhist = np.zeros(nobs-1)
-#for t in range(0, nobs-1):
-#    Yhist[t], whist[t], rhist[t], Thist[t], chist[t], ihist[t], uhist[t] = \
-#        Modeldefs(khist[t+1], khist[t], ellhist[t], Zhist[t], params)
-#        
-#plt.subplot(3, 3, 1)
-#plt.plot(Zhist)
-#plt.title('z')
-#
-#plt.subplot(3, 3, 2)
-#plt.plot(Yhist)
-#plt.title('Y')
-#
-#plt.subplot(3, 3, 3)
-#plt.plot(whist)
-#plt.title('w')
-#
-#plt.subplot(3, 3, 4)
-#plt.plot(rhist)
-#plt.title('r')
-#
-#plt.subplot(3, 3, 5)
-#plt.plot(Thist)
-#plt.title('T')
-#
-#plt.subplot(3, 3, 6)
-#plt.plot(chist)
-#plt.title('c')
-#
-#plt.subplot(3, 3, 7)
-#plt.plot(ihist)
-#plt.title('i')
-#
-#plt.subplot(3, 3, 8)
-#plt.plot(uhist)
-#plt.title('u')
-#
-#plt.show()
 
 ## CHANGE POLICY
 
@@ -390,6 +331,8 @@ def PolSim(initial, nobs, ts, coeffs1, state1, params1, coeffs2, state2, \
     
     return khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, \
         uhist
+
+
 
 # specify the number of observations per simulation
 nobs = 120
