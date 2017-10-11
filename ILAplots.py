@@ -73,7 +73,7 @@ def ILAplots(data, name):
     plt.title('Y')
     
     # save high quality version to external file
-    plt.savefig(name + 'fig1.eps', format='eps', dpi=2000)
+    plt.savefig(name + 'fig1.png', format='png', dpi=2000)
     
     plt.show()
     
@@ -114,7 +114,7 @@ def ILAplots(data, name):
     plt.title('u')
     
     # save high quality version to external file
-    plt.savefig(name + 'fig2.eps', format='eps', dpi=2000)
+    plt.savefig(name + 'fig2.png', format='png', dpi=2000)
     
     plt.show()
     
@@ -140,7 +140,7 @@ def ILAplots(data, name):
     plt.title('Y')
     
     # save high quality version to external file
-    plt.savefig(name + 'fig3.eps', format='eps', dpi=2000)
+    plt.savefig(name + 'fig3.png', format='png', dpi=2000)
     
     plt.show()
     
@@ -175,6 +175,6 @@ def ILAplots(data, name):
     plt.title('u')
     
     # save high quality version to external file
-    plt.savefig(name + 'fig4.eps', format='eps', dpi=2000)
+    plt.savefig(name + 'fig4.png', format='png', dpi=2000)
+    #plt.show()
     
-    plt.show()

@@ -8,6 +8,7 @@ Created on Thu Aug 10 16:08:19 2017
 
 import numpy as np
 
+<<<<<<< HEAD
 # import the modules from LinApp
 from LinApp_FindSS import LinApp_FindSS
 from LinApp_Deriv import LinApp_Deriv
@@ -15,6 +16,8 @@ from LinApp_Solve import LinApp_Solve
 from LinApp_SSL import LinApp_SSL
 
 
+=======
+>>>>>>> 20959b5c0c38bb9099dcdcdbd169a3be1b4b8e0b
 def Modeldefs(Xp, X, Y, Z, params):
     '''
     This function takes vectors of endogenous and exogenous state variables
