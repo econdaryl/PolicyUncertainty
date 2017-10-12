@@ -169,7 +169,7 @@ from rouwen import rouwen
 
 # set up Markov approximation of AR(1) process using Rouwenhorst method
 spread = 5.  # number of standard deviations above and below 0
-znpts = 11
+znpts = 21
 zstep = 4.*spread*sigma_z/(znpts-1)
 
 # Markov transition probabilities, current z in cols, next z in rows
@@ -178,16 +178,16 @@ Pimat, zgrid = rouwen(rho_z, 0., zstep, znpts)
 # discretize k
 klow = .6*kbar
 khigh = 1.4*kbar
-knpts = 11
+knpts = 21
 kgrid = np.linspace(klow, khigh, num = knpts)
 
 # discretize ell
 elllow = ellbar - .4
 ellhigh = ellbar + .4
-ellnpts = 11
+ellnpts = 21
 ellgrid = np.linspace(elllow, ellhigh, num = ellnpts)
 
-readVF = False
+readVF = True
 
 # initialize VF and PF
 if readVF:
@@ -203,10 +203,10 @@ Jf1 = np.zeros((knpts, znpts))
 
 # set VF iteration parameters
 #ccrit = 1.0E-20
-ccrit = 1.0E-01
+ccrit = 1.0E-10
 count = 0
 dist = 100.
-maxwhile = 4000  #2432?
+maxwhile = 4000
 
 # run the program to get the value function (VF1)
 nconv = True 
@@ -580,7 +580,7 @@ kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred = \
 
 # begin Monte Carlos
 # specify the number of simulations
-nsim = 100
+nsim = 10000
 
 # run first simulation and store in Monte Carlo matrices
 kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc \
