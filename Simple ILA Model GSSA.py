@@ -10,14 +10,11 @@ import numpy as np
 
 # import the modules from LinApp
 from LinApp_FindSS import LinApp_FindSS
-from LinApp_Deriv import LinApp_Deriv
-from LinApp_Solve import LinApp_Solve
-from LinApp_SSL import LinApp_SSL
 
 from Simple_ILA_Model_Funcs import Modeldefs, Modeldyn
 
 # set name for external files written
-name = 'ILALin'
+name = 'ILAGSSA'
 
 # set parameter values
 alpha = .35
@@ -72,20 +69,7 @@ print ('cbar:   ', cbar)
 print ('ibar:   ', ibar)
 print ('ubar:   ', ubar)
 
-# find the derivatives matrices
-[AA, BB, CC, DD, FF, GG, HH, JJ, KK, LL, MM, WW, TT] = \
-    LinApp_Deriv(Modeldyn, params, theta0, nx, ny, nz, logX)
-
-# set value for NN    
-NN = rho_z
-    
-# find the policy and jump function coefficients
-PP, QQ, UU, RR, SS, VV = \
-    LinApp_Solve(AA,BB,CC,DD,FF,GG,HH,JJ,KK,LL,MM,WW,TT,NN,Zbar,Sylv)
-print ('P: ', PP)
-print ('Q: ', QQ)
-print ('R: ', RR)
-print ('S: ', SS)
+##### Insert GSSA Solution Code ######################################################
 
 # generate a history of Z's
 nobs = 250
@@ -140,23 +124,10 @@ print ('cbar:   ', cbar2)
 print ('ibar:   ', ibar2)
 print ('ubar:   ', ubar2)
 
-# find the new derivatives matrices
-[AA2, BB2, CC2, DD2, FF2, GG2, HH2, JJ2, KK2, LL2, MM2, WW2, TT2] = \
-    LinApp_Deriv(Modeldyn, params2, theta02, nx, ny, nz, logX)
-    
-# find the policy and jump function coefficients
-PP2, QQ2, UU2, RR2, SS2, VV2 = \
-    LinApp_Solve(AA2,BB2,CC2,DD2,FF2,GG2,HH2,JJ2,KK2,LL2,MM2,WW2,TT2,NN,Zbar, \
-                 Sylv)
-print ('P: ', PP2)
-print ('Q: ', QQ2)
-print ('R: ', RR2)
-print ('S: ', SS2)
-
+##### Insert GSSA Solution Code ######################################################
 
 def PolSim(initial, nobs, ts, coeffs1, state1, params1, coeffs2, state2, \
            params2):
-    from LinApp_Sim import LinApp_Sim
     '''
     Generates a history of k & ell with a switch in regime in period ts.
     
@@ -215,24 +186,13 @@ def PolSim(initial, nobs, ts, coeffs1, state1, params1, coeffs2, state2, \
     # generate histories for k and ell for the first ts-1 periods
     for t in range(0, ts-1):
         # inputs must be 1D numpy arrays and deviation from SS values
-        kin = np.array([khist[t] - kbar])
-        zin = np.array([zhist[t]])
-        k, ell = LinApp_Sim(kin, zin, PP, QQ, UU, RR, SS, VV)
-        # k and ell are deviations from SS values, so add these back.
-        # they are also 1D numpy arrays, so pull out the values rather than 
-        # use the arrays.
-        khist[t+1] = k + kbar
-        ellhist[t] = ell + ellbar
+        # USE GSSA polynomials ######################################################
         Yhist[t], whist[t], rhist[t], Thist[t], chist[t], ihist[t], \
             uhist[t] = \
             Modeldefs(khist[t+1], khist[t], ellhist[t], zhist[t], params)
     
     for t in range(ts-1, nobs):
-        kin = np.array([khist[t] - kbar2])
-        zin = np.array([zhist[t]])
-        k, ell = LinApp_Sim(kin, zin, PP2, QQ2, UU2, RR2, SS2, VV2)
-        khist[t+1] = k + kbar2
-        ellhist[t] = ell + ellbar2
+        # USE GSSA polynomials ######################################################
         Yhist[t], whist[t], rhist[t], Thist[t], chist[t], ihist[t], \
             uhist[t] = \
             Modeldefs(khist[t+1], khist[t], ellhist[t], zhist[t], params2)
@@ -254,8 +214,7 @@ z0 = 0.
 initial = (k0, z0)
 
 # set up coefficient lists
-coeffs1 = (PP, QQ, UU, RR, SS, VV)
-coeffs2 = (PP2, QQ2, UU2, RR2, SS2, VV2)
+######################## GSSA Coefs ###############################################
 
 # get a time zero prediction
 params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0.])
@@ -266,7 +225,7 @@ kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred = \
 
 # begin Monte Carlos
 # specify the number of simulations
-nsim = 1000
+nsim = 10000
 
 # run first simulation and store in Monte Carlo matrices
 kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc \
