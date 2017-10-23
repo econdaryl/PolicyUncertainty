@@ -78,7 +78,7 @@ from rouwen import rouwen
 
 # set up Markov approximation of AR(1) process using Rouwenhorst method
 spread = 5.  # number of standard deviations above and below 0
-znpts = 21
+znpts = 31
 zstep = 4.*spread*sigma_z/(znpts-1)
 
 # Markov transition probabilities, current z in cols, next z in rows
@@ -87,16 +87,16 @@ Pimat, zgrid = rouwen(rho_z, 0., zstep, znpts)
 # discretize k
 klow = .6*kbar
 khigh = 1.4*kbar
-knpts = 21
+knpts = 31
 kgrid = np.linspace(klow, khigh, num = knpts)
 
 # discretize ell
 elllow = ellbar - .4
 ellhigh = ellbar + .4
-ellnpts = 21
+ellnpts = 31
 ellgrid = np.linspace(elllow, ellhigh, num = ellnpts)
 
-readVF = True
+readVF = False
 
 # initialize VF and PF
 if readVF:
@@ -111,8 +111,7 @@ Pf1 = np.zeros((knpts, znpts))
 Jf1 = np.zeros((knpts, znpts))
 
 # set VF iteration parameters
-#ccrit = 1.0E-20
-ccrit = 1.0E-10
+ccrit = 1.0E-05
 count = 0
 dist = 100.
 maxwhile = 4000
@@ -174,7 +173,7 @@ Y0 = np.array([ellbar])
 # see line 282 - 286 (done)
 
 # set new tax rate
-tau2 = .055
+tau2 = .075
 
 # make parameter list to pass to functions
 params2 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z, 
@@ -337,6 +336,7 @@ YPF2 = Pf2.flatten()
 YJF2 = Jf2.flatten()
 
 
+# get OLS coefficient
 coeffsPF1 = np.dot(np.linalg.inv(np.dot(X,np.transpose(X))),np.dot(X,YPF1))
 coeffsPF1 = coeffsPF1.reshape((10,1))
 
@@ -610,7 +610,6 @@ from ILAplots import ILAplots
 ILAplots(data, name)
 
 
-'''
 ## Additional Work: plot grid approximation of policy functions and jump functions
 # plot grid approximation of PF1
 fig = plt.figure()
@@ -620,7 +619,7 @@ ax.view_init(30, 150)
 plt.title('PF1 Grid')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
-plt.show()
+#plt.show()
 plt.savefig('PF1 Grid.png')
 
 # plot grid approximation of PF2
@@ -631,7 +630,7 @@ ax.view_init(30, 150)
 plt.title('PF2 Grid')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
-plt.show()
+#plt.show()
 plt.savefig('PF2 Grid.png')
 
 # plot grid approximation of JF1
@@ -642,7 +641,7 @@ ax.view_init(30, 150)
 plt.title('JF1 Grid')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
-plt.show()
+#plt.show()
 plt.savefig('JF1 Grid.png')
 
 # plot grid approximation of JF2
@@ -653,7 +652,7 @@ ax.view_init(30, 150)
 plt.title('JF2 Grid')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
-plt.show()
+#plt.show()
 plt.savefig('JF2 Grid.png')
 
 
@@ -684,7 +683,7 @@ ax.view_init(30, 150)
 plt.title('PF1 polynomial')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
-plt.show()
+#plt.show()
 plt.savefig('PF1 Polynomial.png')
 
 
@@ -695,7 +694,7 @@ ax.view_init(30, 150)
 plt.title('PF2 polynomial')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
-plt.show()
+#plt.show()
 plt.savefig('PF2 Polynomial.png')
 
 
@@ -706,7 +705,7 @@ ax.view_init(30, 150)
 plt.title('JF1 polynomial')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
-plt.show()
+#plt.show()
 plt.savefig('JF1 Polynomial.png')
 
 
@@ -717,6 +716,5 @@ ax.view_init(30, 150)
 plt.title('JF2 polynomial')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
-plt.show()
+#plt.show()
 plt.savefig('JF2 Polynomial.png')
-'''
