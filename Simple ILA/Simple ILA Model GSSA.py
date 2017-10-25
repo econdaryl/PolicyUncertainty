@@ -13,6 +13,8 @@ from LinApp_FindSS import LinApp_FindSS
 
 from Simple_ILA_Model_Funcs import Modeldefs, Modeldyn
 
+from gssa import GSSA, XYfunc
+
 # set name for external files written
 name = 'ILAGSSA'
 
@@ -26,6 +28,7 @@ theta = 2.
 tau = .05
 rho_z = .9
 sigma_z = .01
+pord = 3
 
 # make parameter list to pass to functions
 params = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, sigma_z])
@@ -75,7 +78,9 @@ print ('ubar:   ', ubar)
 nobs = 250
 Zhist = np.zeros((nobs,1))
 for t in range(1, nobs):
-    Zhist[t,0] = rho_z*Zhist[t,0] + sigma_z*np.random.normal(0., 1.)
+    Zhist[t,0] = rho_z*Zhist[t-1,0] + sigma_z*np.random.normal(0., 1.)
+    
+coeffs1 = GSSA(params, Zhist, nobs)
     
 # put SS values and starting values into numpy vectors
 XYbar = np.array([kbar, ellbar])
@@ -86,7 +91,7 @@ Y0 = np.array([ellbar])
 ## CHANGE POLICY
 
 # set new tax rate
-tau2 = .055
+tau2 = .075
 
 # make parameter list to pass to functions
 params2 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z, 
@@ -125,6 +130,7 @@ print ('ibar:   ', ibar2)
 print ('ubar:   ', ubar2)
 
 ##### Insert GSSA Solution Code ######################################################
+coeffs2 = GSSA(params2, Zhist, nobs)
 
 def PolSim(initial, nobs, ts, coeffs1, state1, params1, coeffs2, state2, \
            params2):
@@ -157,7 +163,7 @@ def PolSim(initial, nobs, ts, coeffs1, state1, params1, coeffs2, state2, \
     
     # preallocate histories
     khist = np.zeros(nobs+1)
-    ellhist = np.zeros(nobs)
+    ellhist = np.zeros(nobs+1)
     zhist = np.zeros(nobs)
     Yhist = np.zeros(nobs)
     whist = np.zeros(nobs)
@@ -181,18 +187,29 @@ def PolSim(initial, nobs, ts, coeffs1, state1, params1, coeffs2, state2, \
     
     # generate history of random shocks
     for t in range(1, nobs):
-        zhist[t] = rho_z*zhist[t] + sigma_z*np.random.normal(0., 1.)
-        
+        zhist[t] = rho_z*zhist[t-1] + sigma_z*np.random.normal(0., 1.)
+    
+    pord = 3
+    regtype = 'poly1' # functional form for X & Y functions 
+    fittype = 'MVOLS'   # regression fitting method
+    #pord = 3  # order of polynomial for fitting function
+    ccrit = 1.0E-8  # convergence criteria for XY change
+    damp = 0.01  # damping paramter for fixed point algorithm
+    XYparams = (regtype, fittype, pord, nx, ny, nz, ccrit, damp)
+    
     # generate histories for k and ell for the first ts-1 periods
+    khist[0], ellhist[0] = XYfunc(k0, z0, XYparams, coeffs1)
     for t in range(0, ts-1):
         # inputs must be 1D numpy arrays and deviation from SS values
         # USE GSSA polynomials ######################################################
+        khist[t+1], ellhist[t+1] = XYfunc(khist[t], zhist[t], XYparams, coeffs1)
         Yhist[t], whist[t], rhist[t], Thist[t], chist[t], ihist[t], \
             uhist[t] = \
             Modeldefs(khist[t+1], khist[t], ellhist[t], zhist[t], params)
     
     for t in range(ts-1, nobs):
         # USE GSSA polynomials ######################################################
+        khist[t+1], ellhist[t+1] = XYfunc(khist[t], zhist[t], XYparams, coeffs2)
         Yhist[t], whist[t], rhist[t], Thist[t], chist[t], ihist[t], \
             uhist[t] = \
             Modeldefs(khist[t+1], khist[t], ellhist[t], zhist[t], params2)
@@ -319,15 +336,15 @@ from ILAplots import ILAplots
 ILAplots(data, name)
 
 ## save results in pickle file
-#import pickle as pkl
-#
-#output = open(name + '.pkl', 'wb')
-#
-#polsimpars = (initial, nobs, ts, coeffs1, XYbar, params, coeffs2, XYbar2, \
-#             params2)
-#pkl.dump(polsimpars, output)
-#
-#mcdata = (kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc)
-#pkl.dump(mcdata, output)
-#
-#output.close()
+import pickle as pkl
+
+output = open(name + '.pkl', 'wb')
+
+polsimpars = (initial, nobs, ts, coeffs1, XYbar, params, coeffs2, XYbar2, \
+             params2)
+pkl.dump(polsimpars, output)
+
+mcdata = (kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc)
+pkl.dump(mcdata, output)
+
+output.close()
