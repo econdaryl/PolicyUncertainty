@@ -131,7 +131,7 @@ while (nconv):
                         ellgrid[i4], zgrid[i2], params)
                     temp = u
                     for i5 in range(0, znpts): # over z_t+1
-                        temp = temp + beta * Vf1[i3,i5] * Pimat[i2,i5]
+                        temp = temp + beta * Vf1[i3,i5] * Pimat[i5,i2]
                     # print i, j, temp (keep all of them)
                     if np.iscomplex(temp):
                         temp = -1000000000
