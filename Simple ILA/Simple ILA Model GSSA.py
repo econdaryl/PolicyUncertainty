@@ -236,9 +236,11 @@ initial = (k0, z0)
 # get a time zero prediction
 params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0.])
 
+params4 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z, 0.])
+
 kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred = \
     PolSim(initial, nobs, ts, coeffs1, XYbar, params3, coeffs2, XYbar2, \
-           params2)
+           params4)
 
 # begin Monte Carlos
 # specify the number of simulations
@@ -250,6 +252,7 @@ kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc \
              params2)
 
 for i in range(1, nsim):
+    print('simulation # ', i)
     # run remaining simulations
     khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, uhist = \
         PolSim(initial, nobs, ts, coeffs1, XYbar, params, coeffs2, XYbar2, \

@@ -173,7 +173,7 @@ def MVOLS(Y, X):
     # coeffs = np.dot(np.linalg.inv(XX), XY)
     return coeffs
  
-def GSSA(params, pord=3):
+def GSSA(params, Z, T):
     pord = 3
     regtype = 'poly1' # functional form for X & Y functions 
     fittype = 'MVOLS'   # regression fitting method
@@ -264,9 +264,9 @@ def GSSA(params, pord=3):
             coeffsnew = MVOLS(XY, x)
         
         # calculate distance between XY and XYold
-        print('coeffs', coeffs)
-        print('coeffsnew', coeffsnew)
-        print('X', X)
+#        print('coeffs', coeffs)
+#        print('coeffsnew', coeffsnew)
+#        print('X', X)
         
         dist = np.mean(np.abs(1-XY/XYold))
         print('count ', count, 'distance', dist, 'damp', damp)
@@ -284,5 +284,3 @@ def GSSA(params, pord=3):
         XYold = XY
         coeffs = (1-damp)*coeffs + damp*coeffsnew
     return coeffs
-
-coeffs00 = GSSA(mparams, pord=3)
