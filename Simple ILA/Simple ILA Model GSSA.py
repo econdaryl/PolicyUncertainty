@@ -238,7 +238,7 @@ params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0.])
 
 kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred = \
     PolSim(initial, nobs, ts, coeffs1, XYbar, params3, coeffs2, XYbar2, \
-           params3)
+           params2)
 
 # begin Monte Carlos
 # specify the number of simulations
