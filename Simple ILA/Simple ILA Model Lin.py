@@ -303,11 +303,12 @@ coeffs2 = (PP2, QQ2, UU2, RR2, SS2, VV2)
 
 # get a time zero prediction
 params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0.])
+params4 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z, 0.])
 
 kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred,  \
 kf, ellf, zf, Yf, wf, rf, Tf, cf, invf, uf = \
     PolSim(initial, nobs, ts, coeffs1, XYbar, params3, coeffs2, XYbar2, \
-           params3)
+           params4)
 
 # begin Monte Carlos
 # specify the number of simulations
