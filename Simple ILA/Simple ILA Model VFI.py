@@ -78,7 +78,7 @@ from rouwen import rouwen
 
 # set up Markov approximation of AR(1) process using Rouwenhorst method
 spread = 5.  # number of standard deviations above and below 0
-znpts = 31
+znpts = 11
 zstep = 4.*spread*sigma_z/(znpts-1)
 
 # Markov transition probabilities, current z in cols, next z in rows
@@ -87,13 +87,13 @@ Pimat, zgrid = rouwen(rho_z, 0., zstep, znpts)
 # discretize k
 klow = .6*kbar
 khigh = 1.4*kbar
-knpts = 31
+knpts = 11
 kgrid = np.linspace(klow, khigh, num = knpts)
 
 # discretize ell
 elllow = ellbar - .4
 ellhigh = ellbar + .4
-ellnpts = 31
+ellnpts = 11
 ellgrid = np.linspace(elllow, ellhigh, num = ellnpts)
 
 readVF = False
@@ -111,7 +111,7 @@ Pf1 = np.zeros((knpts, znpts))
 Jf1 = np.zeros((knpts, znpts))
 
 # set VF iteration parameters
-ccrit = 1.0E-05
+ccrit = 1.0E-01
 count = 0
 dist = 100.
 maxwhile = 4000
@@ -408,6 +408,18 @@ def PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, state1, params1, \
     chist = np.zeros(nobs)
     ihist = np.zeros(nobs)
     uhist = np.zeros(nobs)
+
+    # preallocate forecast histories
+    kfhist = np.zeros(nobs+1)
+    ellfhist = np.zeros(nobs)
+    zfhist = np.zeros(nobs+1)
+    Yfhist = np.zeros(nobs)
+    wfhist = np.zeros(nobs)
+    rfhist = np.zeros(nobs)
+    Tfhist = np.zeros(nobs)
+    cfhist = np.zeros(nobs)
+    ifhist = np.zeros(nobs)
+    ufhist = np.zeros(nobs)
     
     # upack simulation parameters
     rho_z = params1[7] 
@@ -421,6 +433,28 @@ def PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, state1, params1, \
     (kbar, ellbar) = XYbar
     (kbar2, ellbar2) = XYbar2
     
+#    # generate history of random shocks
+#    for t in range(0, nobs):
+#        zhist[t+1] = rho_z*zhist[t] + sigma_z*np.random.normal(0., 1.)
+#        Xvec = np.array([[1.0], [khist[t]], [khist[t]**2], [khist[t]**3], \
+#                         [zhist[t]], [zhist[t]**2], [zhist[t]**3], \
+#                         [khist[t]*zhist[t]], [khist[t]**2*zhist[t]], \
+#                         [khist[t]*zhist[t]**2]])  
+#        if t < ts:
+#            khist[t+1] = np.vdot(Xvec, coeffsPF1)
+#            ellhist[t] = np.vdot(Xvec, coeffsJF1)
+#            Yhist[t], whist[t], rhist[t], Thist[t], chist[t], ihist[t], uhist[t] \
+#                = Modeldefs(khist[t+1], khist[t], ellhist[t], zhist[t], params1)
+#                
+#        else:
+#            khist[t+1] = np.vdot(Xvec, coeffsPF2)
+#            ellhist[t] = np.vdot(Xvec, coeffsJF2)
+#            Yhist[t], whist[t], rhist[t], Thist[t], chist[t], ihist[t], uhist[t] \
+#                = Modeldefs(khist[t+1], khist[t], ellhist[t], zhist[t], params2)
+#                  
+#    return khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, \
+#           uhist
+           
     # generate history of random shocks
     for t in range(0, nobs):
         zhist[t+1] = rho_z*zhist[t] + sigma_z*np.random.normal(0., 1.)
@@ -433,16 +467,36 @@ def PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, state1, params1, \
             ellhist[t] = np.vdot(Xvec, coeffsJF1)
             Yhist[t], whist[t], rhist[t], Thist[t], chist[t], ihist[t], uhist[t] \
                 = Modeldefs(khist[t+1], khist[t], ellhist[t], zhist[t], params1)
+                
         else:
             khist[t+1] = np.vdot(Xvec, coeffsPF2)
             ellhist[t] = np.vdot(Xvec, coeffsJF2)
             Yhist[t], whist[t], rhist[t], Thist[t], chist[t], ihist[t], uhist[t] \
                 = Modeldefs(khist[t+1], khist[t], ellhist[t], zhist[t], params2)
+
+#    # get 1-period ahead forecasts
+    for t in range(0, nobs-1):
+        zfhist[t+1] = rho_z*zhist[t]
+        Xvec2 = np.array([[1.0], [khist[t+1]], [khist[t+1]**2], [khist[t+1]**3], \
+                  [zfhist[t+1]], [zfhist[t+1]**2], [zfhist[t+1]**3], \
+                  [khist[t+1]*zfhist[t+1]], [khist[t]**2*zfhist[t+1]], \
+                  [khist[t+1]*zfhist[t+1]**2]])
+    
+        if t < ts:
+            kfhist[t+2] = np.vdot(Xvec2, coeffsPF1)
+            ellfhist[t] = np.vdot(Xvec2, coeffsJF1)
+            Yfhist[t+1], wfhist[t+1], rfhist[t+1],Tfhist[t+1], cfhist[t+1], ifhist[t], ufhist[t] \
+             = Modeldefs(kfhist[t+2], khist[t+1], ellfhist[t+1], zfhist[t+1], params)
             
-        
-        
+        else:
+            kfhist[t+2] = np.vdot(Xvec2, coeffsPF2)
+            ellfhist[t] = np.vdot(Xvec2, coeffsJF2)
+            Yfhist[t], wfhist[t], rfhist[t], Tfhist[t], cfhist[t], ifhist[t], ufhist[t] \
+            = Modeldefs(kfhist[t+2], kfhist[t], ellfhist[t], zfhist[t], params2)
+                  
     return khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, \
-        uhist
+           uhist, kfhist, ellfhist, zfhist, Yfhist, wfhist, rfhist, Tfhist, \
+           cfhist, ifhist, ufhist
         
         
 # parameters with zero variance for shocks
@@ -462,7 +516,10 @@ initial = (k0, z0)
 
 # find actual steady state for baseline
 # simulate with zero shocks and see what k converges to in last period
-kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred = \
+
+
+kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred,\
+kf, ellf, zf, Yf, wf, rf, Tf, cf, invf, uf = \
     PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, XYbar, params3, \
            coeffsPF2, coeffsJF2, XYbar2, params3)
 
@@ -482,7 +539,8 @@ z0 = 0.
 initial = (k0, z0)
 
 # get a time zero prediction
-kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred = \
+kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred, \
+kf, ellf, zf, Yf, wf, rf, Tf, cf, invf, uf = \
     PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, XYbar, params3, \
            coeffsPF2, coeffsJF2, XYbar2, params4)
 
@@ -492,13 +550,16 @@ kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred = \
 nsim = 10000
 
 # run first simulation and store in Monte Carlo matrices
-kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc \
+kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc, \
+kfmc, ellfmc, zfmc, Yfmc, wfmc, rfmc, Tfmc, cfmc, ifmc, ufmc \
     = PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, XYbar, params, \
       coeffsPF2, coeffsJF2, XYbar2, params2)
 
 for i in range(1, nsim):
     # run remaining simulations
-    khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, uhist = \
+    khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, uhist, \
+    kfhist, ellfhist, zfhist, Yfhist, wfhist, rfhist, Tfhist, cfhist, ifhist, \
+    ufhist= \
         PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, XYbar, params, \
         coeffsPF2, coeffsJF2, XYbar2, params2)
     # stack results in Monte Carlo matrices
@@ -581,7 +642,7 @@ kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred \
 # plot predicted with upper and lower bounds
 
 # create a list of time series to plot
-data = (kavg/kbar, kupp/kbar, klow/kbar, khist/kbar, \
+data1 = (kavg/kbar, kupp/kbar, klow/kbar, khist/kbar, \
         ellavg/ellbar, ellupp/ellbar, elllow/ellbar, ellhist/ellbar, \
         zavg, zupp, zlow, zhist, \
         Yavg/Ybar, Yupp/Ybar, Ylow/Ybar, Yhist/Ybar, \
@@ -593,8 +654,8 @@ data = (kavg/kbar, kupp/kbar, klow/kbar, khist/kbar, \
         uavg/ubar, uupp/ubar, ulow/ubar, uhist/ubar)
 
 
-# create a list of time series to plot
-data = (kpred/kact, kupp/kact, klow/kact, khist/kact, \
+# create a list of time series to plot   #not sure if those graphs are necessary
+data1 = (kpred/kact, kupp/kact, klow/kact, khist/kact, \
         ellpred/ellact, ellupp/ellact, elllow/ellact, ellhist/ellact, \
         zpred, zupp, zlow, zhist, \
         Ypred/Yact, Yupp/Yact, Ylow/Yact, Yhist/Yact, \
@@ -605,11 +666,40 @@ data = (kpred/kact, kupp/kact, klow/kact, khist/kact, \
         ipred/iact, iupp/iact, ilow/iact, ihist/iact, \
         upred/uact, uupp/uact, ulow/uact, uhist/uact)
 
+
+# create a list of time series to plot for forecasting error
+data2 = (kavg/kbar, kupp/kbar, klow/kbar, khist/kbar, \
+        ellavg/ellbar, ellupp/ellbar, elllow/ellbar, ellfhist/ellbar, \
+        zavg, zupp, zlow, zhist, \
+        Yavg/Ybar, Yupp/Ybar, Ylow/Ybar, Yfhist/Ybar, \
+        wavg/wbar, wupp/wbar, wlow/wbar, wfhist/wbar, \
+        ravg/rbar, rupp/rbar, rlow/rbar, rfhist/rbar, \
+        Tavg/Tbar, Tupp/Tbar, Tlow/Tbar, Tfhist/Tbar, \
+        cavg/cbar, cupp/cbar, clow/cbar, cfhist/cbar, \
+        iavg/ibar, iupp/ibar, ilow/ibar, ifhist/ibar, \
+        uavg/ubar, uupp/ubar, ulow/ubar, ufhist/ubar)
+
+
+# create a list of time series to plot for forecasting error
+data2 = (kpred/kact, kupp/kact, klow/kact, khist/kact, \
+        ellpred/ellact, ellupp/ellact, elllow/ellact, ellhist/ellact, \
+        zpred, zupp, zlow, zhist, \
+        Ypred/Yact, Yupp/Yact, Ylow/Yact, Yfhist/Yact, \
+        wpred/wact, wupp/wact, wlow/wact, wfhist/wact, \
+        rpred/ract, rupp/ract, rlow/ract, rfhist/ract, \
+        Tpred/Tact, Tupp/Tact, Tlow/Tact, Tfhist/Tact, \
+        cpred/cact, cupp/cact, clow/cact, cfhist/cact, \
+        ipred/iact, iupp/iact, ilow/iact, ifhist/iact, \
+        upred/uact, uupp/uact, ulow/uact, ufhist/uact)
+
+
+
 # plot using Simple ILA Model Plot.py
 from ILAplots import ILAplots
-ILAplots(data, name)
+ILAplots(data1, name)
+ILAplots(data2, name)
 
-
+"""
 ## Additional Work: plot grid approximation of policy functions and jump functions
 # plot grid approximation of PF1
 fig = plt.figure()
@@ -718,3 +808,4 @@ plt.xlabel('k(t)')
 plt.ylabel('z(t)')
 #plt.show()
 plt.savefig('JF2 Polynomial.png')
+"""
