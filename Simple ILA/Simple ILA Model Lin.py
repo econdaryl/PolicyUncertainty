@@ -368,8 +368,8 @@ polsimpars = (initial, nobs, ts, coeffs1, XYbar, params, coeffs2, XYbar2, \
              params2, nsim, name)
 pkl.dump(polsimpars, output)
 
-# write monte carlo data
-alldata = (mcdata, preddata, bardata, histdata, avgdata, uppdata, lowdata)
-pkl.dump(alldata, output)
+## write monte carlo data
+#alldata = (mcdata, preddata, bardata, histdata, avgdata, uppdata, lowdata)
+#pkl.dump(alldata, output)
 
 output.close()
