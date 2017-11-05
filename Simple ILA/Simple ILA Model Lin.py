@@ -7,34 +7,41 @@ Created on Thu Aug 10 16:08:19 2017
 """
 
 import numpy as np
+import timeit
 
 # import the modules from LinApp
 from LinApp_FindSS import LinApp_FindSS
 from LinApp_Deriv import LinApp_Deriv
 from LinApp_Solve import LinApp_Solve
-from LinApp_SSL import LinApp_SSL
+# from LinApp_SSL import LinApp_SSL
 
 from Simple_ILA_Model_Funcs import Modeldefs, Modeldyn
 
 # set name for external files written
 name = 'ILALin'
 
+startsolve = timeit.default_timer()
+
 # set parameter values
 alpha = .35
 beta = .99
 gamma = 2.5
-delta = .08
-chi = 10.
-theta = 2.
-tau = .05
+delta = .02
+chi = 1.5
+theta = .33
 rho_z = .9
-sigma_z = .01
+sigma_z = .005
+
+# set old and new tax rates
+tau = .05
+tau2 = .055
 
 # make parameter list to pass to functions
 params = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, sigma_z])
 
 # set LinApp parameters
-Zbar = np.array([0.])
+zbar = 0.
+Zbar = np.array([zbar])
 nx = 1
 ny = 1
 nz = 1
@@ -99,10 +106,8 @@ X0 = np.array([kbar])
 Y0 = np.array([ellbar])
 
 
-## CHANGE POLICY
-
-# set new tax rate
-tau2 = .055
+# -----------------------------------------------------------------------------
+# CHANGE POLICY
 
 # make parameter list to pass to functions
 params2 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z, 
@@ -153,10 +158,19 @@ print ('Q: ', QQ2)
 print ('R: ', RR2)
 print ('S: ', SS2)
 
+#Your statements here
 
-def PolSim(initial, nobs, ts, coeffs1, state1, params1, coeffs2, state2, \
-           params2):
+stopsolve = timeit.default_timer()
+timesolve =  stopsolve - startsolve
+
+
+# define a function that runs simulation with shift in tax rates
+# -----------------------------------------------------------------------------
+def PolSim(args):
     from LinApp_Sim import LinApp_Sim
+    
+    (initial, nobs, ts, coeffs1, state1, params1, coeffs2, state2, \
+           params2) = args
     '''
     Generates a history of k & ell with a switch in regime in period ts.
     
@@ -248,7 +262,7 @@ def PolSim(initial, nobs, ts, coeffs1, state1, params1, coeffs2, state2, \
         # they are also 1D numpy arrays, so pull out the values rather than 
         # use the arrays.
         kfhist[t+2] = kf + kbar
-        ellfhist[t] = ellf + ellbar
+        ellfhist[t+1] = ellf + ellbar
         Yfhist[t+1], wfhist[t+1], rfhist[t+1], Tfhist[t+1], cfhist[t+1], \
             ifhist[t], ufhist[t] = Modeldefs(kfhist[t+2], khist[t+1], \
             ellfhist[t+1], zfhist[t+1], params)
@@ -274,7 +288,7 @@ def PolSim(initial, nobs, ts, coeffs1, state1, params1, coeffs2, state2, \
             # they are also 1D numpy arrays, so pull out the values rather than 
             # use the arrays.
             kfhist[t+2] = kf + kbar
-            ellfhist[t] = ellf + ellbar
+            ellfhist[t+1] = ellf + ellbar
             Yfhist[t+1], wfhist[t+1], rfhist[t+1], Tfhist[t+1], cfhist[t+1], \
                 ifhist[t], ufhist[t] = Modeldefs(kfhist[t+2], khist[t+1], \
                 ellfhist[t+1], zfhist[t+1], params)
@@ -283,8 +297,12 @@ def PolSim(initial, nobs, ts, coeffs1, state1, params1, coeffs2, state2, \
     return khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, \
         uhist, kfhist, ellfhist, zfhist, Yfhist, wfhist, rfhist, Tfhist, \
         cfhist, ifhist, ufhist
+        
+# -----------------------------------------------------------------------------
+## RUN SIMULATIONS
+from Simple_ILA_runMC import runMC
 
-
+startsim = timeit.default_timer()
 
 # specify the number of observations per simulation
 nobs = 120
@@ -301,176 +319,59 @@ initial = (k0, z0)
 coeffs1 = (PP, QQ, UU, RR, SS, VV)
 coeffs2 = (PP2, QQ2, UU2, RR2, SS2, VV2)
 
-# get a time zero prediction
+# parameters for tau1 portion
 params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0.])
+# paramters for tau2 portion
 params4 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z, 0.])
-
-kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred,  \
-kf, ellf, zf, Yf, wf, rf, Tf, cf, invf, uf = \
-    PolSim(initial, nobs, ts, coeffs1, XYbar, params3, coeffs2, XYbar2, \
+# get list of arguments for predictions simulation
+predargs = (initial, nobs, ts, coeffs1, XYbar, params3, coeffs2, XYbar2, \
            params4)
+# get a time zero prediction
+kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred,  \
+kf, ellf, zf, Yf, wf, rf, Tf, cf, invf, uf = PolSim(predargs)
 
-# begin Monte Carlos
-# specify the number of simulations
-nsim = 1000
-
-# run first simulation and store in Monte Carlo matrices
-kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc, \
-kfmc, ellfmc, zfmc, Yfmc, wfmc, rfmc, Tfmc, cfmc, ifmc, ufmc \
-    = PolSim(initial, nobs, ts, coeffs1, XYbar, params, coeffs2, XYbar2, \
-             params2)
-
-# replace forecast with abs value of forecast error
-for t in range(1, nobs):
-    kfmc[t] = np.abs(kfmc[t] - kmc[t])
-    ellfmc[t] = np.abs(ellfmc[t] - ellmc[t])
-    zfmc[t] = np.abs(zfmc[t] - zmc[t])
-    Yfmc[t] = np.abs(Yfmc[t] - Ymc[t])
-    wfmc[t] = np.abs(wfmc[t] - wmc[t])
-    rfmc[t] = np.abs(rfmc[t] - rmc[t])
-    Tfmc[t] = np.abs(Tfmc[t] - Tmc[t])
-    cfmc[t] = np.abs(cfmc[t] - cmc[t])
-    ifmc[t] = np.abs(ifmc[t] - imc[t])
-    ufmc[t] = np.abs(ufmc[t] - umc[t])
-
-# caclulate mean forecast errors
-foremeanmc = np.array([np.mean(kfmc[1:nobs]),
-                       np.mean(ellfmc[1:nobs]),
-                       np.mean(zfmc[1:nobs]), 
-                       np.mean(Yfmc[1:nobs]),
-                       np.mean(wfmc[1:nobs]), 
-                       np.mean(rfmc[1:nobs]),
-                       np.mean(Tfmc[1:nobs]), 
-                       np.mean(cfmc[1:nobs]),
-                       np.mean(ifmc[1:nobs]), 
-                       np.mean(ufmc[1:nobs])])                                 
-                                   
-                                   
-for i in range(1, nsim):
-    # run remaining simulations
-    khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, uhist, \
-    kfhist, ellfhist, zfhist, Yfhist, wfhist, rfhist, Tfhist, cfhist, ifhist, \
-    ufhist= \
-        PolSim(initial, nobs, ts, coeffs1, XYbar, params, coeffs2, XYbar2, \
+# get list of arguments for monte carlos simulations 
+simargs = (initial, nobs, ts, coeffs1, XYbar, params, coeffs2, XYbar2, \
                params2)
-        
-    # replace forecast with abs value of forecast error
-    for t in range(1, nobs):
-        kfhist[t] = np.abs(kfhist[t] - khist[t])
-        ellfhist[t] = np.abs(ellfhist[t] - ellhist[t])
-        zfhist[t] = np.abs(zfhist[t] - zhist[t])
-        Yfhist[t] = np.abs(Yfhist[t] - Yhist[t])
-        wfhist[t] = np.abs(wfhist[t] - whist[t])
-        rfhist[t] = np.abs(rfhist[t] - rhist[t])
-        Tfhist[t] = np.abs(Tfhist[t] - Thist[t])
-        cfhist[t] = np.abs(cfhist[t] - chist[t])
-        ifhist[t] = np.abs(ifhist[t] - ihist[t])
-        ufhist[t] = np.abs(ufhist[t] - uhist[t])
-        
-    # caclulate mean forecast errors
-    foremean = np.array([np.mean(kfhist[1:nobs]),
-                         np.mean(ellfhist[1:nobs]),
-                         np.mean(zfhist[1:nobs]), 
-                         np.mean(Yfhist[1:nobs]),
-                         np.mean(wfhist[1:nobs]), 
-                         np.mean(rfhist[1:nobs]),
-                         np.mean(Tfhist[1:nobs]), 
-                         np.mean(cfhist[1:nobs]),
-                         np.mean(ifhist[1:nobs]), 
-                         np.mean(ufhist[1:nobs])])   
-        
-    # stack results in Monte Carlo matrices
-    kmc = np.vstack((kmc, khist))
-    ellmc = np.vstack((ellmc, ellhist))
-    zmc = np.vstack((zmc, zhist))
-    Ymc = np.vstack((Ymc, Yhist))
-    wmc = np.vstack((wmc, whist))
-    rmc = np.vstack((rmc, rhist))
-    Tmc = np.vstack((Tmc, Thist))
-    cmc = np.vstack((cmc, chist))
-    imc = np.vstack((imc, ihist))
-    umc = np.vstack((umc, uhist))
-    foremeanmc = np.vstack((foremeanmc, foremean))
+
+# specify the number of simulations
+nsim = 100
+
+mcdata = runMC(PolSim, simargs, nsim, nobs)
     
-# now sort the Monte Carlo matrices over the rows
-kmc = np.sort(kmc, axis = 0)
-ellmc = np.sort(ellmc, axis = 0)
-zmc = np.sort(zmc, axis = 0)
-Ymc = np.sort(Ymc, axis = 0)
-wmc = np.sort(wmc, axis = 0)
-rmc = np.sort(rmc, axis = 0)
-Tmc = np.sort(Tmc, axis = 0)
-cmc = np.sort(cmc, axis = 0)
-imc = np.sort(imc, axis = 0)
-umc = np.sort(umc, axis = 0)
+stopsim = timeit.default_timer()
+timesim = stopsim - startsim
 
-# find the average values for each variable in each time period across 
-# Monte Carlos
-kavg = np.mean(kmc, axis = 0)
-ellavg = np.mean(ellmc, axis = 0)
-zavg = np.mean(zmc, axis = 0)
-Yavg = np.mean(Ymc, axis = 0)
-wavg = np.mean(wmc, axis = 0)
-ravg = np.mean(rmc, axis = 0)
-Tavg = np.mean(Tmc, axis = 0)
-cavg = np.mean(cmc, axis = 0)
-iavg = np.mean(imc, axis = 0)
-uavg = np.mean(umc, axis = 0)
+preddata = (kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, \
+        upred)
+bardata = (kbar, ellbar, zbar, Ybar, wbar, rbar, Tbar, cbar, ibar, ubar)
+histdata = (khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, \
+            uhist)
 
-# find the rows for desired confidence bands
-conf = .1
-low = int(np.floor((conf/2)*nsim))
-high = nsim - low
+# -----------------------------------------------------------------------------
+# calculate and report statistics and charts from Monte Carlos  
+from Simple_ILA_MC_analysis import MCanalysis
+avgdata, uppdata, lowdata = \
+    MCanalysis(mcdata, preddata, bardata, histdata, name, nsim)
 
-# find the upper and lower confidence bands for each variable
-kupp = kmc[high,:]
-ellupp = ellmc[high,:]
-zupp = zmc[high,:]
-Yupp = Ymc[high,:]
-wupp = wmc[high,:]
-rupp = rmc[high,:]
-Tupp = Tmc[high,:]
-cupp = cmc[high,:]
-iupp = imc[high,:]
-uupp = umc[high,:]
+# save results in pickle file
+import pickle as pkl
 
-klow = kmc[low,:]
-elllow = ellmc[low,:]
-zlow = zmc[low,:]
-Ylow = Ymc[low,:]
-wlow = wmc[low,:]
-rlow = rmc[low,:]
-Tlow = Tmc[low,:]
-clow = cmc[low,:]
-ilow = imc[low,:]
-ulow = umc[low,:]
+output = open(name + '.pkl', 'wb')
 
-# create a list of time series to plot
-data = (kpred/kbar, kupp/kbar, klow/kbar, khist/kbar, \
-        ellpred/ellbar, ellupp/ellbar, elllow/ellbar, ellhist/ellbar, \
-        zpred, zupp, zlow, zhist, \
-        Ypred/Ybar, Yupp/Ybar, Ylow/Ybar, Yhist/Ybar, \
-        wpred/wbar, wupp/wbar, wlow/wbar, whist/wbar, \
-        rpred/rbar, rupp/rbar, rlow/rbar, rhist/rbar, \
-        Tpred/Tbar, Tupp/Tbar, Tlow/Tbar, Thist/Tbar, \
-        cpred/cbar, cupp/cbar, clow/cbar, chist/cbar, \
-        ipred/ibar, iupp/ibar, ilow/ibar, ihist/ibar, \
-        upred/ubar, uupp/ubar, ulow/ubar, uhist/ubar)
+# write timing
+pkl.dump(timesolve, output)
+pkl.dump(timesim, output)
+print('time to solve for policy functions: ', timesolve)
+print('time to simulate', nsim, 'monte carlos: ', timesim)
 
-# plot using Simple ILA Model Plot.py
-from ILAplots import ILAplots
-ILAplots(data, name)
+# write policy simulation paramters
+polsimpars = (initial, nobs, ts, coeffs1, XYbar, params, coeffs2, XYbar2, \
+             params2, nsim, name)
+pkl.dump(polsimpars, output)
 
-## save results in pickle file
-#import pickle as pkl
-#
-#output = open(name + '.pkl', 'wb')
-#
-#polsimpars = (initial, nobs, ts, coeffs1, XYbar, params, coeffs2, XYbar2, \
-#             params2)
-#pkl.dump(polsimpars, output)
-#
-#mcdata = (kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc)
-#pkl.dump(mcdata, output)
-#
-#output.close()
+# write monte carlo data
+alldata = (mcdata, preddata, bardata, histdata, avgdata, uppdata, lowdata)
+pkl.dump(alldata, output)
+
+output.close()
