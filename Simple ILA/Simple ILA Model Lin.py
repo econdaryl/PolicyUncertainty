@@ -20,6 +20,7 @@ from Simple_ILA_Model_Funcs import Modeldefs, Modeldyn
 # set name for external files written
 name = 'ILALin'
 
+# set clock for time to calcuate functions
 startsolve = timeit.default_timer()
 
 # set parameter values
@@ -31,12 +32,11 @@ chi = 1.5
 theta = .33
 rho_z = .9
 sigma_z = .005
-
 # set old and new tax rates
 tau = .05
 tau2 = .055
 
-# make parameter list to pass to functions
+# make parameter list to pass to functions for baseline
 params = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, sigma_z])
 
 # set LinApp parameters
@@ -55,7 +55,7 @@ guessXY = np.array([.1, .25])
 XYbar = LinApp_FindSS(Modeldyn, params, guessXY, Zbar, nx, ny)
 (kbar, ellbar) = XYbar
 
-# set up steady state input vector
+# set up steady state input vector for baseline
 theta0 = np.array([kbar, kbar, kbar, ellbar, ellbar, 0., 0.])
 
 # check SS solution
@@ -68,7 +68,7 @@ if np.max(np.abs(check)) > 1.E-6:
 Ybar, wbar, rbar, Tbar, cbar, ibar, ubar = \
     Modeldefs(kbar, kbar, ellbar, 0., params)
 
-# display all steady state values
+# display all steady state values for baseline
 print ('kbar:   ', kbar)
 print ('ellbar: ', ellbar)
 print ('Ybar:   ', Ybar)
@@ -93,12 +93,6 @@ print ('P: ', PP)
 print ('Q: ', QQ)
 print ('R: ', RR)
 print ('S: ', SS)
-
-# generate a history of Z's
-nobs = 250
-Zhist = np.zeros((nobs,1))
-for t in range(1, nobs):
-    Zhist[t,0] = rho_z*Zhist[t,0] + sigma_z*np.random.normal(0., 1.)
     
 # put SS values and starting values into numpy vectors
 XYbar = np.array([kbar, ellbar])
@@ -109,7 +103,7 @@ Y0 = np.array([ellbar])
 # -----------------------------------------------------------------------------
 # CHANGE POLICY
 
-# make parameter list to pass to functions
+# make parameter list to pass to functions for new tax
 params2 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z, 
                     sigma_z])
 
@@ -158,8 +152,7 @@ print ('Q: ', QQ2)
 print ('R: ', RR2)
 print ('S: ', SS2)
 
-#Your statements here
-
+# calculate time to solve for functions
 stopsolve = timeit.default_timer()
 timesolve =  stopsolve - startsolve
 
@@ -300,8 +293,9 @@ def PolSim(args):
         
 # -----------------------------------------------------------------------------
 ## RUN SIMULATIONS
-from Simple_ILA_runMC import runMC
+from ILArunmc import runmc
 
+# start clock for all MCs
 startsim = timeit.default_timer()
 
 # specify the number of observations per simulation
@@ -326,7 +320,7 @@ params4 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z, 0.])
 # get list of arguments for predictions simulation
 predargs = (initial, nobs, ts, coeffs1, XYbar, params3, coeffs2, XYbar2, \
            params4)
-# get a time zero prediction
+# get time zero prediction
 kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred,  \
 kf, ellf, zf, Yf, wf, rf, Tf, cf, invf, uf = PolSim(predargs)
 
@@ -335,25 +329,29 @@ simargs = (initial, nobs, ts, coeffs1, XYbar, params, coeffs2, XYbar2, \
                params2)
 
 # specify the number of simulations
-nsim = 100
+nsim = 10000
 
-mcdata = runMC(PolSim, simargs, nsim, nobs)
-    
+# specify the increment between MC reports
+repincr = 100
+
+# run the Monte Carlos
+mcdata, histdata = runmc(PolSim, simargs, nsim, nobs, repincr)
+
+# calculate time to simulate all MCs
 stopsim = timeit.default_timer()
 timesim = stopsim - startsim
 
 preddata = (kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, \
         upred)
 bardata = (kbar, ellbar, zbar, Ybar, wbar, rbar, Tbar, cbar, ibar, ubar)
-histdata = (khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, \
-            uhist)
 
 # -----------------------------------------------------------------------------
 # calculate and report statistics and charts from Monte Carlos  
-from Simple_ILA_MC_analysis import MCanalysis
+from ILAmcanalysis import mcanalysis
 avgdata, uppdata, lowdata = \
-    MCanalysis(mcdata, preddata, bardata, histdata, name, nsim)
+    mcanalysis(mcdata, preddata, bardata, histdata, name, nsim)
 
+# -----------------------------------------------------------------------------
 # save results in pickle file
 import pickle as pkl
 

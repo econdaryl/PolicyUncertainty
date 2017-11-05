@@ -1,24 +1,25 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Oct  6 06:38:49 2017
-
-@author: klp4
-"""
+'''
+Plots for Simple ILA Model
+'''
 
 import matplotlib.pyplot as plt
 
 def ILAplots(data, name):
     '''
-    This function takes a list of time series from the ILA model generated u
+    This function takes a list of time series from the ILA model generated 
     using either linearization or VFI.  It plots and saves a series of graphs
-    of these over time.
+    of these over time. 
     
-    The list data must contain the following time series for each variable:
+    Inputs:
+    data: a list of numpy arrays
+    name: a string that is used when saving the plots
+    
+    The list of data must contain the following time series for each variable:
     x_pred - the predicted time path as of date zero
     x_upp - the upper confidence band
     x_low - the lower confidence band
     x_hist - a typical history
+    see the upack command below in the code for the order
     
     The variables to be plotted are:
     k - capital stock
@@ -31,6 +32,9 @@ def ILAplots(data, name):
     c - consumption
     i - investment
     u - within period utility
+    
+    Outputs:
+    No outputs are returned. Plots are created, displayed and saved.
     
     
     '''
