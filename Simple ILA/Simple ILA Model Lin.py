@@ -67,6 +67,8 @@ if np.max(np.abs(check)) > 1.E-6:
 # find the steady state values for the definitions
 Ybar, wbar, rbar, Tbar, cbar, ibar, ubar = \
     Modeldefs(kbar, kbar, ellbar, 0., params)
+    
+bar = np.array([kbar, ellbar, Ybar, wbar, rbar, Tbar, cbar, ibar, ubar])
 
 # display all steady state values for baseline
 print ('kbar:   ', kbar)
@@ -127,6 +129,9 @@ if np.max(np.abs(check)) > 1.E-6:
 # find the steady state values for the definitions
 Ybar2, wbar2, rbar2, Tbar2, cbar2, ibar2, ubar2 = \
     Modeldefs(kbar2, kbar2, ellbar2, 0., params2)
+    
+bar2 = np.array([kbar2, ellbar2, Ybar2, wbar2, rbar2, Tbar2, cbar2, ibar2, \
+                  ubar2])
 
 # display all steady state values
 print ('kbar:   ', kbar2)
@@ -350,6 +355,16 @@ bardata = (kbar, ellbar, zbar, Ybar, wbar, rbar, Tbar, cbar, ibar, ubar)
 from ILAmcanalysis import mcanalysis
 avgdata, uppdata, lowdata = \
     mcanalysis(mcdata, preddata, bardata, histdata, name, nsim)
+    
+# unpack
+(kavg, ellavg, zavg, Yavg, wavg, ravg, Tavg, cavg, iavg, uavg, foremeanavg) \
+    = avgdata
+(kupp, ellupp, zupp, Yupp, wupp, rupp, Tupp, cupp, iupp, uupp, foremeanupp) \
+    = uppdata
+(klow, elllow, zlow, Ylow, wlow, rlow, Tlow, clow, ilow, ulow, foremeanlow) \
+    = lowdata
+    
+forecastperc = np.delete(foremeanavg, 2, 0)/np.abs(bar)
 
 # -----------------------------------------------------------------------------
 # save results in pickle file

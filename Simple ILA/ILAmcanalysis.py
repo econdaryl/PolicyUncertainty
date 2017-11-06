@@ -62,7 +62,7 @@ def mcanalysis(mcdata, preddata, bardata, histdata, name, nsim):
     cavg = np.mean(cmc, axis = 0)
     iavg = np.mean(imc, axis = 0)
     uavg = np.mean(umc, axis = 0)
-    foremeanavg = np.mean(foremeanmc, axis = 0)
+    foremeanavg = np.mean(np.abs(foremeanmc), axis = 0)
     
     # find the rows for desired confidence bands
     conf = .1
