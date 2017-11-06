@@ -78,7 +78,7 @@ def ILAplots(dataplot, name):
     plt.xticks([])
     
     # save high quality version to external file
-    plt.savefig('ILALinfig1.eps', format='eps', dpi=2000)
+    plt.savefig(name + 'fig1.png', format='png', dpi=2000)
     plt.show(fig1)
     plt.close(fig1)
 
@@ -127,7 +127,7 @@ def ILAplots(dataplot, name):
     plt.xticks([])
     
     # save high quality version to external file
-    plt.savefig('ILALinfig2.eps', format='eps', dpi=2000)
+    plt.savefig(name + 'fig2.png', format='png', dpi=2000)
     plt.show(fig2)
     plt.close(fig2)
     
@@ -159,7 +159,7 @@ def ILAplots(dataplot, name):
     plt.xticks([])
     
     # save high quality version to external file
-    plt.savefig('ILALinfig3.eps', format='eps', dpi=2000)
+    plt.savefig(name + 'fig3.png', format='png', dpi=2000)
     plt.show(fig3)
     plt.close(fig3)
     
@@ -202,6 +202,6 @@ def ILAplots(dataplot, name):
     plt.xticks([])
     
     # save high quality version to external file
-    plt.savefig('ILALinfig4.eps', format='eps', dpi=2000)
+    plt.savefig(name + 'fig4.png', format='png', dpi=2000)
     plt.show(fig4)
     plt.close(fig4)

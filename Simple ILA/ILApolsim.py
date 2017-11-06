@@ -86,9 +86,7 @@ def polsim(simargs):
     sigma_z = params1[8]
     
     # set starting values
-    khist[0] = kbar1
-    zhist[0] = zbar
-    
+    (khist[0], zhist[0]) = initial
     
     # generate history of random shocks
     for t in range(1, nobs):

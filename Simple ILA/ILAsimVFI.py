@@ -13,8 +13,7 @@ from ILApolsim import polsim
 
 name = 'ILAsimLIN'
 
-def generateLIN(k, z, args):
-    from LinApp_Sim import LinApp_Sim
+def generateVFI(k, z, args):
     
     '''
     This function generates values of k next period and ell this period given
@@ -31,19 +30,14 @@ def generateLIN(k, z, args):
     '''
     
     # unpack args
-    (coeffs, XYbar) = args
-    (PP, QQ, UU, RR, SS, VV) = coeffs
-    (kbar, ellbar) = XYbar
+    (coeffsPF, coeffsJF) = args
     
     # inputs must be 1D numpy arrays and deviation from SS values
-    ktil = np.array([k - kbar])
-    ztil = np.array([z])
-    kptil, elltil = LinApp_Sim(ktil, ztil, PP, QQ, UU, RR, SS, VV)
-    # k and ell are deviations from SS values, so add these back.
-    # they are also 1D numpy arrays, so pull out the values rather than 
-    # use the arrays.
-    kp = kptil + kbar
-    ell = elltil + ellbar
+    Xvec = np.array([[1.0], [k], k**2, [k**3], [z], [z**2], [z**3], \
+                     [k*z], [k**2*z], [k*z**2]])
+
+    kp = np.vdot(Xvec, coeffsPF)
+    ell= np.vdot(Xvec, coeffsJF)
     
     return kp, ell
 
@@ -105,7 +99,7 @@ kf, ellf, zf, Yf, wf, rf, Tf, cf, invf, uf = polsim(predargs)
 
 
 # specify the number of simulations
-nsim = 1000
+nsim = 100000
 # specify the increment between MC reports
 repincr = 100
 
@@ -113,7 +107,7 @@ repincr = 100
 simargs = (initial, nobs, ts, generateLIN, args1, args2, params1, params2)
 
 # run the Monte Carlos
-mcdata, histdata = runmc(simargs, nsim, nobs, repincr)
+mcdata, histdata = runmc(generateLIN, simargs, nsim, nobs, repincr)
 
 # calculate time to simulate all MCs
 stopsim = timeit.default_timer()

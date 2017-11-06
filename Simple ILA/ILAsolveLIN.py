@@ -91,13 +91,13 @@ print ('R: ', RR2)
 print ('S: ', SS2)
 print  (' ')
 
+# set up coefficient list
+coeffs2 = (PP2, QQ2, UU2, RR2, SS2, VV2)
+
 # calculate time to solve for functions
 stopsolve = timeit.default_timer()
 timesolve =  stopsolve - startsolve
 print('time to solve: ', timesolve)
-
-# set up coefficient list
-coeffs2 = (PP2, QQ2, UU2, RR2, SS2, VV2)
 
 
 # -----------------------------------------------------------------------------
