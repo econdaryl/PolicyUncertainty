@@ -3,9 +3,7 @@ Run Monte Carlos for Simple ILA Model
 '''
 import numpy as np
 
-from ILApolsim import polsim
-
-def runmc(funcname, simargs, nsim, nobs, repincr):
+def runmc(funcname, args, nsim, nobs, repincr):
     '''
     This function returns all the results from a set of Monte Carlo simulations
     of the Simple ILA model.
@@ -44,7 +42,7 @@ def runmc(funcname, simargs, nsim, nobs, repincr):
             print('mc #:', i, 'of', nsim)
         khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, uhist, \
         kfhist, ellfhist, zfhist, Yfhist, wfhist, rfhist, Tfhist, cfhist, ifhist, \
-        ufhist = polsim(simargs)
+        ufhist= funcname(args)
             
         # replace forecast with abs value of forecast error
         for t in range(1, nobs):

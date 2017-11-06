@@ -1,15 +1,36 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+'''
+Run a series of monte carlo simulations and analyzes them using the
+linearization method
+'''
+
 import numpy as np
 import pickle as pkl
 import timeit
-from ILArunmc2 import runmc
+from ILArunmc import runmc
 from ILApolsim import polsim
 
 name = 'ILAsimLIN'
 
-def PolSimLIN(k, z, args):
+def generateLIN(k, z, args):
     from LinApp_Sim import LinApp_Sim
     
-    # unpack
+    '''
+    This function generates values of k next period and ell this period given
+    values for k and z this period.
+    
+    Inputs
+    k - k thisperiod
+    z - z this period
+    args - lists of linear coeffiecients and the steady state values.
+    
+    Outputs
+    kp - k next period
+    ell - ell this period
+    '''
+    
+    # unpack args
     (coeffs, XYbar) = args
     (PP, QQ, UU, RR, SS, VV) = coeffs
     (kbar, ellbar) = XYbar
@@ -76,7 +97,7 @@ params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0.])
 params4 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z, 0.])
 
 # get list of arguments for predictions simulation
-predargs = (initial, nobs, ts, PolSimLIN, args1, args2, params3, params4)
+predargs = (initial, nobs, ts, generateLIN, args1, args2, params3, params4)
 
 # find predicted series
 kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred,  \
@@ -89,10 +110,10 @@ nsim = 100000
 repincr = 100
 
 # get list of arguments for monte carlos simulations 
-simargs = (initial, nobs, ts, PolSimLIN, args1, args2, params1, params2)
+simargs = (initial, nobs, ts, generateLIN, args1, args2, params1, params2)
 
 # run the Monte Carlos
-mcdata, histdata = runmc(PolSimLIN, simargs, nsim, nobs, repincr)
+mcdata, histdata = runmc(generateLIN, simargs, nsim, nobs, repincr)
 
 # calculate time to simulate all MCs
 stopsim = timeit.default_timer()

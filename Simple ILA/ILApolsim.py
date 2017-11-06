@@ -1,16 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-This function reads in paramter values and steady states from the file, 
-ILAfindss.pkl, and 
 
-"""
 import numpy as np
 import pickle as pkl
 
 from Simple_ILA_Model_Funcs import Modeldefs
-
-
 
 # define a function that runs simulation with shift in tax rates
 # -----------------------------------------------------------------------------
@@ -19,7 +13,8 @@ def polsim(simargs):
     # unpack
     (initial, nobs, ts, funcname, args1, args2, params1, params2) = simargs
     '''
-    Generates a history of k & ell with a switch in regime in period ts.
+    Generates a history of k & ell with a switch in regime in period ts
+    Reads in paramter values and steady states from the file, ILAfindss.pkl
     
     Inputs
     -----------    
@@ -27,14 +22,12 @@ def polsim(simargs):
     nobs: number of periods to simulate.
     ts: period in which the shift occurs.
     args1: is a list of arguments needed by the solution method in baseline.
-        For linearization these are:
+        For example, with linearization these are:
         coeffs1: list of (PP, QQ, UU, RR, SS, VV) under the baseline regime.
-        XYbar1: numpy array of X & Y bSS values under the baseline regime.
-        params1: list of parameters under the baseline regime.
+        XYbar1: numpy array of X & Y SS values under the baseline regime.
     args2: is a list of arguments needed by the solution method after change    
-        coeffs2: list of (PP2, QQ2, UU2, RR2, SS2, VV2) under the new regime.
-        XYbar2: numpy array of X & Y bSS values under the new regime.
-        params2: list of parameters under the new regime.
+    params1: list of parameters under the baseline regime.
+    params2: list of parameters under the new regime.
     
     Returns
     --------

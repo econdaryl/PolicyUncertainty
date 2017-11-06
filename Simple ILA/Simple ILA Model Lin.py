@@ -298,7 +298,7 @@ def PolSim(args):
         
 # -----------------------------------------------------------------------------
 ## RUN SIMULATIONS
-from ILArunmc import runmc
+from ILArunmc_old import runmc
 
 # start clock for all MCs
 startsim = timeit.default_timer()
