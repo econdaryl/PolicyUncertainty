@@ -2,6 +2,8 @@
 Analysis of Monte Carlos for Simple ILA Model
 '''
 import numpy as np
+from ILAplots import ILAplots
+    
 
 def mcanalysis(mcdata, preddata, bardata, histdata, name, nsim):
     '''
@@ -102,21 +104,20 @@ def mcanalysis(mcdata, preddata, bardata, histdata, name, nsim):
     
     # create a list of time series to plot
     dataplot = np.array([kpred/kbar, kupp/kbar, klow/kbar, khist/kbar, \
-            ellpred/ellbar, ellupp/ellbar, elllow/ellbar, ellhist/ellbar, \
-            zpred, zupp, zlow, zhist, \
-            Ypred/Ybar, Yupp/Ybar, Ylow/Ybar, Yhist/Ybar, \
-            wpred/wbar, wupp/wbar, wlow/wbar, whist/wbar, \
-            rpred/rbar, rupp/rbar, rlow/rbar, rhist/rbar, \
-            Tpred/Tbar, Tupp/Tbar, Tlow/Tbar, Thist/Tbar, \
-            cpred/cbar, cupp/cbar, clow/cbar, chist/cbar, \
-            ipred/ibar, iupp/ibar, ilow/ibar, ihist/ibar, \
-            upred/ubar, uupp/ubar, ulow/ubar, uhist/ubar])
+        ellpred/ellbar, ellupp/ellbar, elllow/ellbar, ellhist/ellbar, \
+        zpred, zupp, zlow, zhist, \
+        Ypred/Ybar, Yupp/Ybar, Ylow/Ybar, Yhist/Ybar, \
+        wpred/wbar, wupp/wbar, wlow/wbar, whist/wbar, \
+        rpred/rbar, rupp/rbar, rlow/rbar, rhist/rbar, \
+        Tpred/Tbar, Tupp/Tbar, Tlow/Tbar, Thist/Tbar, \
+        cpred/cbar, cupp/cbar, clow/cbar, chist/cbar, \
+        ipred/ibar, iupp/ibar, ilow/ibar, ihist/ibar, \
+        upred/ubar, uupp/ubar, ulow/ubar, uhist/ubar])
     
     # plot using Simple ILA Model Plot.py
-    from ILAplots import ILAplots
-    
     ILAplots(dataplot, name)
     
+    # create lists of data to return
     avgdata = (kavg, ellavg, zavg, Yavg, wavg, ravg, Tavg, cavg, iavg, uavg, \
                foremeanavg, zformeanavg, MsqEerravg) 
     uppdata = (kupp, ellupp, zupp, Yupp, wupp, rupp, Tupp, cupp, iupp, uupp, \

@@ -86,25 +86,23 @@ startsim = timeit.default_timer()
 nobs = 120
 # specify the period policy shifts
 ts = 20
+# specify the number of simulations
+nsim = 100
+# specify the increment between MC reports
+repincr = 100
+
 # specify initial values
 k0 = kbar1
 z0 = 0.
 initial = (k0, z0)
 
-
-# get time zero prediction
+# argumenets and parameters for time zero prediction
 # parameters for tau1 portion
 params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0.])
 # paramters for tau2 portion
 params4 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z, 0.])
-
 # get list of arguments for predictions simulation
 predargs = (initial, nobs, ts, generateLIN, args1, args2, params3, params4)
-
-# specify the number of simulations
-nsim = 100
-# specify the increment between MC reports
-repincr = 100
 
 # get list of arguments for monte carlos simulations 
 simargs = (initial, nobs, ts, generateLIN, args1, args2, params1, params2)
