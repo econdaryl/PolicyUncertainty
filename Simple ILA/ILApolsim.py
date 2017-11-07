@@ -3,8 +3,10 @@
 
 import numpy as np
 import pickle as pkl
+from scipy.stats import norm
 
 from Simple_ILA_Model_Funcs import Modeldefs
+from Simple_ILA_Model_Funcs import Modeldyn
 
 # define a function that runs simulation with shift in tax rates
 # -----------------------------------------------------------------------------
@@ -42,7 +44,7 @@ def polsim(simargs):
     '''
         
     
-    # -----------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # READ IN VALUES FROM STEADY STATE CALCULATIONS
     
     # load steady state values and parameters
@@ -55,6 +57,17 @@ def polsim(simargs):
     [kbar2, ellbar2, Ybar2, wbar2, rbar2, Tbar2, cbar2, ibar2, ubar2] = bar2
     [alpha, beta, gamma, delta, chi, theta, tau, rho_z, sigma_z] = params1
     (zbar, Zbar, NN, nx, ny, nz, logX, Sylv) = LINparams
+    
+    # set parameter values for calculating Euler errors
+    npts = 10 # number of point for rectangular quadrature
+    # generate discret support for epsilon to be used in Euler error
+    # Eps are the central values
+    # Phi are the associated probabilities
+    Eps = np.zeros(npts);
+    Cum = np.linspace(0.0, 1.0, num=npts+1)+.5/npts
+    Cum = Cum[0:npts]
+    Phi = np.ones(npts)/npts
+    Eps = norm.ppf(Cum)
 
     
     # preallocate histories
@@ -115,6 +128,20 @@ def polsim(simargs):
                 ifhist[t], ufhist[t] = Modeldefs(kfhist[t+2], khist[t+1], \
                 ellfhist[t+1], zfhist[t+1], params2)
         
+        # begin loop over possible values of shock next period for Euler errors
+        MsqEerr = np.zeros(2)
+        for i in range(0, npts):
+            # find value of next period z
+            zp = rho_z*zhist[t] + sigma_z*Eps[i]
+            # find the value of k in two periods
+            kpp, ellp = funcname(khist[t+1], zp, args1)
+            # find the Euler errors
+            invec = (kpp, khist[t+1], khist[t], ellp, ellhist[t], zp, zhist[t])
+            Eerr = Phi[i]*Modeldyn(invec, params1)
+            MsqEerr = 1/(1+i) * Eerr**2 + i/(1+i) * MsqEerr
+            
+        MsqEerr = MsqEerr**.5
+        
     
     for t in range(ts-1, nobs):
         khist[t+1], ellhist[t] = funcname(khist[t], zhist[t], args2)
@@ -131,5 +158,4 @@ def polsim(simargs):
     
     return khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, \
         uhist, kfhist, ellfhist, zfhist, Yfhist, wfhist, rfhist, Tfhist, \
-        cfhist, ifhist, ufhist
-        
+        cfhist, ifhist, ufhist, MsqEerr

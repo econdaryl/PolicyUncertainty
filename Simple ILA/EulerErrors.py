@@ -90,7 +90,7 @@ def EEcalc(Xdata, Zdata, efunc, epars, tfunc, tpars, lfunc, lpars):
     Eerr = np.zeros((nobs,neq))
     # begin loop over time periods
     for t in range(0, nobs):
-        # begin loop over possible va,lues of shock next period
+        # begin loop over possible values of shock next period
         for i in range(0, npts):
             # find value of next period Z
             Zp = lfunc(Zdata[t,:],Eps[i],lpars)

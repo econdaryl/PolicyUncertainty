@@ -55,7 +55,7 @@ def runmc(simargs, nsim, nobs, repincr):
     
     # find predicted series
     kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred,  \
-    kf, ellf, zf, Yf, wf, rf, Tf, cf, invf, uf = polsim(predargs)
+    kf, ellf, zf, Yf, wf, rf, Tf, cf, invf, uf, MsqEerr = polsim(predargs)
     
     # preallocate mc matrices
     kmc = np.zeros((nsim, nobs+1))
@@ -69,7 +69,8 @@ def runmc(simargs, nsim, nobs, repincr):
     imc = np.zeros((nsim, nobs))
     umc = np.zeros((nsim, nobs)) 
     foremeanmc = np.zeros((nsim, 10)) 
-    zformeanmc = np.zeros((nsim, 10)) 
+    zformeanmc = np.zeros((nsim, 10))
+    MsqEerrmc = np.zeros((nsim, 2))
                                        
     # run remaining simulations                                
     for i in range(0, nsim):
@@ -77,7 +78,7 @@ def runmc(simargs, nsim, nobs, repincr):
             print('mc #:', i, 'of', nsim)
         khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, \
         uhist, kfhist, ellfhist, zfhist, Yfhist, wfhist, rfhist, Tfhist, \
-        cfhist, ifhist, ufhist = polsim(simargs)
+        cfhist, ifhist, ufhist, MsqEerr = polsim(simargs)
             
         # replace 1-period ahead forecast with abs value of forecast error
         for t in range(1, nobs):
@@ -129,9 +130,10 @@ def runmc(simargs, nsim, nobs, repincr):
         umc[i,:] = uhist
         foremeanmc[i,:] = foremean
         zformeanmc[i,:] = zformean
+        MsqEerrmc[i,:] = MsqEerr
         
         mcdata = (kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc, \
-                  foremeanmc, zformeanmc)
+                  foremeanmc, zformeanmc, MsqEerrmc)
         
         histdata = (khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, \
                     ihist, uhist)

@@ -101,11 +101,6 @@ params4 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z, 0.])
 # get list of arguments for predictions simulation
 predargs = (initial, nobs, ts, generateLIN, args1, args2, params3, params4)
 
-# find predicted series
-kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred,  \
-kf, ellf, zf, Yf, wf, rf, Tf, cf, invf, uf = polsim(predargs)
-
-
 # specify the number of simulations
 nsim = 100
 # specify the increment between MC reports
@@ -134,7 +129,7 @@ avgdata, uppdata, lowdata = \
     
 # unpack
 (kavg, ellavg, zavg, Yavg, wavg, ravg, Tavg, cavg, iavg, uavg, foremeanavg, \
-     zformeanavg) = avgdata
+     zformeanavg, MsqEerravg) = avgdata
 (kupp, ellupp, zupp, Yupp, wupp, rupp, Tupp, cupp, iupp, uupp, foremeanupp, \
      zformeanupp) = uppdata
 (klow, elllow, zlow, Ylow, wlow, rlow, Tlow, clow, ilow, ulow, foremeanlow, \
@@ -148,6 +143,9 @@ zforperc = np.delete(zformeanavg, 2, 0)/np.abs(bar1)
 print('period-0 average forecast errors')
 print(zforperc)
 
+print('root mean squared Euler errors')
+print(MsqEerravg)
+
 # -----------------------------------------------------------------------------
 # SAVE RESULTS
 
@@ -157,7 +155,7 @@ output = open(name + '.pkl', 'wb')
 pkl.dump(timesim, output)
 
 # write monte carlo results
-alldata = (preddata, avgdata, uppdata, lowdata, foreperc, zforperc)
+alldata = (preddata, avgdata, uppdata, lowdata, foreperc, zforperc, MsqEerravg)
 pkl.dump(alldata, output)
 
 output.close()
