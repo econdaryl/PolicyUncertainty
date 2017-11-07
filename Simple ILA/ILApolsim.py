@@ -100,11 +100,20 @@ def polsim(simargs):
             params1)
         
         # get 1-period ahead forecasts
-        zfhist[t+1] = rho_z*zhist[t]
-        kfhist[t+2], ellfhist[t+1] = funcname(khist[t+1], zfhist[t+1], args1)
-        Yfhist[t+1], wfhist[t+1], rfhist[t+1], Tfhist[t+1], cfhist[t+1], \
-            ifhist[t], ufhist[t] = Modeldefs(kfhist[t+2], khist[t+1], \
-            ellfhist[t+1], zfhist[t+1], params1)
+        if t < ts-2:  # use baseline model for predictions
+            zfhist[t+1] = rho_z*zhist[t]
+            kfhist[t+2], ellfhist[t+1] = funcname(khist[t+1], zfhist[t+1], \
+                  args1)
+            Yfhist[t+1], wfhist[t+1], rfhist[t+1], Tfhist[t+1], cfhist[t+1], \
+                ifhist[t], ufhist[t] = Modeldefs(kfhist[t+2], khist[t+1], \
+                ellfhist[t+1], zfhist[t+1], params1)
+        else:  # use change model for predictions
+            zfhist[t+1] = rho_z*zhist[t]
+            kfhist[t+2], ellfhist[t+1] = funcname(khist[t+1], zfhist[t+1], \
+                  args2)
+            Yfhist[t+1], wfhist[t+1], rfhist[t+1], Tfhist[t+1], cfhist[t+1], \
+                ifhist[t], ufhist[t] = Modeldefs(kfhist[t+2], khist[t+1], \
+                ellfhist[t+1], zfhist[t+1], params2)
         
     
     for t in range(ts-1, nobs):

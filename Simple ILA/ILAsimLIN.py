@@ -8,8 +8,10 @@ linearization method
 import numpy as np
 import pickle as pkl
 import timeit
+
 from ILArunmc import runmc
 from ILApolsim import polsim
+from ILAmcanalysis import mcanalysis
 
 name = 'ILAsimLIN'
 
@@ -105,7 +107,7 @@ kf, ellf, zf, Yf, wf, rf, Tf, cf, invf, uf = polsim(predargs)
 
 
 # specify the number of simulations
-nsim = 1000
+nsim = 100
 # specify the increment between MC reports
 repincr = 100
 
@@ -127,25 +129,27 @@ print('time to simulate', nsim, 'monte carlos: ', timesim)
 bardata = (kbar1, ellbar1, zbar, Ybar1, wbar1, rbar1, Tbar1, cbar1, ibar1, 
            ubar1)
   
-from ILAmcanalysis import mcanalysis
 avgdata, uppdata, lowdata = \
     mcanalysis(mcdata, preddata, bardata, histdata, name, nsim)
     
 # unpack
-(kavg, ellavg, zavg, Yavg, wavg, ravg, Tavg, cavg, iavg, uavg, foremeanavg) \
-    = avgdata
-(kupp, ellupp, zupp, Yupp, wupp, rupp, Tupp, cupp, iupp, uupp, foremeanupp) \
-    = uppdata
-(klow, elllow, zlow, Ylow, wlow, rlow, Tlow, clow, ilow, ulow, foremeanlow) \
-    = lowdata
+(kavg, ellavg, zavg, Yavg, wavg, ravg, Tavg, cavg, iavg, uavg, foremeanavg, \
+     zformeanavg) = avgdata
+(kupp, ellupp, zupp, Yupp, wupp, rupp, Tupp, cupp, iupp, uupp, foremeanupp, \
+     zformeanupp) = uppdata
+(klow, elllow, zlow, Ylow, wlow, rlow, Tlow, clow, ilow, ulow, foremeanlow, \
+     zformeanlow) = lowdata
     
-forecastperc = np.delete(foremeanavg, 2, 0)/np.abs(bar1)
-print('1 period average forecast errors')
-print(forecastperc)
+foreperc = np.delete(foremeanavg, 2, 0)/np.abs(bar1)
+print('1-period-ahead average forecast errors')
+print(foreperc)
+
+zforperc = np.delete(zformeanavg, 2, 0)/np.abs(bar1)
+print('period-0 average forecast errors')
+print(zforperc)
 
 # -----------------------------------------------------------------------------
 # SAVE RESULTS
-import pickle as pkl
 
 output = open(name + '.pkl', 'wb')
 
@@ -153,7 +157,7 @@ output = open(name + '.pkl', 'wb')
 pkl.dump(timesim, output)
 
 # write monte carlo results
-alldata = (preddata, avgdata, uppdata, lowdata, forecastperc)
+alldata = (preddata, avgdata, uppdata, lowdata, foreperc, zforperc)
 pkl.dump(alldata, output)
 
 output.close()

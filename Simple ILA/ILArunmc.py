@@ -44,9 +44,11 @@ def runmc(simargs, nsim, nobs, repincr):
     
     # get time zero prediction
     # parameters for tau1 portion
-    params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0.])
+    params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, \
+                        0.])
     # paramters for tau2 portion
-    params4 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z, 0.])
+    params4 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z, \
+                        0.])
     
     # get list of arguments for predictions simulation
     predargs = (initial, nobs, ts, generateLIN, args1, args2, params3, params4)
@@ -54,8 +56,6 @@ def runmc(simargs, nsim, nobs, repincr):
     # find predicted series
     kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred,  \
     kf, ellf, zf, Yf, wf, rf, Tf, cf, invf, uf = polsim(predargs)
-    
-
     
     # preallocate mc matrices
     kmc = np.zeros((nsim, nobs+1))
@@ -69,14 +69,15 @@ def runmc(simargs, nsim, nobs, repincr):
     imc = np.zeros((nsim, nobs))
     umc = np.zeros((nsim, nobs)) 
     foremeanmc = np.zeros((nsim, 10)) 
+    zformeanmc = np.zeros((nsim, 10)) 
                                        
     # run remaining simulations                                
     for i in range(0, nsim):
         if np.fmod(i, repincr) == 0.:
             print('mc #:', i, 'of', nsim)
-        khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, uhist, \
-        kfhist, ellfhist, zfhist, Yfhist, wfhist, rfhist, Tfhist, cfhist, ifhist, \
-        ufhist = polsim(simargs)
+        khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, \
+        uhist, kfhist, ellfhist, zfhist, Yfhist, wfhist, rfhist, Tfhist, \
+        cfhist, ifhist, ufhist = polsim(simargs)
             
         # replace 1-period ahead forecast with abs value of forecast error
         for t in range(1, nobs):
@@ -91,7 +92,7 @@ def runmc(simargs, nsim, nobs, repincr):
             ifhist[t] = np.abs(ifhist[t] - ihist[t])
             ufhist[t] = np.abs(ufhist[t] - uhist[t])
             
-        # caclulate mean forecast errors
+        # caclulate mean 1-period ahead forecast errors
         foremean = np.array([np.mean(kfhist[1:nobs]),
                              np.mean(ellfhist[1:nobs]),
                              np.mean(zfhist[1:nobs]), 
@@ -101,7 +102,19 @@ def runmc(simargs, nsim, nobs, repincr):
                              np.mean(Tfhist[1:nobs]), 
                              np.mean(cfhist[1:nobs]),
                              np.mean(ifhist[1:nobs]), 
-                             np.mean(ufhist[1:nobs])])   
+                             np.mean(ufhist[1:nobs])])  
+    
+        # caclulate mean period zero forecast errors
+        zformean = np.array([np.mean(khist[1:nobs] - kpred[1:nobs]),
+                             np.mean(ellhist[1:nobs] - ellpred[1:nobs]),
+                             np.mean(zhist[1:nobs] - zpred[1:nobs]), 
+                             np.mean(Yhist[1:nobs] - Ypred[1:nobs]),
+                             np.mean(whist[1:nobs] - wpred[1:nobs]), 
+                             np.mean(rhist[1:nobs] - rpred[1:nobs]),
+                             np.mean(Thist[1:nobs] - Tpred[1:nobs]), 
+                             np.mean(chist[1:nobs] - cpred[1:nobs]),
+                             np.mean(ihist[1:nobs] - ipred[1:nobs]), 
+                             np.mean(uhist[1:nobs] - upred[1:nobs])])  
             
         # store results in Monte Carlo matrices
         kmc[i,:] = khist
@@ -115,9 +128,10 @@ def runmc(simargs, nsim, nobs, repincr):
         imc[i,:] = ihist
         umc[i,:] = uhist
         foremeanmc[i,:] = foremean
+        zformeanmc[i,:] = zformean
         
         mcdata = (kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc, \
-                  foremeanmc)
+                  foremeanmc, zformeanmc)
         
         histdata = (khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, \
                     ihist, uhist)

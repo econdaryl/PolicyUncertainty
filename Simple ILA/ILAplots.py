@@ -1,25 +1,23 @@
-'''
-Plots for Simple ILA Model
-'''
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Oct  6 06:38:49 2017
 
+@author: klp4
+"""
 import matplotlib.pyplot as plt
 
-def ILAplots(data, name):
+def ILAplots(dataplot, name):
     '''
-    This function takes a list of time series from the ILA model generated 
+    This function takes a list of time series from the ILA model generated u
     using either linearization or VFI.  It plots and saves a series of graphs
-    of these over time. 
+    of these over time.
     
-    Inputs:
-    data: a list of numpy arrays
-    name: a string that is used when saving the plots
-    
-    The list of data must contain the following time series for each variable:
+    The list data must contain the following time series for each variable:
     x_pred - the predicted time path as of date zero
     x_upp - the upper confidence band
     x_low - the lower confidence band
     x_hist - a typical history
-    see the upack command below in the code for the order
     
     The variables to be plotted are:
     k - capital stock
@@ -32,37 +30,38 @@ def ILAplots(data, name):
     c - consumption
     i - investment
     u - within period utility
-    
-    Outputs:
-    No outputs are returned. Plots are created, displayed and saved.
-    
-    
     '''
-
-    # unpack list of time series
-    (kpred, kupp, klow, khist, \
-            ellpred, ellupp, elllow, ellhist, \
-            zpred, zupp, zlow, zhist, \
-            Ypred, Yupp, Ylow, Yhist, \
-            wpred, wupp, wlow, whist, \
-            rpred, rupp, rlow, rhist, \
-            Tpred, Tupp, Tlow, Thist, \
-            cpred, cupp, clow, chist, \
-            ipred, iupp, ilow, ihist, \
-            upred, uupp, ulow, uhist) = data    
-        
+    
+    # turn interactive plotting off
+    # plt.ioff()
+    
+    # unpack data for plots
+    [kpred, kupp, klow, khist,
+        ellpred, ellupp, elllow, ellhist, \
+        zpred, zupp, zlow, zhist, \
+        Ypred, Yupp, Ylow, Yhist, \
+        wpred, wupp, wlow, whist, \
+        rpred, rupp, rlow, rhist, \
+        Tpred, Tupp, Tlow, Thist, \
+        cpred, cupp, clow, chist, \
+        ipred, iupp, ilow, ihist, \
+        upred, uupp, ulow, uhist] = dataplot
+            
     # plot
+    fig1 = plt.figure()
     plt.subplot(2,2,1)
     plt.plot(range(kpred.size), kpred, 'k-',
              range(kupp.size), kupp, 'k:',
              range(klow.size), klow, 'k:')
     plt.title('Capital')
+    plt.xticks([])
     
     plt.subplot(2,2,2)
     plt.plot(range(ellpred.size), ellpred, 'k-',
              range(ellupp.size), ellupp, 'k:',
              range(elllow.size), elllow, 'k:')
     plt.title('Labor')
+    plt.xticks([])
     
     plt.subplot(2,2,3)
     plt.plot(range(zpred.size), zpred, 'k-',
@@ -76,110 +75,133 @@ def ILAplots(data, name):
              range(Yupp.size), Yupp, 'k:',
              range(Ylow.size), Ylow, 'k:')
     plt.title('GDP')
+    plt.xticks([])
     
     # save high quality version to external file
-    plt.savefig(name + 'fig1.png', format='png', dpi=2000)
-    
-    plt.show()
-    
+    plt.savefig(name + 'fig1.pdf', format='png', dpi=2000)
+    plt.show(fig1)
+    plt.close(fig1)
+
+
+    fig2 = plt.figure()
     plt.subplot(3,2,1)
     plt.plot(range(wpred.size), wpred, 'k-',
              range(wupp.size), wupp, 'k:',
              range(wlow.size), wlow, 'k:')
     plt.title('Wages')
+    plt.xticks([])
     
     plt.subplot(3,2,2)
     plt.plot(range(rpred.size), rpred, 'k-',
              range(rupp.size), rupp, 'k:',
              range(rlow.size), rlow, 'k:')
     plt.title('Interest Rate')
+    plt.xticks([])
     
     plt.subplot(3,2,3)
     plt.plot(range(Tpred.size), Tpred, 'k-',
              range(Tupp.size), Tupp, 'k:',
              range(Tlow.size), Tlow, 'k:')
     plt.title('Taxes')
+    plt.xticks([])
     
     plt.subplot(3,2,4)
     plt.plot(range(cpred.size), cpred, 'k-',
              range(cupp.size), cupp, 'k:',
              range(clow.size), clow, 'k:')
     plt.title('Consumption')
+    plt.xticks([])
     
     plt.subplot(3,2,5)
     plt.plot(range(ipred.size), ipred, 'k-',
              range(iupp.size), iupp, 'k:',
              range(ilow.size), ilow, 'k:')
     plt.title('Investment')
+    plt.xticks([])
     
     plt.subplot(3,2,6)
     plt.plot(range(upred.size), upred, 'k-',
              range(uupp.size), uupp, 'k:',
              range(ulow.size), ulow, 'k:')
     plt.title('Utility')
+    plt.xticks([])
     
     # save high quality version to external file
-    plt.savefig(name + 'fig2.png', format='png', dpi=2000)
+    plt.savefig(name + 'fig2.pdf', format='png', dpi=2000)
+    plt.show(fig2)
+    plt.close(fig2)
     
-    plt.show()
     
+    fig3 = plt.figure()
     # plot
     plt.subplot(2,2,1)
     plt.plot(range(khist.size), khist, 'k-',
              range(kpred.size), kpred, 'r-')
-    plt.title('k')
+    plt.title('Capital')
+    plt.xticks([])
     
     plt.subplot(2,2,2)
     plt.plot(range(ellhist.size), ellhist, 'k-',
              range(ellpred.size), ellpred, 'r-')
-    plt.title('ell')
+    plt.title('Labor')
+    plt.xticks([])
     
     plt.subplot(2,2,3)
     plt.plot(range(zhist.size), zhist, 'k-',
              range(zpred.size), zpred, 'r-')
-    plt.title('z')
+    plt.title('Technology')
+    plt.xticks([])
     
     plt.subplot(2,2,4)
     plt.plot(range(Yhist.size), Yhist, 'k-',
              range(Ypred.size), Ypred, 'r-')
-    plt.title('Y')
+    plt.title('GDP')
+    plt.xticks([])
     
     # save high quality version to external file
-    plt.savefig(name + 'fig3.png', format='png', dpi=2000)
+    plt.savefig(name + 'fig3.pdf', format='png', dpi=2000)
+    plt.show(fig3)
+    plt.close(fig3)
     
-    plt.show()
     
+    fig4 = plt.figure()
     plt.subplot(3,2,1)
     plt.plot(range(whist.size), whist, 'k-',
              range(wpred.size), wpred, 'r-')
-    plt.title('w')
+    plt.title('Wages')
+    plt.xticks([])
     
     plt.subplot(3,2,2)
     plt.plot(range(rhist.size), rhist, 'k-',
              range(rpred.size), rpred, 'r-')
-    plt.title('r')
+    plt.title('Interest Rate')
+    plt.xticks([])
     
     plt.subplot(3,2,3)
     plt.plot(range(Thist.size), Thist, 'k-',
              range(Tpred.size), Tpred, 'r-')
-    plt.title('T')
+    plt.title('Taxes')
+    plt.xticks([])
     
     plt.subplot(3,2,4)
     plt.plot(range(chist.size), chist, 'k-',
              range(cpred.size), cpred, 'r-')
-    plt.title('c')
+    plt.title('Consumption')
+    plt.xticks([])
     
     plt.subplot(3,2,5)
     plt.plot(range(ihist.size), ihist, 'k-',
              range(ipred.size), ipred, 'r-')
-    plt.title('iT')
+    plt.title('Investment')
+    plt.xticks([])
     
     plt.subplot(3,2,6)
     plt.plot(range(uhist.size), uhist, 'k-',
              range(upred.size), upred, 'r-')
-    plt.title('u')
+    plt.title('Utility')
+    plt.xticks([])
     
     # save high quality version to external file
-    plt.savefig(name + 'fig4.png', format='png', dpi=2000)
-    #plt.show()
-    
+    plt.savefig(name + 'fig4.pdf', format='png', dpi=2000)
+    plt.show(fig4)
+    plt.close(fig4)

@@ -29,14 +29,15 @@ def mcanalysis(mcdata, preddata, bardata, histdata, name, nsim):
     '''    
     
     #unpack data
-    (kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc, foremeanmc) = mcdata
+    (kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc, foremeanmc,\
+        zformeanmc) = mcdata
     # calculate and report statistics and charts from Monte Carlos  
     (kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, \
         upred) = preddata   
     (kbar, ellbar, zbar, Ybar, wbar, rbar, Tbar, cbar, ibar, ubar) = bardata
     (khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, \
             uhist) = histdata
-     
+          
     # now sort the Monte Carlo matrices over the rows
     kmc = np.sort(kmc, axis = 0)
     ellmc = np.sort(ellmc, axis = 0)
@@ -49,6 +50,7 @@ def mcanalysis(mcdata, preddata, bardata, histdata, name, nsim):
     imc = np.sort(imc, axis = 0)
     umc = np.sort(umc, axis = 0)
     foremeanmc = np.sort(foremeanmc, axis = 0)
+    zformeanmc = np.sort(zformeanmc, axis = 0)
     
     # find the average values for each variable in each time period across 
     # Monte Carlos
@@ -63,6 +65,7 @@ def mcanalysis(mcdata, preddata, bardata, histdata, name, nsim):
     iavg = np.mean(imc, axis = 0)
     uavg = np.mean(umc, axis = 0)
     foremeanavg = np.mean(np.abs(foremeanmc), axis = 0)
+    zformeanavg = np.mean(np.abs(zformeanmc), axis = 0)
     
     # find the rows for desired confidence bands
     conf = .1
@@ -81,6 +84,7 @@ def mcanalysis(mcdata, preddata, bardata, histdata, name, nsim):
     iupp = imc[high,:]
     uupp = umc[high,:]
     foremeanupp = foremeanmc[high,:]
+    zformeanupp = zformeanmc[high,:]
     
     klow = kmc[low,:]
     elllow = ellmc[low,:]
@@ -93,6 +97,7 @@ def mcanalysis(mcdata, preddata, bardata, histdata, name, nsim):
     ilow = imc[low,:]
     ulow = umc[low,:]
     foremeanlow = foremeanmc[low,:]
+    zformeanlow = zformeanmc[low,:]
     
     # create a list of time series to plot
     dataplot = np.array([kpred/kbar, kupp/kbar, klow/kbar, khist/kbar, \
@@ -112,10 +117,10 @@ def mcanalysis(mcdata, preddata, bardata, histdata, name, nsim):
     ILAplots(dataplot, name)
     
     avgdata = (kavg, ellavg, zavg, Yavg, wavg, ravg, Tavg, cavg, iavg, uavg, \
-               foremeanavg) 
+               foremeanavg, zformeanavg) 
     uppdata = (kupp, ellupp, zupp, Yupp, wupp, rupp, Tupp, cupp, iupp, uupp, \
-               foremeanupp) 
+               foremeanupp, zformeanupp) 
     lowdata = (klow, elllow, zlow, Ylow, wlow, rlow, Tlow, clow, ilow, ulow, \
-               foremeanlow) 
+               foremeanlow, zformeanlow) 
     
     return avgdata, uppdata, lowdata
