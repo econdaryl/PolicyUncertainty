@@ -113,7 +113,7 @@ repincr = 100
 simargs = (initial, nobs, ts, generateLIN, args1, args2, params1, params2)
 
 # run the Monte Carlos
-mcdata, histdata = runmc(simargs, nsim, nobs, repincr)
+mcdata, histdata, preddata = runmc(simargs, nsim, nobs, repincr)
 
 # calculate time to simulate all MCs
 stopsim = timeit.default_timer()
@@ -124,8 +124,6 @@ print('time to simulate', nsim, 'monte carlos: ', timesim)
 # DO ANALYSIS
 
 # load data for plots
-preddata = (kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, \
-        upred)
 bardata = (kbar1, ellbar1, zbar, Ybar1, wbar1, rbar1, Tbar1, cbar1, ibar1, 
            ubar1)
   

@@ -4,6 +4,7 @@
 Run Monte Carlos for Simple ILA Model
 '''
 import numpy as np
+import pickle as pkl
 
 from ILApolsim import polsim
 
@@ -24,8 +25,37 @@ def runmc(simargs, nsim, nobs, repincr):
     Outputs:
     mcdata: a list of numpy arrays with simulations in the rows and
         observations in the columns
-    histdata: a list of 1-dimensional numpy arrays for the final simulation  
+    histdata: a list of 1-dimensional numpy arrays for the final simulation 
     '''
+    
+    # load steady state values and parameters
+    infile = open('ILAfindss.pkl', 'rb')
+    (bar1, bar2, params1, params2, LINparams) = pkl.load(infile)
+    infile.close()
+    
+    # unpack
+    [kbar1, ellbar1, Ybar1, wbar1, rbar1, Tbar1, cbar1, ibar1, ubar1] = bar1
+    [kbar2, ellbar2, Ybar2, wbar2, rbar2, Tbar2, cbar2, ibar2, ubar2] = bar2
+    [alpha, beta, gamma, delta, chi, theta, tau, rho_z, sigma_z] = params1
+    tau2 = params2[6]
+    (zbar, Zbar, NN, nx, ny, nz, logX, Sylv) = LINparams
+    
+    (initial, nobs, ts, generateLIN, args1, args2, params1, params2) = simargs
+    
+    # get time zero prediction
+    # parameters for tau1 portion
+    params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0.])
+    # paramters for tau2 portion
+    params4 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z, 0.])
+    
+    # get list of arguments for predictions simulation
+    predargs = (initial, nobs, ts, generateLIN, args1, args2, params3, params4)
+    
+    # find predicted series
+    kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred,  \
+    kf, ellf, zf, Yf, wf, rf, Tf, cf, invf, uf = polsim(predargs)
+    
+
     
     # preallocate mc matrices
     kmc = np.zeros((nsim, nobs+1))
@@ -48,7 +78,7 @@ def runmc(simargs, nsim, nobs, repincr):
         kfhist, ellfhist, zfhist, Yfhist, wfhist, rfhist, Tfhist, cfhist, ifhist, \
         ufhist = polsim(simargs)
             
-        # replace forecast with abs value of forecast error
+        # replace 1-period ahead forecast with abs value of forecast error
         for t in range(1, nobs):
             kfhist[t] = np.abs(kfhist[t] - khist[t])
             ellfhist[t] = np.abs(ellfhist[t] - ellhist[t])
@@ -92,4 +122,7 @@ def runmc(simargs, nsim, nobs, repincr):
         histdata = (khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, \
                     ihist, uhist)
         
-    return mcdata, histdata
+        preddata = (kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, \
+                    ipred, upred)
+        
+    return mcdata, histdata, preddata
