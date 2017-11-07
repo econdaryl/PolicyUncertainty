@@ -22,7 +22,7 @@ from LinApp_Deriv import LinApp_Deriv
 from LinApp_Solve import LinApp_Solve
 # from LinApp_SSL import LinApp_SSL
 
-from Simple_ILA_Model_Funcs import Modeldyn
+from ILAfuncs import Modeldyn
 
 # -----------------------------------------------------------------------------
 # READ IN VALUES FROM STEADY STATE CALCULATIONS

@@ -18,7 +18,7 @@ import pickle as pkl
 from LinApp_FindSS import LinApp_FindSS
 # from LinApp_SSL import LinApp_SSL
 
-from Simple_ILA_Model_Funcs import Modeldefs, Modeldyn
+from ILAfuncs import Modeldefs, Modeldyn
 
 # set name for external files written
 name = 'ILAfindss'

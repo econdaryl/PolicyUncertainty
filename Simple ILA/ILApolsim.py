@@ -5,8 +5,7 @@ import numpy as np
 import pickle as pkl
 from scipy.stats import norm
 
-from Simple_ILA_Model_Funcs import Modeldefs
-from Simple_ILA_Model_Funcs import Modeldyn
+from ILAfuncs import Modeldefs, Modeldyn
 
 # define a function that runs simulation with shift in tax rates
 # -----------------------------------------------------------------------------

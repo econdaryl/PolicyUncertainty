@@ -10,7 +10,6 @@ import pickle as pkl
 import timeit
 
 from ILArunmc import runmc
-from ILApolsim import polsim
 from ILAmcanalysis import mcanalysis
 
 name = 'ILAsimLIN'
