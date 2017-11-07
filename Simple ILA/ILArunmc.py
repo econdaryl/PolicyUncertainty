@@ -13,7 +13,11 @@ def runmc(simargs, nsim, nobs, repincr):
     This function returns all the results from a set of Monte Carlo simulations
     of the Simple ILA model.
     
+    This function reads values from the following pkl files:
+        ILAfindss.pkl - steady state values and parameters
+    
     Inputs:
+    -----------  
     funcname: name of the policy simulation function to be used.
         The function must be set up to take a single argument which is a list
     args: the list of arguments to be used by funcname
@@ -23,9 +27,12 @@ def runmc(simargs, nsim, nobs, repincr):
         simulations run)
     
     Outputs:
+    -----------  
     mcdata: a list of numpy arrays with simulations in the rows and
         observations in the columns
     histdata: a list of 1-dimensional numpy arrays for the final simulation 
+    preddata: a list of 1-dimensional numpy arrays for the time-zero prediction
+        of the variable's history
     '''
     
     # load steady state values and parameters

@@ -16,7 +16,9 @@ def polsim(simargs):
     (initial, nobs, ts, funcname, args1, args2, params1, params2) = simargs
     '''
     Generates a history of k & ell with a switch in regime in period ts
-    Reads in paramter values and steady states from the file, ILAfindss.pkl
+    
+    This function reads values from the following pkl files:
+        ILAfindss.pkl - steady state values and parameters
     
     Inputs
     -----------    
@@ -33,14 +35,10 @@ def polsim(simargs):
     
     Returns
     --------
-    khist: 2D-array, dtype=float
-        nobs-by-1 matrix containing the values of k
-    
-    ellhist: 2D-array, dtype=float
-        nobs-by-1 matrix vector containing the values of ell 
-        
-    zhist: 2D-array, dtype=float
-        nobs-by-1 matrix vector containing the values of z 
+    For the following variables x in (k, ell, z, Y, w, r, T, c, i, u):
+        xhist: history of simultated values
+        xfhist: history of one-period-ahed forecasts
+        MsqEerr: root mean squared Euler errors
     '''
         
     

@@ -12,6 +12,7 @@ def mcanalysis(mcdata, preddata, bardata, histdata, name, nsim):
     predictions versus the final simulation as an example.
     
     Inputs:
+    -----------  
     mcdata: a list of numpy arrays with simulations in the rows and
         observations in the columns
     preddata: a list of 1-dimensional numpy arrays for the period zero
@@ -22,6 +23,7 @@ def mcanalysis(mcdata, preddata, bardata, histdata, name, nsim):
     nsim: the number of Monte Carlo simulations that have been run
     
     Outputs:
+    -----------  
     avgdata: list of 1-dimensional numpy arrays containing the average values 
         from the simulations for each time period
     uppdata: list of 1-dimensional numpy arrays containing the upper confidence

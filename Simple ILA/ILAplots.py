@@ -9,27 +9,36 @@ import matplotlib.pyplot as plt
 
 def ILAplots(dataplot, name):
     '''
-    This function takes a list of time series from the ILA model generated u
-    using either linearization or VFI.  It plots and saves a series of graphs
-    of these over time.
+    This function takes a list of time series from the ILA model and plots and
+    saves a series of graphs of these over time.
     
-    The list data must contain the following time series for each variable:
-    x_pred - the predicted time path as of date zero
-    x_upp - the upper confidence band
-    x_low - the lower confidence band
-    x_hist - a typical history
+    Inputs:
+    -----------  
+    dataplot: a list of series to plot
+        The list data must contain the following time series for each variable:
+        x_pred - the predicted time path as of date zero
+        x_upp - the upper confidence band
+        x_low - the lower confidence band
+        x_hist - a typical history
+        
+        The variables to be plotted are:
+        k - capital stock
+        ell - labor
+        z - productivity
+        Y - GDP
+        w - wage
+        r - rental
+        T - tax revenue
+        c - consumption
+        i - investment
+        u - within period utility
+    name: a string appended to the begining of the saved plots to identify the
+        model and solution method
     
-    The variables to be plotted are:
-    k - capital stock
-    ell - labor
-    z - productivity
-    Y - GDP
-    w - wage
-    r - rental
-    T - tax revenue
-    c - consumption
-    i - investment
-    u - within period utility
+    Outputs:
+    -----------  
+    no formal outputs, only plots displayed and saved
+    
     '''
     
     # turn interactive plotting off
