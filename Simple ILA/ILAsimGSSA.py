@@ -24,7 +24,7 @@ def generateGSSA(k, z, args):
     Inputs
     k - k this period
     z - z this period
-    args - coeffs, pord
+    args - coeffs, pord, nx, ny, nz
     
     Outputs
     kp - k next period
@@ -112,7 +112,7 @@ kf, ellf, zf, Yf, wf, rf, Tf, cf, invf, uf, Msqerr = polsim(predargs)
 
 
 # specify the number of simulations
-nsim = 100000
+nsim = 10000
 # specify the increment between MC reports
 repincr = 100
 
