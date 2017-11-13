@@ -38,7 +38,6 @@ mparams = ([alpha, beta, gam, delta, chi, theta, tau, rho, sigma])
 nx = 1
 ny = 1
 nz = 1
-#kbar = ((1-beta+beta*delta*(1-tau)) / (alpha*beta*(1-tau)))**(1/(alpha-1))
 
 def Modeldefs(Xp, X, Y, Z, params):
     '''
@@ -154,14 +153,14 @@ def XYfunc(Xm, Zn, XYparams, coeffs):
         XYbasis = poly1(XZin, XYparams)
     XYout = np.dot(XYbasis, coeffs)
     Xn = XYout[0:nx]
-    Yn = XYout[nx:nx+ny]
+    Y = XYout[nx:nx+ny]
     if Xn < 0:
         Xn = np.array([0])
-    if Yn > 0.9999:
-        Yn = np.array([0.9999])
-    elif Yn < 0:
-        Yn = np.array([0])
-    return Xn, Yn
+    if Y > 0.9999:
+        Y = np.array([0.9999])
+    elif Y < 0:
+        Y = np.array([0])
+    return Xn, Y
     
 def MVOLS(Y, X):
     '''
@@ -172,54 +171,58 @@ def MVOLS(Y, X):
     coeffs = np.linalg.solve(XX, XY)
     # coeffs = np.dot(np.linalg.inv(XX), XY)
     return coeffs
+
+Zbar = np.zeros(nz)
+guessXY = np.array([.1, .25])
+XYbar = LinApp_FindSS(Modeldyn, mparams, guessXY, Zbar, nx, ny)
+(kbar, ellbar) = XYbar
+# set up steady state input vector
+theta0 = np.array([kbar, kbar, kbar, ellbar, ellbar, 0., 0.])
+
+# check SS solution
+check = Modeldyn(theta0, mparams)
+#print ('check SS: ', check)
+if np.max(np.abs(check)) > 1.E-6:
+    print ('Have NOT found steady state')
  
-def GSSA(params, Z, T):
-    pord = 3
+def GSSA(params, kbar):
+    T = 10000
     regtype = 'poly1' # functional form for X & Y functions 
     fittype = 'MVOLS'   # regression fitting method
-    #pord = 3  # order of polynomial for fitting function
+    pord = 3  # order of polynomial for fitting function
     ccrit = 1.0E-8  # convergence criteria for XY change
     damp = 0.01  # damping paramter for fixed point algorithm
-    maxit = 500  # maximum number of iterations for fixed point algorithm
-
+    
+    [alpha, beta, gamma, delta, chi, theta, tau, rho, sigma] = params
     XYparams = (regtype, fittype, pord, nx, ny, nz, ccrit, damp)
 
-    # find model steady state
-    Zbar = np.zeros(nz)
-    guessXY = np.array([.1, .25])
-    XYbar = LinApp_FindSS(Modeldyn, mparams, guessXY, Zbar, nx, ny)
-    (kbar, ellbar) = XYbar
-
     Xstart = kbar
-
-    # set up steady state input vector
-    theta0 = np.array([kbar, kbar, kbar, ellbar, ellbar, 0., 0.])
-
-    # check SS solution
-    check = Modeldyn(theta0, mparams)
-    print ('check SS: ', check)
-    if np.max(np.abs(check)) > 1.E-6:
-        print ('Have NOT found steady state')
-
+    
     #create history of Z's
     Z = np.zeros([T,nz])
     for t in range(1,T):
         Z[t,:] = rho*Z[t-1] + np.random.randn(1)*sigma
-        if regtype == 'poly1':
-            coeffs = np.array([[ 2.68499767,  1.71969068], \
-                               [-0.33157316, -0.59120336], \
-                               [ 0.56761131, 0.19617535], \
-                               [ 0.16348868, 0.07274307], \
-                               [ 0.06800835, -0.0089203 ], \
-                               [-0.1470297,  -0.04513718]])
-  
+    if regtype == 'poly1':
+        #coeffs = np.array([[  1.58688185e-01,   2.34967609e+00], \
+        #                   [  6.79067876e-01,   4.69017966e-02], \
+        #                   [  8.47971976e+00,  -4.14676234e+00], \
+        #                   [  3.57665399e-02,  -3.61949992e-03], \
+        #                   [  7.56323595e+00,   1.40629271e+00], \
+        #                   [ -1.20773866e+00,   6.71621248e-02]])
+        coeffs = np.array([[  1.14283341e+03,   2.48767872e+01], \
+                           [ -9.97029153e+01,  -3.18909650e+00], \
+                           [ -3.13420276e+02,   1.38021793e+01], \
+                           [  2.15133629e+00,   1.01468495e-01], \
+                           [ -1.89909459e+00,   7.37298161e-01], \
+                           [  1.63137901e+01,  -7.87431895e-01]])
+    
     dist = 1.
     distold = 2.
     count = 0
     damp = .01
     XYold = np.ones((T-1, nx+ny))
 
-    while dist > 1e-6 and count < maxit:
+    while dist > 1e-6:
         count = count + 1
         X = np.zeros((T+1, nx))
         Y = np.zeros((T+1, ny))
@@ -234,15 +237,16 @@ def GSSA(params, Z, T):
             X1 = X[0:T]
             Y1 = Y[0:T]
             # plot time series
-        timeperiods = np.asarray(range(0,T))
-        plt.plot(timeperiods, X1, label='X')
-        plt.axhline(y=kbar, color='r')
-        plt.plot(timeperiods, Y1, label='Y')
-        plt.axhline(y=ellbar, color='g')
-        plt.title('time series')
-        plt.xlabel('time')
-        plt.legend(loc=9, ncol=(nx+ny))
-        plt.show()    
+        if count % 10 == 0:
+            timeperiods = np.asarray(range(0,T))
+            plt.plot(timeperiods, X1, label='X')
+            plt.axhline(y=kbar, color='r')
+            plt.plot(timeperiods, Y1, label='Y')
+            plt.axhline(y=ellbar, color='g')
+            plt.title('time series')
+            plt.xlabel('time')
+            plt.legend(loc=9, ncol=(nx+ny))
+            plt.show()    
     
         # Generate consumption, lambda, and gamma series
         r = alpha*X[0:T]**(alpha-1)*(A[0:T]*Y[0:T])**(1-alpha)
@@ -263,24 +267,21 @@ def GSSA(params, Z, T):
         if fittype == 'MVOLS':
             coeffsnew = MVOLS(XY, x)
         
-        # calculate distance between XY and XYold
-#        print('coeffs', coeffs)
-#        print('coeffsnew', coeffsnew)
-#        print('X', X)
-        
         dist = np.mean(np.abs(1-XY/XYold))
-        print('count ', count, 'distance', dist, 'damp', damp)
+        print('count ', count, 'distance', dist, 'distold', distold, 'damp', damp)
         
         if dist < distold:
             damp = damp*1.05
             if damp > 1.:
                 damp = 1.
         else:
-            damp = damp*.5
-    
+            damp = damp*.8
+
         distold = 1.*dist
     
         # update coeffs
         XYold = XY
         coeffs = (1-damp)*coeffs + damp*coeffsnew
+        if count % 10 == 0:
+            print('coeffs', coeffs)
     return coeffs

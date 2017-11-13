@@ -145,7 +145,7 @@ print(MsqEerravg)
 
 # -----------------------------------------------------------------------------
 # SAVE RESULTS
-
+'''
 output = open(name + '.pkl', 'wb')
 
 # write timing
@@ -156,3 +156,4 @@ alldata = (preddata, avgdata, uppdata, lowdata, foreperc, zforperc, MsqEerravg)
 pkl.dump(alldata, output)
 
 output.close()
+'''
