@@ -8,10 +8,11 @@ linearization method
 import numpy as np
 import pickle as pkl
 import timeit
+
 from ILArunmc import runmc
 from ILApolsim import polsim
 
-name = 'ILAsimLIN'
+name = 'ILAsimVFI'
 
 def generateVFI(k, z, args):
     
@@ -30,12 +31,14 @@ def generateVFI(k, z, args):
     '''
     
     # unpack args
-    (coeffsPF, coeffsJF) = args
+    (coeffs, XYbar) = args
+    (Vf, Pf, Jf, coeffsPF, coeffsJF) = coeffs
     
     # inputs must be 1D numpy arrays and deviation from SS values
-    Xvec = np.array([[1.0], [k], k**2, [k**3], [z], [z**2], [z**3], \
+    Xvec = np.array([[1.0], [k], [k**2], [k**3], [z], [z**2], [z**3], \
                      [k*z], [k**2*z], [k*z**2]])
-
+    #print("xvec:{}, coeffsPF1{}, coeffsJF1{} ".format(np.array(Xvec).shape, \
+         # np.array(coeffsPF).shape, np.array(coeffsJF).shape))
     kp = np.vdot(Xvec, coeffsPF)
     ell= np.vdot(Xvec, coeffsJF)
     
@@ -43,11 +46,11 @@ def generateVFI(k, z, args):
 
 
 # -----------------------------------------------------------------------------
-# LOAD VALUES FROM SS AND LINEARIZATION
+# LOAD VALUES FROM SS AND VALUE FUNCTION ITERATION
     
 # load steady state values and parameters
 infile = open('ILAfindss.pkl', 'rb')
-(bar1, bar2, params1, params2, LINparams) = pkl.load(infile)
+(bar1, bar2, params1, params2, VFIparams) = pkl.load(infile)
 infile.close()
 
 # unpack
@@ -55,18 +58,21 @@ infile.close()
 [kbar2, ellbar2, Ybar2, wbar2, rbar2, Tbar2, cbar2, ibar2, ubar2] = bar2
 [alpha, beta, gamma, delta, chi, theta, tau, rho_z, sigma_z] = params1
 tau2 = params2[6]
-(zbar, Zbar, NN, nx, ny, nz, logX, Sylv) = LINparams
-    
-# load Linearization coeffs
-infile = open('ILAsolveLIN.pkl', 'rb')
+(zbar, Zbar, NN, nx, ny, nz, logX, Sylv) = VFIparams
+#
+# load VFI coeffs
+infile = open('ILAsolveVFI.pkl', 'rb')
+
 (coeffs1, coeffs2, timesolve) = pkl.load(infile)
+#print(coeffs1, coeffs2)
 infile.close()
 
 # create args lists
 XYbar1 = (kbar1, ellbar1)
 XYbar2 = (kbar2, ellbar2)
-args1 = (coeffs1, XYbar1)
-args2 = (coeffs2, XYbar2)
+
+args1 = (coeffs1, XYbar1)  ##
+args2 = (coeffs2, XYbar2)  ##
 
 # -----------------------------------------------------------------------------
 # RUN MONTE CARLOS
@@ -91,25 +97,20 @@ params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0.])
 params4 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z, 0.])
 
 # get list of arguments for predictions simulation
-predargs = (initial, nobs, ts, generateLIN, args1, args2, params3, params4)
-
-# find predicted series
-kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred,  \
-kf, ellf, zf, Yf, wf, rf, Tf, cf, invf, uf = polsim(predargs)
-
+predargs = (initial, nobs, ts, generateVFI, args1, args2, params3, params4)
 
 # specify the number of simulations
-nsim = 100000
+nsim = 1000
 # specify the increment between MC reports
 repincr = 100
 
 # get list of arguments for monte carlos simulations 
-simargs = (initial, nobs, ts, generateLIN, args1, args2, params1, params2)
+simargs = (initial, nobs, ts, generateVFI, args1, args2, params1, params2)
 
 # run the Monte Carlos
-mcdata, histdata = runmc(generateLIN, simargs, nsim, nobs, repincr)
+mcdata, histdata, preddata = runmc(simargs, nsim, nobs, repincr)
 
-# calculate time to simulate all MCs
+# calculate time to simulate all MCs'/
 stopsim = timeit.default_timer()
 timesim = stopsim - startsim
 print('time to simulate', nsim, 'monte carlos: ', timesim)
@@ -118,8 +119,6 @@ print('time to simulate', nsim, 'monte carlos: ', timesim)
 # DO ANALYSIS
 
 # load data for plots
-preddata = (kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, \
-        upred)
 bardata = (kbar1, ellbar1, zbar, Ybar1, wbar1, rbar1, Tbar1, cbar1, ibar1, 
            ubar1)
   
@@ -128,16 +127,23 @@ avgdata, uppdata, lowdata = \
     mcanalysis(mcdata, preddata, bardata, histdata, name, nsim)
     
 # unpack
-(kavg, ellavg, zavg, Yavg, wavg, ravg, Tavg, cavg, iavg, uavg, foremeanavg) \
-    = avgdata
-(kupp, ellupp, zupp, Yupp, wupp, rupp, Tupp, cupp, iupp, uupp, foremeanupp) \
-    = uppdata
-(klow, elllow, zlow, Ylow, wlow, rlow, Tlow, clow, ilow, ulow, foremeanlow) \
-    = lowdata
+(kavg, ellavg, zavg, Yavg, wavg, ravg, Tavg, cavg, iavg, uavg, foremeanavg, \
+ zformeanavg, MsqEerravg) = avgdata
+(kupp, ellupp, zupp, Yupp, wupp, rupp, Tupp, cupp, iupp, uupp, foremeanupp,\
+ zforemeanupp) = uppdata
+(klow, elllow, zlow, Ylow, wlow, rlow, Tlow, clow, ilow, ulow, foremeanlow, \
+ zforemeanlow) = lowdata
     
 forecastperc = np.delete(foremeanavg, 2, 0)/np.abs(bar1)
 print('1 period average forecast errors')
 print(forecastperc)
+
+zforperc = np.delete(zformeanavg, 2, 0)/np.abs(bar1)
+print('period-0 average forecast errors')
+print(zforperc)
+
+print('root mean squared Euler errors')
+print(MsqEerravg)
 
 # -----------------------------------------------------------------------------
 # SAVE RESULTS

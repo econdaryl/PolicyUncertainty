@@ -439,7 +439,8 @@ def PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, state1, params1, \
         Xvec = np.array([[1.0], [khist[t]], [khist[t]**2], [khist[t]**3], \
                          [zhist[t]], [zhist[t]**2], [zhist[t]**3], \
                          [khist[t]*zhist[t]], [khist[t]**2*zhist[t]], \
-                         [khist[t]*zhist[t]**2]])  
+                         [khist[t]*zhist[t]**2]])
+    
         if t < ts:
             khist[t+1] = np.vdot(Xvec, coeffsPF1)
             ellhist[t] = np.vdot(Xvec, coeffsJF1)
@@ -474,11 +475,10 @@ def PolSim(initial, nobs, ts, coeffsPF1, coeffsJF1, state1, params1, \
         Yfhist[t+1], wfhist[t+1], rfhist[t+1],Tfhist[t+1], cfhist[t+1], \
             ifhist[t], ufhist[t] = Modeldefs(kfhist[t+2], khist[t+1], \
             ellfhist[t+1], zfhist[t+1], params)
-                  
+
     return khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, \
            uhist, kfhist, ellfhist, zfhist, Yfhist, wfhist, rfhist, Tfhist, \
            cfhist, ifhist, ufhist
-        
         
 # parameters with zero variance for shocks
 params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0.])
