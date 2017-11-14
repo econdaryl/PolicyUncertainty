@@ -503,11 +503,12 @@ def LinApp_Solve(AA,BB,CC,DD,FF,GG,HH,JJ,KK,LL,MM,WWW,TT,NN,Z0,Sylv):
         LLNN_plus_MM = dot(LL, NN) + MM
 
         if DD.any():
-            impvec = vstack([DD, np.reshape(LLNN_plus_MM,
-                                                  (nx * nz, 1), 'F')])
+            impvec = vstack([DD, LLNN_plus_MM])
         else:
-            impvec = np.reshape(LLNN_plus_MM, (nx * nz, 1), 'F')
+            impvec = LLNN_plus_MM
 
+        impvec = np.reshape(impvec, ((nx + ny) * nz, 1), 'F')
+        
         QQSS_vec = np.matrix(la.solve(-VV, impvec))
 
         if (max(abs(QQSS_vec)) == sp.inf).any():
