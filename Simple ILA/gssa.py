@@ -239,23 +239,26 @@ def GSSA(params, kbar):
             # plot time series
         if count % 10 == 0:
             timeperiods = np.asarray(range(0,T))
+            plt.subplot(2,1,1)
             plt.plot(timeperiods, X1, label='X')
-            plt.axhline(y=kbar, color='r')
+            #plt.axhline(y=kbar, color='r')
+            plt.subplot(2,1,2)
             plt.plot(timeperiods, Y1, label='Y')
-            plt.axhline(y=ellbar, color='g')
-            plt.title('time series')
+            #plt.axhline(y=ellbar, color='g')
             plt.xlabel('time')
-            plt.legend(loc=9, ncol=(nx+ny))
+            # plt.legend(loc=9, ncol=(nx+ny))
             plt.show()    
     
         # Generate consumption, lambda, and gamma series
         r = alpha*X[0:T]**(alpha-1)*(A[0:T]*Y[0:T])**(1-alpha)
         w = (1-alpha)*X[0:T]**alpha*(A[0:T]*Y[0:T])**(-alpha)
-        c = (1-tau)*(w[0:T]*Y[0:T] + (r[0:T] - delta)*X[0:T]) + X[0:T] + tau*(w[0:T]*Y[0:T] + (r[0:T] - delta)*X[0:T]) - X[1:T+1]
+        c = (1-tau)*(w[0:T]*Y[0:T] + (r[0:T] - delta)*X[0:T]) + X[0:T] \
+            + tau*(w[0:T]*Y[0:T] + (r[0:T] - delta)*X[0:T]) - X[1:T+1]
         # T-by-1
         Lam = (c[0:T-1]**(-gam)*(1-tau)*w[0:T-1]) / (chi*Y[0:T-1]**theta)
         # (T-1)-by-1
-        Gam = (beta*c[1:T]**(-gam)*(1 + (1-tau)*(r[1:T] - delta))) / (c[0:T-1]**(-gam))
+        Gam = (beta*c[1:T]**(-gam)*(1 + (1-tau)*(r[1:T] - delta))) \
+            / (c[0:T-1]**(-gam))
         # (T-1)-by-1
     
         # update values for X and Y
@@ -268,7 +271,8 @@ def GSSA(params, kbar):
             coeffsnew = MVOLS(XY, x)
         
         dist = np.mean(np.abs(1-XY/XYold))
-        print('count ', count, 'distance', dist, 'distold', distold, 'damp', damp)
+        print('count ', count, 'distance', dist, 'distold', distold, \
+              'damp', damp)
         
         if dist < distold:
             damp = damp*1.05

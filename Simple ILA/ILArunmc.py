@@ -57,11 +57,33 @@ def runmc(simargs, nsim, nobs, repincr):
     params4 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z, \
                         0.])
     
+    # find actual steady state for baseline
     # get list of arguments for predictions simulation
+    predargs = (initial, nobs, nobs, generateLIN, args1, args2, params3, \
+                params3)
+    # simulate with zero shocks and see what k converges to in last period
+    kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred, \
+    kf, ellf, zf, Yf, wf, rf, Tf, cf, invf, uf, MsqEerr = polsim(predargs)
+    
+    # find actual (uncertainty) steady state values for baseline
+    kact = kpred[nobs-1]
+    ellact = ellpred[nobs-1]
+    Yact = Ypred[nobs-1]
+    wact = wpred[nobs-1]
+    ract = rpred[nobs-1]
+    Tact = Tpred[nobs-1]
+    cact = cpred[nobs-1]
+    iact = ipred[nobs-1]
+    uact = upred[nobs-1]
+    act = (kact, ellact, Yact, wact, ract, Tact, cact, iact, uact)
+    
+    initial = (kact, 0.)
+
+    # get NEW list of arguments for predictions simulation
     predargs = (initial, nobs, ts, generateLIN, args1, args2, params3, params4)
     
     # find predicted series
-    kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred,  \
+    kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred, \
     kf, ellf, zf, Yf, wf, rf, Tf, cf, invf, uf, MsqEerr = polsim(predargs)
     
     # preallocate mc matrices
@@ -148,4 +170,4 @@ def runmc(simargs, nsim, nobs, repincr):
         preddata = (kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, \
                     ipred, upred)
         
-    return mcdata, histdata, preddata
+    return mcdata, histdata, preddata, act
