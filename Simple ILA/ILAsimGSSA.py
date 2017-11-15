@@ -11,7 +11,7 @@ import numpy as np
 import pickle as pkl
 import timeit
 from ILArunmc import runmc
-from ILApolsim import polsim
+from ILAmcanalysis import mcanalysis
 
 name = 'ILAsimGSSA'
 
@@ -91,36 +91,29 @@ startsim = timeit.default_timer()
 nobs = 120
 # specify the period policy shifts
 ts = 20
+# specify the number of simulations
+nsim = 1000
+# specify the increment between MC reports
+repincr = 100
+
 # specify initial values
 k0 = kbar1
 z0 = 0.
 initial = (k0, z0)
 
-
-# get time zero prediction
+# arguments and parameters for time zero prediction
 # parameters for tau1 portion
 params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0.])
 # paramters for tau2 portion
 params4 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z, 0.])
-
 # get list of arguments for predictions simulation
 predargs = (initial, nobs, ts, generateGSSA, args1, args2, params3, params4)
-
-# find predicted series
-kpred, ellpred, zpred, Ypred, wpred, rpred, Tpred, cpred, ipred, upred,  \
-kf, ellf, zf, Yf, wf, rf, Tf, cf, invf, uf, Msqerr = polsim(predargs)
-
-
-# specify the number of simulations
-nsim = 10000
-# specify the increment between MC reports
-repincr = 100
 
 # get list of arguments for monte carlos simulations 
 simargs = (initial, nobs, ts, generateGSSA, args1, args2, params1, params2)
 
 # run the Monte Carlos
-mcdata, histdata, preddata = runmc(simargs, nsim, nobs, repincr)
+mcdata, histdata, preddata, act = runmc(simargs, nsim, nobs, repincr)
 
 # calculate time to simulate all MCs
 stopsim = timeit.default_timer()
@@ -136,28 +129,27 @@ print('time to simulate', nsim, 'monte carlos: ', timesim)
 bardata = (kbar1, ellbar1, zbar, Ybar1, wbar1, rbar1, Tbar1, cbar1, ibar1, 
            ubar1)
   
-from ILAmcanalysis import mcanalysis
 avgdata, uppdata, lowdata = \
     mcanalysis(mcdata, preddata, bardata, histdata, name, nsim)
     
 # unpack
-(kavg, ellavg, zavg, Yavg, wavg, ravg, Tavg, cavg, iavg, uavg, foremeanavg, zformeanavg, Msqerravg) \
-    = avgdata
-(kupp, ellupp, zupp, Yupp, wupp, rupp, Tupp, cupp, iupp, uupp, foremeanupp, zformeanupp) \
-    = uppdata
-(klow, elllow, zlow, Ylow, wlow, rlow, Tlow, clow, ilow, ulow, foremeanlow, zformeanlow) \
-    = lowdata
+(kavg, ellavg, zavg, Yavg, wavg, ravg, Tavg, cavg, iavg, uavg, foremeanavg, \
+    zformeanavg, MsqEerravg) = avgdata
+(kupp, ellupp, zupp, Yupp, wupp, rupp, Tupp, cupp, iupp, uupp, foremeanupp, \
+    zformeanupp) = uppdata
+(klow, elllow, zlow, Ylow, wlow, rlow, Tlow, clow, ilow, ulow, foremeanlow, \
+    zformeanlow) = lowdata
     
-forecastperc = np.delete(foremeanavg, 2, 0)/np.abs(bar1)
+foreperc = np.delete(foremeanavg, 2, 0)/np.abs(bar1)
 print('1 period average forecast errors')
-print(forecastperc)
+print(foreperc)
 
 zforperc = np.delete(zformeanavg, 2, 0)/np.abs(bar1)
 print('period-0 average forecast errors')
 print(zforperc)
 
 print('root mean squared Euler errors')
-print(Msqerravg)
+print(MsqEerravg)
 # -----------------------------------------------------------------------------
 # SAVE RESULTS
 import pickle as pkl
@@ -168,7 +160,8 @@ output = open(name + '.pkl', 'wb')
 pkl.dump(timesim, output)
 
 # write monte carlo results
-alldata = (preddata, avgdata, uppdata, lowdata, forecastperc)
+alldata = (preddata, avgdata, uppdata, lowdata, foreperc, zforperc, \
+           MsqEerravg, act)
 pkl.dump(alldata, output)
 
 output.close()

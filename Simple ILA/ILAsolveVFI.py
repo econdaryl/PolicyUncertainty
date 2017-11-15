@@ -17,11 +17,8 @@ import numpy as np
 import timeit
 import pickle as pkl
 
-from Simple_ILA_Model_Funcs import Modeldyn
-from Simple_ILA_Model_Funcs import Modeldefs
-
-# import the modules from LinApp
-from LinApp_FindSS import LinApp_FindSS
+from ILAfuncs import Modeldyn
+from ILAfuncs import Modeldefs
 
 # -----------------------------------------------------------------------------
 # READ IN VALUES FROM STEADY STATE CALCULATIONS
@@ -46,31 +43,6 @@ name = 'ILAsolveVFI'
 
 # -----------------------------------------------------------------------------
 # BASELINE
-
-# set up steady state input vector for baseline
-theta1 = np.array([kbar1, kbar1, kbar1, ellbar1, ellbar1, 0., 0.])
-
-# check SS solution
-check = Modeldyn(theta1, params1)
-print ('check SS: ', check)
-if np.max(np.abs(check)) > 1.E-6:
-    print ('Have NOT found steady state')
-    
-# find the steady state values for the definitions
-Ybar, wbar, rbar, Tbar, cbar, ibar, ubar = \
-    Modeldefs(kbar1, kbar1, ellbar1, 0., params1)
-
-# display all steady state values
-print ('kbar:   ', kbar1)
-print ('ellbar: ', ellbar1)
-print ('Ybar:   ', Ybar)
-print ('wbar:   ', wbar)
-print ('rbar:   ', rbar)
-print ('Tbar:   ', Tbar)
-print ('cbar:   ', cbar)
-print ('ibar:   ', ibar)
-print ('ubar:   ', ubar)
-
 
 from rouwen import rouwen
 
@@ -171,60 +143,17 @@ Y0 = np.array([ellbar1])
 # -----------------------------------------------------------------------------
 # CHANGE POLICY
 
-# set new tax rate
- # already set at the begining
-
-# find new steady state
-# use the old steady state values of k and ell for our guess
-guessXY = XYbar
-
-# find the steady state values using LinApp_FindSS
-XYbar2 = LinApp_FindSS(Modeldyn, params2, guessXY, Zbar, nx, ny)
-(kbar2, ellbar2) = XYbar2
-
-# set up steady state input vector
-theta02 = np.array([kbar2, kbar2, kbar2, ellbar2, ellbar2, 0., 0.])
-
-# check SS solution
-check = Modeldyn(theta02, params2)
-print ('check SS: ', check)
-if np.max(np.abs(check)) > 1.E-6:
-    print ('Have NOT found steady state')
-    
-# find the steady state values for the definitions
-Ybar2, wbar2, rbar2, Tbar2, cbar2, ibar2, ubar2 = \
-    Modeldefs(kbar2, kbar2, ellbar2, 0., params2)
-
-# display all steady state values
-print ('kbar:   ', kbar2)
-print ('ellbar: ', ellbar2)
-print ('Ybar:   ', Ybar2)
-print ('wbar:   ', wbar2)
-print ('rbar:   ', rbar2)
-print ('Tbar:   ', Tbar2)
-print ('cbar:   ', cbar2)
-print ('ibar:   ', ibar2)
-print ('ubar:   ', ubar2)
-
-# Solve for new policy function using VFI
-
 # create meshgrid
 zmesh, kmesh = np.meshgrid(zgrid, kgrid)
 
-# get PF2 and JF2
-# find value function and transition function
-
-# initialize VF2 and PF2
+# initialize VF2 
 Vf2 = Vf1*1.
-# Vf2 = np.ones((knpts, znpts)) * (-100)
 
-    
 # discretize k
 klow = .6*kbar2
 khigh = 1.4*kbar2
 kgrid2 = np.linspace(klow, khigh, num = knpts)
 
-# discretize ell
 # discretize ell
 elllow = ellbar2 - .4
 ellhigh = ellbar2 + .4
@@ -345,24 +274,11 @@ coeffsJF2 = np.dot(np.linalg.inv(np.dot(X,np.transpose(X))),np.dot(X,YJF2))
 coeffsJF2 = coeffsJF2.reshape((10,1))
 
 
-# save grids and polynomials
-output = open("ILAVFI.pkl", "wb")
-pkl.dump(Vf1, output)
-pkl.dump(Vf2, output)
-pkl.dump(Pf1, output)
-pkl.dump(Pf2, output)
-pkl.dump(Jf1, output)
-pkl.dump(Jf2, output)
-pkl.dump(coeffsPF1, output)
-pkl.dump(coeffsPF2, output)
-pkl.dump(coeffsJF1, output)
-pkl.dump(coeffsJF2, output)
-output.close()
-    
-# find the steady state values for the definitions
-Ybar2, wbar2, rbar2, Tbar2, cbar2, ibar2, ubar2 = \
-    Modeldefs(kbar2, kbar2, ellbar2, 0., params2)
+# -----------------------------------------------------------------------------
+# SAVE RESULTS
 
+# save grids and polynomials
+output = open(name + '.pkl', 'wb')
 
 # set up coefficient list before the policy change
 coeffs1 = (Vf1, Pf1, Jf1, coeffsPF1, coeffsJF1)
@@ -374,12 +290,6 @@ coeffs2 = (Vf2, Pf2, Jf2, coeffsPF2, coeffsJF2)
 stopsolve = timeit.default_timer()
 timesolve =  stopsolve - startsolve
 print('time to solve: ', timesolve)
-
-
-# -----------------------------------------------------------------------------
-# SAVE RESULTS
-
-output = open(name + '.pkl', 'wb')
 
 # write timing
 pkl.dump((coeffs1, coeffs2, timesolve), output)

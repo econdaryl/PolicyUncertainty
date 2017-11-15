@@ -95,7 +95,7 @@ k0 = kbar1
 z0 = 0.
 initial = (k0, z0)
 
-# argumenets and parameters for time zero prediction
+# arguments and parameters for time zero prediction
 # parameters for tau1 portion
 params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0.])
 # paramters for tau2 portion
@@ -107,7 +107,7 @@ predargs = (initial, nobs, ts, generateLIN, args1, args2, params3, params4)
 simargs = (initial, nobs, ts, generateLIN, args1, args2, params1, params2)
 
 # run the Monte Carlos
-mcdata, histdata, preddata = runmc(simargs, nsim, nobs, repincr)
+mcdata, histdata, preddata, act = runmc(simargs, nsim, nobs, repincr)
 
 # calculate time to simulate all MCs
 stopsim = timeit.default_timer()
@@ -152,7 +152,8 @@ output = open(name + '.pkl', 'wb')
 pkl.dump(timesim, output)
 
 # write monte carlo results
-alldata = (preddata, avgdata, uppdata, lowdata, foreperc, zforperc, MsqEerravg)
+alldata = (preddata, avgdata, uppdata, lowdata, foreperc, zforperc, \
+           MsqEerravg, act)
 pkl.dump(alldata, output)
 
 output.close()
