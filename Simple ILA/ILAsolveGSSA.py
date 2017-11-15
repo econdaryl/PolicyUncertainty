@@ -50,7 +50,7 @@ name = 'ILAsolveGSSA'
 theta1 = np.array([kbar1, kbar1, kbar1, ellbar1, ellbar1, 0., 0.])
 
 # find the policy and jump function coefficients
-coeffs1 = GSSA(params1, kbar1)
+coeffs1 = GSSA(params1, kbar1, ellbar1)
 
 # -----------------------------------------------------------------------------
 # CHANGE POLICY
@@ -59,7 +59,7 @@ coeffs1 = GSSA(params1, kbar1)
 theta2 = np.array([kbar2, kbar2, kbar2, ellbar2, ellbar2, 0., 0.])
     
 # find the policy and jump function coefficients
-coeffs2 = GSSA(params2, kbar2)
+coeffs2 = GSSA(params2, kbar2, ellbar2)
 print ('baseline coeffs')
 print (coeffs1)
 print  (' ')
