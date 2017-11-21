@@ -142,15 +142,15 @@ def ILAplots(dataplot, name):
     plt.xticks([])
     
     plt.subplot(2,2,3)
-    plt.plot(range(zhist.size), zhist, 'k-',
-             range(zpred.size), zpred, 'r-')
-    plt.title('Technology')
-    plt.xticks([])
-    
-    plt.subplot(2,2,4)
     plt.plot(range(Yhist.size), Yhist, 'k-',
              range(Ypred.size), Ypred, 'r-')
     plt.title('GDP')
+    plt.xticks([])
+    
+    plt.subplot(2,2,4)
+    plt.plot(range(Thist.size), Thist, 'k-',
+             range(Tpred.size), Tpred, 'r-')
+    plt.title('Taxes')
     plt.xticks([])
     
     # save high quality version to external file
@@ -160,40 +160,28 @@ def ILAplots(dataplot, name):
     
     
     fig4 = plt.figure()
-    plt.subplot(3,2,1)
+    plt.subplot(2,2,1)
     plt.plot(range(whist.size), whist, 'k-',
              range(wpred.size), wpred, 'r-')
     plt.title('Wages')
     plt.xticks([])
     
-    plt.subplot(3,2,2)
+    plt.subplot(2,2,2)
     plt.plot(range(rhist.size), rhist, 'k-',
              range(rpred.size), rpred, 'r-')
     plt.title('Interest Rate')
     plt.xticks([])
     
-    plt.subplot(3,2,3)
-    plt.plot(range(Thist.size), Thist, 'k-',
-             range(Tpred.size), Tpred, 'r-')
-    plt.title('Taxes')
-    plt.xticks([])
-    
-    plt.subplot(3,2,4)
+    plt.subplot(2,2,3)
     plt.plot(range(chist.size), chist, 'k-',
              range(cpred.size), cpred, 'r-')
     plt.title('Consumption')
     plt.xticks([])
     
-    plt.subplot(3,2,5)
+    plt.subplot(2,2,4)
     plt.plot(range(ihist.size), ihist, 'k-',
              range(ipred.size), ipred, 'r-')
     plt.title('Investment')
-    plt.xticks([])
-    
-    plt.subplot(3,2,6)
-    plt.plot(range(uhist.size), uhist, 'k-',
-             range(upred.size), upred, 'r-')
-    plt.title('Utility')
     plt.xticks([])
     
     # save high quality version to external file
