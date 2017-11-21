@@ -86,7 +86,7 @@ nobs = 120
 # specify the period policy shifts
 ts = 20
 # specify the number of simulations
-nsim = 1000
+nsim = 100000
 # specify the increment between MC reports
 repincr = 100
 
@@ -145,7 +145,7 @@ print(MsqEerravg)
 
 # -----------------------------------------------------------------------------
 # SAVE RESULTS
-'''
+
 output = open(name + '.pkl', 'wb')
 
 # write timing
@@ -157,4 +157,3 @@ alldata = (preddata, avgdata, uppdata, lowdata, foreperc, zforperc, \
 pkl.dump(alldata, output)
 
 output.close()
-'''

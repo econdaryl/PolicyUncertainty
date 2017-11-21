@@ -73,17 +73,17 @@ def ILAplots(dataplot, name):
     plt.xticks([])
     
     plt.subplot(2,2,3)
-    plt.plot(range(zpred.size), zpred, 'k-',
-             range(zupp.size), zupp, 'k:',
-             range(zlow.size), zlow, 'k:')
-    plt.title('Technology')
-    plt.xticks([])
-    
-    plt.subplot(2,2,4)
     plt.plot(range(Ypred.size), Ypred, 'k-',
              range(Yupp.size), Yupp, 'k:',
              range(Ylow.size), Ylow, 'k:')
     plt.title('GDP')
+    plt.xticks([])
+        
+    plt.subplot(2,2,4)
+    plt.plot(range(Tpred.size), Tpred, 'k-',
+             range(Tupp.size), Tupp, 'k:',
+             range(Tlow.size), Tlow, 'k:')
+    plt.title('Taxes')
     plt.xticks([])
     
     # save high quality version to external file
@@ -93,46 +93,32 @@ def ILAplots(dataplot, name):
 
 
     fig2 = plt.figure()
-    plt.subplot(3,2,1)
+    plt.subplot(2,2,1)
     plt.plot(range(wpred.size), wpred, 'k-',
              range(wupp.size), wupp, 'k:',
              range(wlow.size), wlow, 'k:')
     plt.title('Wages')
     plt.xticks([])
     
-    plt.subplot(3,2,2)
+    plt.subplot(2,2,2)
     plt.plot(range(rpred.size), rpred, 'k-',
              range(rupp.size), rupp, 'k:',
              range(rlow.size), rlow, 'k:')
     plt.title('Interest Rate')
     plt.xticks([])
     
-    plt.subplot(3,2,3)
-    plt.plot(range(Tpred.size), Tpred, 'k-',
-             range(Tupp.size), Tupp, 'k:',
-             range(Tlow.size), Tlow, 'k:')
-    plt.title('Taxes')
-    plt.xticks([])
-    
-    plt.subplot(3,2,4)
+    plt.subplot(2,2,3)
     plt.plot(range(cpred.size), cpred, 'k-',
              range(cupp.size), cupp, 'k:',
              range(clow.size), clow, 'k:')
     plt.title('Consumption')
     plt.xticks([])
     
-    plt.subplot(3,2,5)
+    plt.subplot(2,2,4)
     plt.plot(range(ipred.size), ipred, 'k-',
              range(iupp.size), iupp, 'k:',
              range(ilow.size), ilow, 'k:')
     plt.title('Investment')
-    plt.xticks([])
-    
-    plt.subplot(3,2,6)
-    plt.plot(range(upred.size), upred, 'k-',
-             range(uupp.size), uupp, 'k:',
-             range(ulow.size), ulow, 'k:')
-    plt.title('Utility')
     plt.xticks([])
     
     # save high quality version to external file
