@@ -35,7 +35,7 @@ def mcanalysis(mcdata, preddata, bardata, histdata, name, nsim):
     #unpack data
     (k2mc, k3mc, k4mc, l1mc, l2mc, l3mc, zmc, Kmc, Lmc, GDPmc, \
         wmc, rmc, T4mc, Bmc, c1mc, c2mc, c3mc, c4mc, Cmc, Imc, u1mc, \
-        u2mc, u3mc, u4mc, foremeanmc, zformeanmc, MsqEerrmc) = mcdata
+        u2mc, u3mc, u4mc, foremeanmc, zformeanmc, RMsqEerrmc) = mcdata
     # calculate and report statistics and charts from Monte Carlos  
     (k2pred, k3pred, k4pred, l1pred, l2pred, l3pred, zpred, \
         Kpred, Lpred, GDPpred, wpred, rpred, T4pred, Bpred, c1pred, \
@@ -105,7 +105,7 @@ def mcanalysis(mcdata, preddata, bardata, histdata, name, nsim):
     u4avg = np.mean(u4mc, axis = 0)
     foremeanavg = np.mean(np.abs(foremeanmc), axis = 0)
     zformeanavg = np.mean(np.abs(zformeanmc), axis = 0)
-    MsqEerravg = np.mean(np.abs(MsqEerrmc), axis = 0)
+    RMsqEerravg = np.mean(np.abs(RMsqEerrmc), axis = 0)
     
     # find the rows for desired confidence bands
     conf = .1
@@ -200,7 +200,7 @@ def mcanalysis(mcdata, preddata, bardata, histdata, name, nsim):
     avgdata = (k2avg, k3avg, k4avg, l1avg, l2avg, l3avg, zavg, Kavg, Lavg, \
                GDPavg, wavg, ravg, T4avg, Bavg, c1avg, c2avg, c3avg, c4avg, \
                Cavg, Iavg, u1avg, u2avg, u3avg, u4avg, foremeanavg, \
-               zformeanavg, MsqEerravg) 
+               zformeanavg, RMsqEerravg) 
     uppdata = (k2upp, k3upp, k4upp, l1upp, l2upp, l3upp, zupp, Kupp, Lupp, \
                GDPupp, wupp, rupp, T4upp, Bupp, c1upp, c2upp, c3upp, c4upp, \
                Cupp, Iupp, u1upp, u2upp, u3upp, u4upp, \

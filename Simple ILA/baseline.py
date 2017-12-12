@@ -12,7 +12,7 @@ import timeit
 from ILArunmc import runmc
 from ILAmcanalysis import mcanalysis
 
-name = 'baseline'
+name = 'baseline_Kerklaptop'
 
 def generateLIN(k, z, args):
     from LinApp_Sim import LinApp_Sim
@@ -94,14 +94,6 @@ repincr = 100
 k0 = kbar1
 z0 = 0.
 initial = (k0, z0)
-
-# arguments and parameters for time zero prediction
-# parameters for tau1 portion
-params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0.])
-# paramters for tau2 portion
-params4 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z, 0.])
-# get list of arguments for predictions simulation
-predargs = (initial, nobs, ts, generateLIN, args1, args2, params3, params4)
 
 # get list of arguments for monte carlos simulations 
 simargs = (initial, nobs, ts, generateLIN, args1, args2, params1, params2)

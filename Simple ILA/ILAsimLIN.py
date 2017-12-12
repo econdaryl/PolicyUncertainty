@@ -86,7 +86,7 @@ nobs = 120
 # specify the period policy shifts
 ts = 20
 # specify the number of simulations
-nsim = 100000
+nsim = 1000000
 # specify the increment between MC reports
 repincr = 100
 
@@ -94,14 +94,6 @@ repincr = 100
 k0 = kbar1
 z0 = 0.
 initial = (k0, z0)
-
-# arguments and parameters for time zero prediction
-# parameters for tau1 portion
-params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0.])
-# paramters for tau2 portion
-params4 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z, 0.])
-# get list of arguments for predictions simulation
-predargs = (initial, nobs, ts, generateLIN, args1, args2, params3, params4)
 
 # get list of arguments for monte carlos simulations 
 simargs = (initial, nobs, ts, generateLIN, args1, args2, params1, params2)
@@ -126,7 +118,7 @@ avgdata, uppdata, lowdata = \
     
 # unpack
 (kavg, ellavg, zavg, Yavg, wavg, ravg, Tavg, cavg, iavg, uavg, foremeanavg, \
-     zformeanavg, MsqEerravg) = avgdata
+     zformeanavg, RMsqEerravg) = avgdata
 (kupp, ellupp, zupp, Yupp, wupp, rupp, Tupp, cupp, iupp, uupp, foremeanupp, \
      zformeanupp) = uppdata
 (klow, elllow, zlow, Ylow, wlow, rlow, Tlow, clow, ilow, ulow, foremeanlow, \
@@ -141,7 +133,7 @@ print('period-0 average forecast errors')
 print(zforperc)
 
 print('root mean squared Euler errors')
-print(MsqEerravg)
+print(RMsqEerravg)
 
 # -----------------------------------------------------------------------------
 # SAVE RESULTS
@@ -153,7 +145,7 @@ pkl.dump(timesim, output)
 
 # write monte carlo results
 alldata = (preddata, avgdata, uppdata, lowdata, foreperc, zforperc, \
-           MsqEerravg, act)
+           RMsqEerravg, act)
 pkl.dump(alldata, output)
 
 output.close()

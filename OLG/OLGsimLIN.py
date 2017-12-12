@@ -88,9 +88,9 @@ args2 = (coeffs2, XYbar2)
 startsim = timeit.default_timer()
 
 # specify the number of observations per simulation
-nobs = 120
+nobs = 20
 # specify the period policy shifts
-ts = 20
+ts = 2
 # specify the number of simulations
 nsim = 100000
 # specify the increment between MC reports
@@ -102,16 +102,6 @@ k30 = XYbar1[1]
 k40 = XYbar1[2]
 z0 = 0.
 initial = (k20, k30, k40, z0)
-
-# arguments and parameters for time zero prediction
-# parameters for tau1 portion
-params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, \
-    0., pi2, pi3, pi4, f1, f2, f3, nx, ny, nz])
-# paramters for tau2 portion
-params4 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z, \
-    0., pi2, pi3, pi4, f1, f2, f3, nx, ny, nz])
-# get list of arguments for predictions simulation
-predargs = (initial, nobs, ts, generateLIN, args1, args2, params3, params4)
 
 # get list of arguments for monte carlos simulations 
 simargs = (initial, nobs, ts, generateLIN, args1, args2, params1, params2)
@@ -139,7 +129,7 @@ avgdata, uppdata, lowdata = \
 (k2avg, k3avg, k4avg, l1avg, l2avg, l3avg, zavg, Kavg, Lavg, \
     GDPavg, wavg, ravg, T4avg, Bavg, c1avg, c2avg, c3avg, c4avg, \
     Cavg, Iavg, u1avg, u2avg, u3avg, u4avg, foremeanavg, \
-    zformeanavg, MsqEerravg) = avgdata
+    zformeanavg, RMsqEerravg) = avgdata
 (k2upp, k3upp, k4upp, l1upp, l2upp, l3upp, zupp, Kupp, Lupp, \
     GDPupp, wupp, rupp, T4upp, Bupp, c1upp, c2upp, c3upp, c4upp, \
     Cupp, Iupp, u1upp, u2upp, u3upp, u4upp, \
@@ -158,7 +148,7 @@ print('period-0 average forecast errors')
 print(zforperc)
 
 print('root mean squared Euler errors')
-print(MsqEerravg)
+print(RMsqEerravg)
 
 # -----------------------------------------------------------------------------
 # SAVE RESULTS
@@ -170,7 +160,7 @@ pkl.dump(timesim, output)
 
 # write monte carlo results
 alldata = (preddata, avgdata, uppdata, lowdata, foreperc, zforperc, \
-           MsqEerravg, act)
+           RMsqEerravg, act)
 pkl.dump(alldata, output)
 
 output.close()
