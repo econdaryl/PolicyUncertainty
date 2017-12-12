@@ -102,6 +102,8 @@ print ('wbar:   ', wbar1)
 print ('rbar:   ', rbar1)
 print ('Cbar:   ', Cbar1)
 print ('Ibar:   ', Ibar1)
+print ('Lbar:   ', Lbar1)
+print ('T4bar:  ', T4bar1)
 print (' ')
 
 # -----------------------------------------------------------------------------
@@ -133,7 +135,7 @@ if np.max(np.abs(check)) > 1.E-6:
 # find the steady state values for the definitions
 Kbar2, Lbar2, GDPbar2, wbar2, rbar2, T4bar2, Bbar2, c1bar2, c2bar2, c3bar2, \
     c4bar2, Cbar2, Ibar2, u1bar2, u2bar2, u3bar2, u4bar2 = Modeldefs(kbar2, \
-    kbar2, lbar2, 0., params1)
+    kbar2, lbar2, 0., params2)
     
 bar2 = np.array([k2bar2, k3bar2, k4bar2, l1bar2, l2bar2, l3bar2, Kbar2, \
     Lbar2, GDPbar2, wbar2, rbar2, T4bar2, Bbar2, c1bar2, c2bar2, c3bar2, \
@@ -148,6 +150,8 @@ print ('wbar:   ', wbar2)
 print ('rbar:   ', rbar2)
 print ('Cbar:   ', Cbar2)
 print ('Ibar:   ', Ibar2)
+print ('Lbar:   ', Lbar2)
+print ('T4bar:  ', T4bar2)
 print (' ')
 
 # -----------------------------------------------------------------------------

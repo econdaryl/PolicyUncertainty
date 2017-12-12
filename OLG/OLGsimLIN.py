@@ -88,11 +88,11 @@ args2 = (coeffs2, XYbar2)
 startsim = timeit.default_timer()
 
 # specify the number of observations per simulation
-nobs = 120
+nobs = 20
 # specify the period policy shifts
-ts = 20
+ts = 2
 # specify the number of simulations
-nsim = 100
+nsim = 100000
 # specify the increment between MC reports
 repincr = 100
 

@@ -56,8 +56,6 @@ def polsim(simargs):
     [k2bar2, k3bar2, k4bar2, l1bar2, l2bar2, l3bar2, Kbar2, \
         Lbar2, GDPbar2, wbar2, rbar2, T4bar2, Bbar2, c1bar2, c2bar2, c3bar2, \
         c4bar2, Cbar2, Ibar2, u1bar2, u2bar2, u3bar2, u4bar2] = bar2
-    [alpha, beta, gamma, delta, chi, theta, tau, rho_z, \
-        sigma_z, pi2, pi3, pi4, f1, f2, f3, nx, ny, nz] = params1
     (zbar, Zbar, NN, nx, ny, nz, logX, Sylv) = LINparams
     
     # set parameter values for calculating Euler errors
@@ -195,7 +193,7 @@ def polsim(simargs):
                 # find value of next period z
                 zp = rho_z*zhist[t] + sigma_z*Eps[i]
                 # find the value of k in two periods
-                kpp, lp = funcname(kp, zp, args1)
+                kpp, lp = funcname(kp, zp, args2)
                 # find the Euler errors
                 [k2pp, k3pp, k4pp] = kpp
                 [k2p, k3p, k4p] = kp
@@ -212,7 +210,7 @@ def polsim(simargs):
     # generate histories for the remaining periods
     for t in range(ts-1, nobs):
         k = np.array([k2hist[t], k3hist[t], k4hist[t]])
-        kp, l = funcname(k, zhist[t], args1)
+        kp, l = funcname(k, zhist[t], args2)
         [k2hist[t+1], k3hist[t+1], k4hist[t+1]] = kp
         [l1hist[t], l2hist[t], l3hist[t]] = l
         Khist[t], Lhist[t], GDPhist[t], whist[t], rhist[t], T4hist[t], \
@@ -222,7 +220,7 @@ def polsim(simargs):
         
         # get 1-period ahead forecasts
         zfhist[t+1] = rho_z*zhist[t]
-        kfp, lf = funcname(kp, zfhist[t+1], args1)
+        kfp, lf = funcname(kp, zfhist[t+1], args2)
         [k2fhist[t+2], k3fhist[t+2], k4fhist[t+2]] = kp
         [l1fhist[t+1], l2fhist[t+1], l3fhist[t+1]] = l
         Kfhist[t+1], Lfhist[t+1], GDPfhist[t+1], wfhist[t+1], rfhist[t+1],\
@@ -237,7 +235,7 @@ def polsim(simargs):
             # find value of next period z
             zp = rho_z*zhist[t] + sigma_z*Eps[i]
             # find the value of k in two periods
-            kpp, lp = funcname(kp, zp, args1)
+            kpp, lp = funcname(kp, zp, args2)
             # find the Euler errors
             [k2pp, k3pp, k4pp] = kpp
             [k2p, k3p, k4p] = kp
