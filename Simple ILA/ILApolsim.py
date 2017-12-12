@@ -78,6 +78,7 @@ def polsim(simargs):
     chist = np.zeros(nobs)
     ihist = np.zeros(nobs)
     uhist = np.zeros(nobs)
+    RMsqEerrhist = np.zeros((nobs, nx+ny))
     
     # preallocate forecast histories
     kfhist = np.zeros(nobs+2)
@@ -98,8 +99,6 @@ def polsim(simargs):
     # set starting values
     (khist[0], zhist[0]) = initial
     
-    MsqEerr = np.zeros(nx + ny)
-    
     # generate history of random shocks
     for t in range(1, nobs):
         zhist[t] = rho_z*zhist[t] + sigma_z*np.random.normal(0., 1.)
@@ -119,6 +118,20 @@ def polsim(simargs):
             Yfhist[t+1], wfhist[t+1], rfhist[t+1], Tfhist[t+1], cfhist[t+1], \
                 ifhist[t], ufhist[t] = Modeldefs(kfhist[t+2], khist[t+1], \
                 ellfhist[t+1], zfhist[t+1], params1)
+            
+            # begin loop over possible values of shock next period for Euler errors
+            MsqEerr = np.zeros(nx + ny)
+            for i in range(0, npts):
+                # find value of next period z
+                zp = rho_z*zhist[t] + sigma_z*Eps[i]
+                # find the value of k in two periods
+                kpp, ellp = funcname(khist[t+1], zp, args1)
+                # find the Euler errors
+                invec = (kpp, khist[t+1], khist[t], ellp, ellhist[t], zp, zhist[t])
+                Eerr = Phi[i]*Modeldyn(invec, params1)
+                MsqEerr = 1/(1+i) * Eerr**2 + i/(1+i) * MsqEerr
+            RMsqEerrhist[t,:] = MsqEerr**.5
+
         else:  # use change model for predictions
             zfhist[t+1] = rho_z*zhist[t]
             kfhist[t+2], ellfhist[t+1] = funcname(khist[t+1], zfhist[t+1], \
@@ -126,18 +139,21 @@ def polsim(simargs):
             Yfhist[t+1], wfhist[t+1], rfhist[t+1], Tfhist[t+1], cfhist[t+1], \
                 ifhist[t], ufhist[t] = Modeldefs(kfhist[t+2], khist[t+1], \
                 ellfhist[t+1], zfhist[t+1], params2)
-        
-        # begin loop over possible values of shock next period for Euler errors
-        for i in range(0, npts):
-            # find value of next period z
-            zp = rho_z*zhist[t] + sigma_z*Eps[i]
-            # find the value of k in two periods
-            kpp, ellp = funcname(khist[t+1], zp, args1)
-            # find the Euler errors
-            invec = (kpp, khist[t+1], khist[t], ellp, ellhist[t], zp, zhist[t])
-            Eerr = Phi[i]*Modeldyn(invec, params1)
-            MsqEerr = 1/(1+i) * Eerr**2 + i/(1+i) * MsqEerr
             
+            # begin loop over possible values of shock next period for Euler errors
+            MsqEerr = np.zeros(nx + ny)
+            for i in range(0, npts):
+                # find value of next period z
+                zp = rho_z*zhist[t] + sigma_z*Eps[i]
+                # find the value of k in two periods
+                kpp, ellp = funcname(khist[t+1], zp, args1)
+                # find the Euler errors
+                invec = (kpp, khist[t+1], khist[t], ellp, ellhist[t], zp, zhist[t])
+                Eerr = Phi[i]*Modeldyn(invec, params2)
+                MsqEerr = 1/(1+i) * Eerr**2 + i/(1+i) * MsqEerr
+            RMsqEerrhist[t,:] = MsqEerr**.5
+
+    # generate histories for k and ell for the remaning periods        
     for t in range(ts-1, nobs):
         khist[t+1], ellhist[t] = funcname(khist[t], zhist[t], args2)
         Yhist[t], whist[t], rhist[t], Thist[t], chist[t], ihist[t], \
@@ -152,6 +168,7 @@ def polsim(simargs):
             ellfhist[t+1], zfhist[t+1], params2)
             
         # begin loop over possible values of shock next period for Euler errors
+        MsqEerr = np.zeros(nx + ny)
         for i in range(0, npts):
             # find value of next period z
             zp = rho_z*zhist[t] + sigma_z*Eps[i]
@@ -159,11 +176,11 @@ def polsim(simargs):
             kpp, ellp = funcname(khist[t+1], zp, args1)
             # find the Euler errors
             invec = (kpp, khist[t+1], khist[t], ellp, ellhist[t], zp, zhist[t])
-            Eerr = Phi[i]*Modeldyn(invec, params1)
+            Eerr = Phi[i]*Modeldyn(invec, params2)
             MsqEerr = 1/(1+i) * Eerr**2 + i/(1+i) * MsqEerr
+        RMsqEerrhist[t,:] = MsqEerr**.5
             
-    MsqEerr = MsqEerr**.5
-    
+        
     return khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, \
         uhist, kfhist, ellfhist, zfhist, Yfhist, wfhist, rfhist, Tfhist, \
-        cfhist, ifhist, ufhist, MsqEerr
+        cfhist, ifhist, ufhist, RMsqEerrhist

@@ -99,7 +99,7 @@ def runmc(simargs, nsim, nobs, repincr):
     umc = np.zeros((nsim, nobs)) 
     foremeanmc = np.zeros((nsim, 10)) 
     zformeanmc = np.zeros((nsim, 10))
-    MsqEerrmc = np.zeros((nsim, 2))
+    RMsqEerrmc = np.zeros((nsim, nx+ny))
                                        
     # run remaining simulations                                
     for i in range(0, nsim):
@@ -107,7 +107,7 @@ def runmc(simargs, nsim, nobs, repincr):
             print('mc #:', i, 'of', nsim)
         khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, ihist, \
         uhist, kfhist, ellfhist, zfhist, Yfhist, wfhist, rfhist, Tfhist, \
-        cfhist, ifhist, ufhist, MsqEerr = polsim(simargs)
+        cfhist, ifhist, ufhist, RMsqEerrhist = polsim(simargs)
             
         # replace 1-period ahead forecast with abs value of forecast error
         for t in range(1, nobs):
@@ -159,10 +159,10 @@ def runmc(simargs, nsim, nobs, repincr):
         umc[i,:] = uhist
         foremeanmc[i,:] = foremean
         zformeanmc[i,:] = zformean
-        MsqEerrmc[i,:] = MsqEerr
+        RMsqEerrmc[i,:] = np.mean(RMsqEerrhist[1:nobs,:])
         
         mcdata = (kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc, \
-                  foremeanmc, zformeanmc, MsqEerrmc)
+                  foremeanmc, zformeanmc, RMsqEerrmc)
         
         histdata = (khist, ellhist, zhist, Yhist, whist, rhist, Thist, chist, \
                     ihist, uhist)

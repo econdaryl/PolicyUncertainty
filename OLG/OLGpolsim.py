@@ -97,6 +97,7 @@ def polsim(simargs):
     u2hist = np.zeros(nobs)
     u3hist = np.zeros(nobs)
     u4hist = np.zeros(nobs)
+    RMsqEerrhist = np.zeros((nobs, nx+ny))
     
     # preallocate forecast histories
     k2fhist = np.zeros(nobs+2)
@@ -131,13 +132,13 @@ def polsim(simargs):
     # set starting values
     (k2hist[0], k3hist[0], k4hist[0], zhist[0]) = initial
     
-    MsqEerr = np.zeros(nx + ny)
+    
     
     # generate history of random shocks
     for t in range(1, nobs):
         zhist[t] = rho_z*zhist[t] + sigma_z*np.random.normal(0., 1.)
         
-    # generate histories for k and ell for the first ts-1 periods
+    # generate histories for the first ts-1 periods
     for t in range(0, ts-1):
         k = np.array([k2hist[t], k3hist[t], k4hist[t]])
         kp, l = funcname(k, zhist[t], args1)
@@ -159,6 +160,26 @@ def polsim(simargs):
                 c3fhist[t+1], c4fhist[t+1], Cfhist[t+1], Ifhist[t+1], \
                 u1fhist[t+1], u2fhist[t+1], u3fhist[t+1], u4fhist[t+1] \
                 = Modeldefs(kfp, kp, lf, zfhist[t+1], params1)
+            
+            # begin loop over possible values of shock next period for Euler errors
+            MsqEerr = np.zeros(nx + ny)
+            for i in range(0, npts):
+                # find value of next period z
+                zp = rho_z*zhist[t] + sigma_z*Eps[i]
+                # find the value of k in two periods
+                kpp, lp = funcname(kp, zp, args1)
+                # find the Euler errors
+                [k2pp, k3pp, k4pp] = kpp
+                [k2p, k3p, k4p] = kp
+                [k2, k3, k4] = kp
+                [l1p, l2p, l3p] = lp
+                [l1, l2, l3] = l
+                invec = np.array([k2pp, k3pp, k4pp, k2p, k3p, k4p, k2, k3, k4, \
+                    l1p, l2p, l3p, l1, l2, l3, zp, zhist[t]])
+                Eerr = Phi[i]*Modeldyn(invec, params1)
+                MsqEerr = 1/(1+i) * Eerr**2 + i/(1+i) * MsqEerr
+            RMsqEerrhist[t,:] = MsqEerr**.5    
+                
         else:  # use change model for predictions
             zfhist[t+1] = rho_z*zhist[t]
             kfp, lf = funcname(kp, zfhist[t+1], args2)
@@ -167,25 +188,28 @@ def polsim(simargs):
                 c3fhist[t+1], c4fhist[t+1], Cfhist[t+1], Ifhist[t+1], \
                 u1fhist[t+1], u2fhist[t+1], u3fhist[t+1], u4fhist[t+1] \
                 = Modeldefs(kfp, kp, lf, zfhist[t+1], params2)
-        
-        # begin loop over possible values of shock next period for Euler errors
-        for i in range(0, npts):
-            # find value of next period z
-            zp = rho_z*zhist[t] + sigma_z*Eps[i]
-            # find the value of k in two periods
-            kpp, lp = funcname(kp, zp, args1)
-            # find the Euler errors
-            [k2pp, k3pp, k4pp] = kpp
-            [k2p, k3p, k4p] = kp
-            [k2, k3, k4] = kp
-            [l1p, l2p, l3p] = lp
-            [l1, l2, l3] = l
-            invec = np.array([k2pp, k3pp, k4pp, k2p, k3p, k4p, k2, k3, k4, \
-                l1p, l2p, l3p, l1, l2, l3, zp, zhist[t]])
-            Eerr = Phi[i]*Modeldyn(invec, params1)
-            MsqEerr = 1/(1+i) * Eerr**2 + i/(1+i) * MsqEerr
+
+            # begin loop over possible values of shock next period for Euler errors
+            MsqEerr = np.zeros(nx + ny)
+            for i in range(0, npts):
+                # find value of next period z
+                zp = rho_z*zhist[t] + sigma_z*Eps[i]
+                # find the value of k in two periods
+                kpp, lp = funcname(kp, zp, args1)
+                # find the Euler errors
+                [k2pp, k3pp, k4pp] = kpp
+                [k2p, k3p, k4p] = kp
+                [k2, k3, k4] = kp
+                [l1p, l2p, l3p] = lp
+                [l1, l2, l3] = l
+                invec = np.array([k2pp, k3pp, k4pp, k2p, k3p, k4p, k2, k3, k4, \
+                    l1p, l2p, l3p, l1, l2, l3, zp, zhist[t]])
+                Eerr = Phi[i]*Modeldyn(invec, params2)
+                MsqEerr = 1/(1+i) * Eerr**2 + i/(1+i) * MsqEerr
+            RMsqEerrhist[t,:] = MsqEerr**.5         
+
             
-    
+    # generate histories for the remaining periods
     for t in range(ts-1, nobs):
         k = np.array([k2hist[t], k3hist[t], k4hist[t]])
         kp, l = funcname(k, zhist[t], args1)
@@ -208,11 +232,13 @@ def polsim(simargs):
             = Modeldefs(kfp, kp, lf, zfhist[t+1], params2)
             
         # begin loop over possible values of shock next period for Euler errors
+        MsqEerr = np.zeros(nx + ny)
         for i in range(0, npts):
             # find value of next period z
             zp = rho_z*zhist[t] + sigma_z*Eps[i]
             # find the value of k in two periods
             kpp, lp = funcname(kp, zp, args1)
+            # find the Euler errors
             [k2pp, k3pp, k4pp] = kpp
             [k2p, k3p, k4p] = kp
             [k2, k3, k4] = kp
@@ -220,10 +246,9 @@ def polsim(simargs):
             [l1, l2, l3] = l
             invec = np.array([k2pp, k3pp, k4pp, k2p, k3p, k4p, k2, k3, k4, \
                 l1p, l2p, l3p, l1, l2, l3, zp, zhist[t]])
-            Eerr = Phi[i]*Modeldyn(invec, params1)
+            Eerr = Phi[i]*Modeldyn(invec, params2)
             MsqEerr = 1/(1+i) * Eerr**2 + i/(1+i) * MsqEerr
-            
-    MsqEerr = MsqEerr**.5
+        RMsqEerrhist[t,:] = MsqEerr**.5  
     
     return k2hist, k3hist, k4hist, l1hist, l2hist, l3hist, zhist, GDPhist, \
         Khist, Lhist, whist, rhist, T4hist, Bhist, c1hist, c2hist, c3hist, \
@@ -231,4 +256,4 @@ def polsim(simargs):
         k3fhist, k4fhist, l1fhist, l2fhist, l3fhist, zfhist, GDPfhist, \
         Kfhist, Lfhist, wfhist, rfhist, T4fhist, Bfhist, c1fhist, c2fhist, \
         c3fhist, c4fhist, Cfhist, Ifhist, u1fhist, u2fhist, u3fhist, u4fhist, \
-        MsqEerr
+        RMsqEerrhist
