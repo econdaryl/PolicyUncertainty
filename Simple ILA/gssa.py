@@ -22,6 +22,8 @@ def poly1(Xin, XYparams):
     Includes polynomial terms up to order 'pord' for each element and quadratic 
     cross terms  One observation (row) at a time
     '''
+    nx = 1
+    nz = 1
     nX = nx + nz
     Xbasis = np.ones((1, 1))
     # generate polynomial terms for each element
@@ -35,6 +37,9 @@ def poly1(Xin, XYparams):
     return Xbasis
 
 def XYfunc(Xm, Zn, XYparams, coeffs):
+    nx = 1
+    ny = 1
+    nz = 1
     An = np.exp(Zn)
     XZin = np.append(Xm, An)
     XYbasis = np.append(1., XZin)
