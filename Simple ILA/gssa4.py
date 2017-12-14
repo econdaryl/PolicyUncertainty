@@ -12,6 +12,7 @@ Economics vol. 2, pp. 173-210.
 import numpy as np
 import matplotlib.pyplot as plt
 from LinApp_FindSS import LinApp_FindSS
+from Simple_ILA_Model_Funcs import Modeldyn, Modeldefs
 
 '''
 We test the algorithm with a simple DSGE model with endogenous labor.
@@ -38,96 +39,6 @@ mparams = ([alpha, beta, gam, delta, chi, theta, tau, rho, sigma])
 nx = 1
 ny = 1
 nz = 1
-#kbar = ((1-beta+beta*delta*(1-tau)) / (alpha*beta*(1-tau)))**(1/(alpha-1))
-
-def Modeldefs(Xp, X, Y, Z, params):
-    '''
-    This function takes vectors of endogenous and exogenous state variables
-    along with a vector of 'jump' variables and returns explicitly defined
-    values for consumption, gdp, wages, real interest rates, and transfers
-    
-    Inputs are:
-        Xp: value of capital in next period
-        X: value of capital this period
-        Y: value of labor this period
-        Z: value of productivity this period
-        params: list of parameter values
-    
-    Output are:
-        Y: GDP
-        w: wage rate
-        r: rental rate on capital
-        T: transfer payments
-        c: consumption
-        i: investment
-        u: utiity
-    '''
-    
-    # unpack input vectors
-    kp = Xp
-    k = X
-    ell = Y
-    if ell > 0.9999:
-        ell = 0.9999
-    elif ell < 0:
-        ell = 0
-    z = Z
-    
-    # unpack params
-    [alpha, beta, gamma, delta, chi, theta, tau, rho, sigma] = params
-    
-    # find definintion values
-    GDP = k**alpha*(np.exp(z)*ell)**(1-alpha)
-    w = (1-alpha)*GDP/ell
-    r = alpha*GDP/k
-    T = tau*(w*ell + (r - delta)*k)
-    c = (1-tau)*(w*ell + (r - delta)*k) + k + T - kp
-    i = GDP - c
-    u = c**(1-gamma)/(1-gamma) - chi*ell**(1+theta)/(1+theta)
-    return GDP, w, r, T, c, i, u
-
-def Modeldyn(theta0, params):
-    '''
-    This function takes vectors of endogenous and exogenous state variables
-    along with a vector of 'jump' variables and returns values from the
-    characterizing Euler equations.
-    
-    Inputs are:
-        theta: a vector containng (Xpp, Xp, X, Yp, Y, Zp, Z) where:
-            Xpp: value of capital in two periods
-            Xp: value of capital in next period
-            X: value of capital this period
-            Yp: value of labor in next period
-            Y: value of labor this period
-            Zp: value of productivity in next period
-            Z: value of productivity this period
-        params: list of parameter values
-    
-    Output are:
-        Euler: a vector of Euler equations written so that they are zero at the
-            steady state values of X, Y & Z.  This is a 2x1 numpy array. 
-    '''
-    
-    # unpack theat0
-    (Xpp, Xp, X, Yp, Y, Zp, Z) = theta0
-    
-    # unpack params
-    [alpha, beta, gamma, delta, chi, theta, tau, rho, sigma] = params
-    
-    # find definitions for now and next period
-    ell = Y
-    if ell > 1:
-        ell = 0.9999
-    elif ell < 0:
-        ell = 0
-    GDP, w, r, T, c, i, u = Modeldefs(Xp, X, Y, Z, params)
-    GDPp, wp, rp, Tp, cp, ip, up = Modeldefs(Xpp, Xp, Yp, Zp, params)
-    
-    # Evaluate Euler equations
-    E1 = (c**(-gamma)*(1-tau)*w) / (chi*ell**theta) - 1
-    E2 = (c**(-gamma)) / (beta*cp**(-gamma)*(1 + (1-tau)*(rp - delta))) - 1
-    
-    return np.array([E1, E2])
 
 def poly1(Xin, XYparams, pord=4):
     '''
@@ -203,18 +114,14 @@ Z = np.zeros([T,nz])
 for t in range(1,T):
     Z[t,:] = rho*Z[t-1] + np.random.randn(1)*sigma
 if regtype == 'poly1':
-    coeffs = np.array([[ 2.68499767,  1.71969068], \
-                        [-0.33157316, -0.59120336], \
-                        [ 0.56761131, 0.19617535], \
-                        [ 0.16348868, 0.07274307], \
-                        [ 0.06800835, -0.0089203 ], \
-                        [-0.1470297,  -0.04513718], \
-                        [ 0.06800835, -0.0089203 ], \
-                        [-0.1470297,  -0.04513718]])
-#    cnumb = int(pord*(nx+nz) + .5*(nx+nz-1)*(nx+nz-2))
-#    coeffs = np.ones((cnumb,(nx+ny)))*.1
-#    for i in range(0, nx+ny) :
-#        coeffs[:,i] = coeffs[:,i]*(i+1.)
+    coeffs = np.array([[ 0.05*kbar,  0.05*ellbar], \
+                       [ 0.5, 0.], \
+                       [ 0., 0.5*ellbar], \
+                       [ 0.05, 0.], \
+                       [ 0., 0.3*ellbar], \
+                       [ 0.01,  0.], \
+                       [ 0., 0.01*ellbar], \
+                       [ 0.001,  0.001]])
         
 def GSSA(coeffs, pord):       
     dist = 1.
@@ -280,7 +187,7 @@ def GSSA(coeffs, pord):
             if damp > 1.:
                 damp = 1.
         else:
-            damp = damp*.5
+            damp = damp*.8
     
         distold = 1.*dist
     
