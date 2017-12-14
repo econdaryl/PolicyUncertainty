@@ -37,8 +37,7 @@ def generateVFI(k, z, args):
     # inputs must be 1D numpy arrays and deviation from SS values
     Xvec = np.array([[1.0], [k], [k**2], [k**3], [z], [z**2], [z**3], \
                      [k*z], [k**2*z], [k*z**2]])
-    #print("xvec:{}, coeffsPF1{}, coeffsJF1{} ".format(np.array(Xvec).shape, \
-         # np.array(coeffsPF).shape, np.array(coeffsJF).shape))
+
     kp = np.vdot(Xvec, coeffsPF)
     ell= np.vdot(Xvec, coeffsJF)
     
@@ -59,12 +58,10 @@ infile.close()
 [alpha, beta, gamma, delta, chi, theta, tau, rho_z, sigma_z] = params1
 tau2 = params2[6]
 (zbar, Zbar, NN, nx, ny, nz, logX, Sylv) = VFIparams
-#
+
 # load VFI coeffs
 infile = open('ILAsolveVFI.pkl', 'rb')
-
 (coeffs1, coeffs2, timesolve) = pkl.load(infile)
-#print(coeffs1, coeffs2)
 infile.close()
 
 # create args lists
@@ -85,7 +82,7 @@ nobs = 120
 # specify the period policy shifts
 ts = 20
 # specify the number of simulations
-nsim = 1000
+nsim = 100
 # specify the increment between MC reports
 repincr = 100
 

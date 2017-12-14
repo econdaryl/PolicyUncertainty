@@ -55,14 +55,14 @@ zstep = 4.*spread*sigma_z/(znpts-1)
 Pimat, zgrid = rouwen(rho_z, 0., zstep, znpts)
 
 # discretize k
-klow = .6*kbar1
-khigh = 1.4*kbar1
+klow = .8*kbar1
+khigh = 1.2*kbar1
 knpts = 11
 kgrid = np.linspace(klow, khigh, num = knpts)
 
 # discretize ell
-elllow = ellbar1 - .4
-ellhigh = ellbar1 + .4
+elllow = ellbar1 - .2
+ellhigh = ellbar1 + .2
 ellnpts = 11
 ellgrid = np.linspace(elllow, ellhigh, num = ellnpts)
 
@@ -70,8 +70,11 @@ readVF = True
 
 # initialize VF and PF
 if readVF:
-    infile = open('ILAVFI.pkl', 'rb')
-    Vf1 = pkl.load(infile)
+    infile = open('ILAsolveVFI.pkl', 'rb')
+    pickled = pkl.load(infile)
+    (coeffs1, coeffs2, timesolve) = pickled
+    (Vf1, Pf1, Jf1, coeffsPF1, coeffsJF1) = coeffs1 
+    (Vf2, Pf2, Jf2, coeffsPF2, coeffsJF2) = coeffs2
     infile.close()
 else:
     Vf1 = np.ones((knpts, znpts)) * (-100)
@@ -81,7 +84,7 @@ Pf1 = np.zeros((knpts, znpts))
 Jf1 = np.zeros((knpts, znpts))
 
 # set VF iteration parameters
-ccrit = 1.0E-01
+ccrit = 1.0E-4
 count = 0
 dist = 100.
 maxwhile = 4000
@@ -96,13 +99,12 @@ while (nconv):
         for i2 in range(0, znpts): # over zt, searching the value for the stochastic shock
             maxval = -100000000000
             for i3 in range(0, knpts): # over k_t+1
-                for i4 in range(0, knpts): # over ell_t
+                for i4 in range(0, ellnpts): # over ell_t
                     Y, w, r, T, c, i, u = Modeldefs(kgrid[i3], kgrid[i1], \
                         ellgrid[i4], zgrid[i2], params1)
                     temp = u
                     for i5 in range(0, znpts): # over z_t+1
                         temp = temp + beta * Vf1[i3,i5] * Pimat[i5,i2]
-                    # print i, j, temp (keep all of them)
                     if np.iscomplex(temp):
                         temp = -1000000000
                     if np.isnan(temp):
@@ -146,8 +148,12 @@ Y0 = np.array([ellbar1])
 # create meshgrid
 zmesh, kmesh = np.meshgrid(zgrid, kgrid)
 
-# initialize VF2 
-Vf2 = Vf1*1.
+
+# initialize 
+if readVF:
+    Vf2 = 1.*Vf2
+else:
+    Vf2 = Vf1*1.
 
 # discretize k
 klow = .6*kbar2
@@ -177,13 +183,12 @@ while (nconv):
         for i2 in range(0, znpts): # over zt, searching the value for the stochastic shock
             maxval = -100000000000
             for i3 in range(0, knpts): # over k_t+1
-                for i4 in range(0, knpts): # over ell_t
+                for i4 in range(0, ellnpts): # over ell_t
                     Y, w, r, T, c, i, u = Modeldefs(kgrid2[i3], kgrid2[i1], \
                         ellgrid2[i4], zgrid[i2], params2)
                     temp = u
                     for i5 in range(0, znpts): # over z_t+1
                         temp = temp + beta * Vf2[i3,i5] * Pimat[i5,i2]
-                    # print i, j, temp (keep all of them)
                     if np.iscomplex(temp):
                         temp = -1000000000
                     if np.isnan(temp):
