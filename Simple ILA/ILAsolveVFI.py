@@ -45,6 +45,9 @@ name = 'ILAsolveVFI'
 
 from rouwen import rouwen
 
+kfact= .05
+elladd = .05
+
 # set up Markov approximation of AR(1) process using Rouwenhorst method
 spread = 3.  # number of standard deviations above and below 0
 znpts = 11
@@ -54,14 +57,14 @@ zstep = 4.*spread*sigma_z/(znpts-1)
 Pimat, zgrid = rouwen(rho_z, 0., zstep, znpts)
 
 # discretize k
-klow = .8*kbar1
-khigh = 1.2*kbar1
+klow = (1-kfact)*kbar1
+khigh = (1+kfact)*kbar1
 knpts = 11
 kgrid = np.linspace(klow, khigh, num = knpts)
 
 # discretize ell
-elllow = ellbar1 - .2
-ellhigh = ellbar1 + .2
+elllow = ellbar1 - elladd
+ellhigh = ellbar1 + elladd
 ellnpts = 11
 ellgrid = np.linspace(elllow, ellhigh, num = ellnpts)
 
@@ -155,13 +158,13 @@ else:
     Vf2 = Vf1*1.
 
 # discretize k
-klow = .8*kbar2
-khigh = 1.2*kbar2
+klow = (1-kfact)*kbar2
+khigh = (1+kfact)*kbar2
 kgrid2 = np.linspace(klow, khigh, num = knpts)
 
 # discretize ell
-elllow = ellbar2 - .2
-ellhigh = ellbar2 + .2
+elllow = ellbar2 - elladd
+ellhigh = ellbar2 + elladd
 ellgrid2 = np.linspace(elllow, ellhigh, num = ellnpts)
 
 Vf2new = np.zeros((knpts, znpts))
