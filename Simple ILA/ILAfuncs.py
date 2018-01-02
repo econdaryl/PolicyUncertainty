@@ -48,7 +48,7 @@ def Modeldefs(Xp, X, Y, Z, params):
     c = (1-tau)*(w*ell + (r - delta)*k) + k + T - kp
     i = GDP - c
     u = c**(1-gamma)/(1-gamma) - chi*ell**(1+theta)/(1+theta)
-    return Y, w, r, T, c, i, u
+    return GDP, w, r, T, c, i, u
 
 
 def Modeldyn(theta0, params):

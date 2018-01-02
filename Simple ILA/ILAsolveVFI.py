@@ -17,7 +17,6 @@ import numpy as np
 import timeit
 import pickle as pkl
 
-from ILAfuncs import Modeldyn
 from ILAfuncs import Modeldefs
 
 # -----------------------------------------------------------------------------
@@ -47,7 +46,7 @@ name = 'ILAsolveVFI'
 from rouwen import rouwen
 
 # set up Markov approximation of AR(1) process using Rouwenhorst method
-spread = 5.  # number of standard deviations above and below 0
+spread = 3.  # number of standard deviations above and below 0
 znpts = 11
 zstep = 4.*spread*sigma_z/(znpts-1)
 
@@ -77,14 +76,14 @@ if readVF:
     (Vf2, Pf2, Jf2, coeffsPF2, coeffsJF2) = coeffs2
     infile.close()
 else:
-    Vf1 = np.ones((knpts, znpts)) * (-100)
+    Vf1 = np.ones((knpts, znpts)) * (-100000000000)
 
 Vf1new = np.zeros((knpts, znpts))
 Pf1 = np.zeros((knpts, znpts))
 Jf1 = np.zeros((knpts, znpts))
 
 # set VF iteration parameters
-ccrit = 1.0E-4
+ccrit = 1.0E-5
 count = 0
 dist = 100.
 maxwhile = 4000
@@ -156,13 +155,13 @@ else:
     Vf2 = Vf1*1.
 
 # discretize k
-klow = .6*kbar2
-khigh = 1.4*kbar2
+klow = .8*kbar2
+khigh = 1.2*kbar2
 kgrid2 = np.linspace(klow, khigh, num = knpts)
 
 # discretize ell
-elllow = ellbar2 - .4
-ellhigh = ellbar2 + .4
+elllow = ellbar2 - .2
+ellhigh = ellbar2 + .2
 ellgrid2 = np.linspace(elllow, ellhigh, num = ellnpts)
 
 Vf2new = np.zeros((knpts, znpts))
@@ -278,6 +277,10 @@ coeffsPF2 = coeffsPF2.reshape((10,1))
 coeffsJF2 = np.dot(np.linalg.inv(np.dot(X,np.transpose(X))),np.dot(X,YJF2))
 coeffsJF2 = coeffsJF2.reshape((10,1))
 
+# calculate time to solve for functions
+stopsolve = timeit.default_timer()
+timesolve =  stopsolve - startsolve
+print('time to solve: ', timesolve)
 
 # -----------------------------------------------------------------------------
 # SAVE RESULTS
@@ -290,11 +293,6 @@ coeffs1 = (Vf1, Pf1, Jf1, coeffsPF1, coeffsJF1)
 
 # set up coefficient list after the policy change
 coeffs2 = (Vf2, Pf2, Jf2, coeffsPF2, coeffsJF2)
-
-# calculate time to solve for functions
-stopsolve = timeit.default_timer()
-timesolve =  stopsolve - startsolve
-print('time to solve: ', timesolve)
 
 # write timing
 pkl.dump((coeffs1, coeffs2, timesolve), output)

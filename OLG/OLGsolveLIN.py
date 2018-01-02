@@ -48,7 +48,7 @@ tau2 = params2[6]
 startsolve = timeit.default_timer()
 
 # set name for external files written
-name = 'OLGsolveLIN'
+name = 'OLGsolveLIN_KH'
 
 # -----------------------------------------------------------------------------
 # BASELINE
