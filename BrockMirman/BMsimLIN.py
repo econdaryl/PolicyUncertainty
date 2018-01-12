@@ -84,7 +84,7 @@ nobs = 120
 # specify the period policy shifts
 ts = 20
 # specify the number of simulations
-nsim = 100
+nsim = 100000
 # specify the increment between MC reports
 repincr = 100
 
