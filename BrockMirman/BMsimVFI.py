@@ -32,7 +32,7 @@ def generateVFI(k, z, args):
     
      # unpack args
     (coeffs, XYbar) = args
-    (Vf, Pf, Jf, coeffsPF, coeffsJF) = coeffs   # get rid of Jf?
+    (Vf, Pf, coeffsPF) = coeffs   # get rid of Jf?
     
     # inputs must be 1D numpy arrays and deviation from SS values
     Xvec = np.array([[1.0], [k], [k**2], [k**3], [z], [z**2], [z**3], \
@@ -52,10 +52,10 @@ infile = open('BMfindss.pkl', 'rb')
 infile.close()
 
 # unpack
-[kbar1, ellbar1, Ybar1, wbar1, rbar1, Tbar1, cbar1, ibar1, ubar1] = bar1
-[kbar2, ellbar2, Ybar2, wbar2, rbar2, Tbar2, cbar2, ibar2, ubar2] = bar2
-[alpha, beta, gamma, delta, chi, theta, tau, rho_z, sigma_z] = params1
-tau2 = params2[6]
+[kbar1, Ybar1, wbar1, rbar1, Tbar1, cbar1, ibar1, ubar1] = bar1
+[kbar2, Ybar2, wbar2, rbar2, Tbar2, cbar2, ibar2, ubar2] = bar2
+[alpha, beta, tau, rho_z, sigma_z] = params1
+tau2 = params2[2]
 (zbar, Zbar, NN, nx, ny, nz, logX, Sylv) = VFIparams
 
 # load VFI coeffs
@@ -91,9 +91,9 @@ initial = (k0, z0)
 
 # arguments and parameters for time zero prediction
 # parameters for tau1 portion
-params3 = np.array([alpha, beta, gamma, delta, chi, theta, tau, rho_z, 0.])
+params3 = np.array([alpha, beta, tau, rho_z, 0.])
 # paramters for tau2 portion
-params4 = np.array([alpha, beta, gamma, delta, chi, theta, tau2, rho_z, 0.])
+params4 = np.array([alpha, beta, tau2, rho_z, 0.])
 # get list of arguments for predictions simulation
 predargs = (initial, nobs, ts, generateVFI, args1, args2, params3, params4)
 
