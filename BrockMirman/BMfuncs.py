@@ -40,7 +40,7 @@ def Modeldefs(Xp, X, Z, params):
     r = alpha*GDP*(1-tau)/k
     T = tau*GDP
     c = (1-tau)*GDP - kp
-    i = GDP - c
+    i = GDP - c - T
     u = np.log(c)
     return GDP, w, r, T, c, i, u
 
