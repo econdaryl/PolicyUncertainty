@@ -49,7 +49,7 @@ kfact= .05
 
 # set up Markov approximation of AR(1) process using Rouwenhorst method
 spread = 3.  # number of standard deviations above and below 0
-znpts = 11
+znpts = 31
 zstep = 4.*spread*sigma_z/(znpts-1)
 
 # Markov transition probabilities, current z in cols, next z in rows
@@ -58,7 +58,7 @@ Pimat, zgrid = rouwen(rho_z, 0., zstep, znpts)
 # discretize k
 klow = (1-kfact)*kbar1
 khigh = (1+kfact)*kbar1
-knpts = 11
+knpts = 31
 kgrid = np.linspace(klow, khigh, num = knpts)
 
 readVF = True
