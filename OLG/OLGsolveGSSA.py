@@ -74,8 +74,10 @@ print ('R: ', RR1)
 print ('S: ', SS1)
 print  (' ')
 '''
+kbar1 = (k2bar1, k3bar1, k4bar1)
+lbar1 = (l1bar1, l2bar1, l3bar1)
 # set up coefficient list
-coeffs1 = GSSA(params1, k2bar1, l1bar1)
+coeffs1 = GSSA(params1, kbar1, lbar1)
 
 
 # -----------------------------------------------------------------------------

@@ -11,7 +11,7 @@ def poly1(Xin, XYparams):
     Includes polynomial terms up to order 'pord' for each element and quadratic 
     cross terms  One observation (row) at a time
     '''
-    pord = XYparams[1]
+    (coeffs, pord, nx, ny, nz) = XYparams
     nx = XYparams[2]
     nz = XYparams[4]
     nX = nx + nz
@@ -27,7 +27,7 @@ def poly1(Xin, XYparams):
     return Xbasis
 
 def XYfunc(Xm, Zn, XYparams, coeffs):
-    pord = XYparams[1]
+    (coeffs, pord, nx, ny, nz) = XYparams
     An = np.exp(Zn)
     XZin = np.append(Xm, An)
     XYbasis = np.append(1., XZin)
@@ -77,7 +77,7 @@ def GSSA(params, kbar):
     distold = 2.
     count = 0
     Xold = np.ones((T-1, nx+ny))
-    XYparams = (coeffs, pord, nx, ny, nz, kbar)
+    XYparams = (coeffs, pord, nx, ny, nz)
 
     
     while dist > ccrit:
