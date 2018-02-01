@@ -134,7 +134,7 @@ def polsim(simargs):
     
     # generate history of random shocks
     for t in range(1, nobs):
-        zhist[t] = rho_z*zhist[t] + sigma_z*np.random.normal(0., 1.)
+        zhist[t] = rho_z*zhist[t-1] + sigma_z*np.random.normal(0., 1.)
         
     # generate histories for the first ts-1 periods
     for t in range(0, ts-1):
