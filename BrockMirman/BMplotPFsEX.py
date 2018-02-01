@@ -11,9 +11,8 @@ import pickle as pkl
 
 from rouwen import rouwen
 
-# copied from BMsimLIN.py
-def generateLIN(k, z, args):
-    from LinApp_Sim import LinApp_Sim
+# copied from BMsimEX.py
+def generateEX(k, z, args):
     
     '''
     This function generates values of k next period and ell this period given
@@ -29,18 +28,10 @@ def generateLIN(k, z, args):
     '''
     
     # unpack args
-    (coeffs, XYbar) = args
-    (PP, QQ, UU, RR, SS, VV) = coeffs
-    kbar = XYbar
-    
-    # inputs must be 1D numpy arrays and deviation from SS values
-    ktil = np.array([k - kbar])
-    ztil = np.array([z])
-    kptil, elltil = LinApp_Sim(ktil, ztil, PP, QQ, UU, RR, SS, VV)
-    # k and ell are deviations from SS values, so add these back.
-    # they are also 1D numpy arrays, so pull out the values rather than 
-    # use the arrays.
-    kp = kptil + kbar
+    (params, XYbar) = args
+    [alpha, beta, tau, rho_z, sigma_z] = params
+
+    kp = alpha*beta*(1-tau)*np.exp(z)*k**alpha
     
     return kp
 
@@ -59,20 +50,14 @@ infile.close()
 tau2 = params2[2]
 (zbar, Zbar, NN, nx, ny, nz, logX, Sylv) = VFIparams
 
-# READ IN VALUES FROM LINERIZATION SOLUTION
-
-# load Linearization coeffs
-infile = open('BMsolveLIN.pkl', 'rb')
-(coeffs1, coeffs2, timesolve) = pkl.load(infile)
-infile.close()
 
 # create args lists
 XYbar1 = kbar1
 XYbar2 = kbar2
-args1 = (coeffs1, XYbar1)
-args2 = (coeffs2, XYbar2)
+args1 = (params1, XYbar1)
+args2 = (params2, XYbar2)
 
-# SET UP GRIDS FOR PLOTS
+#  SET UP GRIDS FOR PLOTS
 
 kfact= .05
 
@@ -92,13 +77,13 @@ kgrid = np.linspace(klow, khigh, num = knpts)
 
 # COMPUTE PF1 & PF2
 
-Pf1LIN = np.zeros((knpts, znpts))
-Pf2LIN = np.zeros((knpts, znpts))
+Pf1EX = np.zeros((knpts, znpts))
+Pf2EX = np.zeros((knpts, znpts))
 
 for ik in range(0,knpts):
     for iz in range(0,znpts):
-        Pf1LIN[ik,iz] = generateLIN(kgrid[ik], zgrid[iz], args1)
-        Pf2LIN[ik,iz] = generateLIN(kgrid[ik], zgrid[iz], args2)
+        Pf1EX[ik,iz] = generateEX(kgrid[ik], zgrid[iz], args1)
+        Pf2EX[ik,iz] = generateEX(kgrid[ik], zgrid[iz], args2)
         
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -111,22 +96,22 @@ kmesh, zmesh = np.meshgrid(kgrid, zgrid)
 # plot grid approximation of Vf1
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-ax.plot_surface(kmesh, zmesh, Pf1LIN)
+ax.plot_surface(kmesh, zmesh, Pf1EX)
 ax.view_init(30, 150)
 plt.title('Pf1 Exact')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
 plt.show()
-plt.savefig('BMPf1LIN.png')      
+plt.savefig('BMPf1EX.pdf')      
 
 # plot grid approximation of Vf1
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-ax.plot_surface(kmesh, zmesh, Pf1LIN)
+ax.plot_surface(kmesh, zmesh, Pf1EX)
 ax.view_init(30, 150)
 plt.title('Pf2 Exact')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
 plt.show()
-plt.savefig('BMPf2LIN.png')     
+plt.savefig('BMPf2EX.pdf')     
         

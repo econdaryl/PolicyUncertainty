@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 def BMplots(dataplot, name):
     '''
-    This function takes a list of time series from the ILA model and plots and
+    This function takes a list of time series from the BM model and plots and
     saves a series of graphs of these over time.
     
     Inputs:
