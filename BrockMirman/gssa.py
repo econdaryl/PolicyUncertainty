@@ -11,9 +11,9 @@ def poly1(Xin, XYparams):
     Includes polynomial terms up to order 'pord' for each element and quadratic 
     cross terms  One observation (row) at a time
     '''
-    pord = XYparams[1]
-    nx = XYparams[2]
-    nz = XYparams[4]
+    pord = XYparams[0]
+    nx = XYparams[1]
+    nz = XYparams[3]
     nX = nx + nz
     Xbasis = np.ones((1, 1))
     # generate polynomial terms for each element
@@ -27,7 +27,7 @@ def poly1(Xin, XYparams):
     return Xbasis
 
 def XYfunc(Xm, Zn, XYparams, coeffs):
-    pord = XYparams[1]
+    (pord, nx, ny, nz) = XYparams
     An = np.exp(Zn)
     XZin = np.append(Xm, An)
     XYbasis = np.append(1., XZin)
@@ -50,7 +50,7 @@ def GSSA(params, kbar):
     regtype = 'poly1' # functional form for X & Y functions 
     fittype = 'MVOLS'   # regression fitting method
     pord = 3  # order of polynomial for fitting function
-    ccrit = 1.0E-6  # convergence criteria for XY change
+    ccrit = 1.0E-8  # convergence criteria for XY change
     nx = 1
     ny = 0
     nz = 1
@@ -77,7 +77,7 @@ def GSSA(params, kbar):
     distold = 2.
     count = 0
     Xold = np.ones((T-1, nx+ny))
-    XYparams = (coeffs, pord, nx, ny, nz, kbar)
+    XYparams = (pord, nx, ny, nz)
 
     
     while dist > ccrit:
@@ -129,7 +129,7 @@ def GSSA(params, kbar):
         print('count ', count, 'distance', dist, 'damp', damp)
     
         # update coeffs
-        Xold = Xnew
+        Xold = 1*Xnew
         coeffs = (1-damp)*coeffs + damp*coeffsnew
         if count % 10 == 0:
             print('coeffs', coeffs)
