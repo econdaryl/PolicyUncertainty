@@ -11,7 +11,9 @@ def poly1(Xin, XYparams):
     Includes polynomial terms up to order 'pord' for each element and quadratic 
     cross terms  One observation (row) at a time
     '''
-    (pord, nx, ny, nz) = XYparams
+    pord = XYparams[0]
+    nx = XYparams[1]
+    nz = XYparams[3]
     nX = nx + nz
     Xbasis = np.ones((1, 1))
     # generate polynomial terms for each element

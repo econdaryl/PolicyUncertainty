@@ -14,7 +14,7 @@ from rouwen import rouwen
 # copied from BMsimGSSA.py
 def generateGSSA(k, z, args):
     from gssa import poly1
-    (coeffs, pord, nx, ny, nz) = args
+    (pord, nx, ny, nz, coeffs) = args
     An = np.exp(z)
     XZin = np.append(k, An)
     XYbasis = np.append(1., XZin)
@@ -46,8 +46,8 @@ infile.close()
 
 # create args lists
 pord = 3
-args1 = (coeffs1, pord, nx, ny, nz)
-args2 = (coeffs2, pord, nx, ny, nz)
+args1 = (pord, nx, ny, nz, coeffs1)
+args2 = (pord, nx, ny, nz, coeffs2)
 
 # SET UP GRIDS FOR PLOTS
 
