@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 '''
 Run a series of monte carlo simulations and analyzes them using the
-linearization method
+VFI method
 '''
 
 import numpy as np
@@ -32,7 +32,7 @@ def generateVFI(k, z, args):
     
      # unpack args
     (coeffs, XYbar) = args
-    (Vf, Pf, coeffsPF) = coeffs   # get rid of Jf?
+    (Vf, Pf, coeffsPF) = coeffs
     
     # inputs must be 1D numpy arrays and deviation from SS values
     Xvec = np.array([[1.0], [k], [k**2], [k**3], [z], [z**2], [z**3], \
@@ -80,7 +80,7 @@ nobs = 120
 # specify the period policy shifts
 ts = 20
 # specify the number of simulations
-nsim = 10000
+nsim = 100
 # specify the increment between MC reports
 repincr = 100
 

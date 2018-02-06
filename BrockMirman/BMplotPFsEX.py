@@ -102,7 +102,7 @@ plt.title('Pf1 Exact')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
 plt.show()
-plt.savefig('BMPf1EX.pdf')      
+plt.savefig('BMPf1EX.pdf', format='pdf', dpi=2000)      
 
 # plot grid approximation of Vf1
 fig = plt.figure()
@@ -113,5 +113,5 @@ plt.title('Pf2 Exact')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
 plt.show()
-plt.savefig('BMPf2EX.pdf')     
+plt.savefig('BMPf2EX.pdf', format='pdf', dpi=2000)     
         

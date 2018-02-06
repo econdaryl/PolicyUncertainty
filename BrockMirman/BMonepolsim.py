@@ -59,7 +59,6 @@ def polsim(simargs):
     
     # preallocate histories
     khist = np.zeros(nobs+1)
-    zhist = np.zeros(nobs)
     Yhist = np.zeros(nobs)
     whist = np.zeros(nobs)
     rhist = np.zeros(nobs)

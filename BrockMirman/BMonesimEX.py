@@ -76,7 +76,7 @@ khist, Yhist, whist, rhist, Thist, chist, ihist, uhist = polsim(simargs)
 
 # write histories
 output = open(name + '.pkl', 'wb')
-alldata = (khist, Yhist, whist, rhist, Thist, chist, ihist, uhist)
+alldata = (khist, Yhist, whist, rhist, Thist, chist, ihist, uhist, zhist)
 pkl.dump(alldata, output)
 output.close()
 

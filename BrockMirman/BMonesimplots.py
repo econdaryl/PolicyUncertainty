@@ -45,7 +45,7 @@ def BMonesimplots(dataplot, name):
     # plt.ioff()
     
     # unpack data for plots
-    [khist, Yhist, whist, rhist, Thist, chist, ihist, uhist] = dataplot
+    [khist, Yhist, whist, rhist, Thist, chist, ihist, uhist, zhist] = dataplot
             
     # plot
     fig1 = plt.figure()
@@ -54,9 +54,13 @@ def BMonesimplots(dataplot, name):
     plt.title('Capital')
     plt.xticks([])
     
+    plt.subplot(2,2,2)
+    plt.plot(range(zhist.size), zhist, 'k-')
+    plt.title('Technology')
+    plt.xticks([])
+    
     plt.subplot(2,2,3)
     plt.plot(range(Yhist.size), Yhist, 'k-')
-
     plt.title('GDP')
     plt.xticks([])
         
