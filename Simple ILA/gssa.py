@@ -22,8 +22,7 @@ def poly1(Xin, XYparams):
     Includes polynomial terms up to order 'pord' for each element and quadratic 
     cross terms  One observation (row) at a time
     '''
-    nx = 1
-    nz = 1
+    (pord, nx, ny, nz) = XYparams
     nX = nx + nz
     Xbasis = np.ones((1, 1))
     # generate polynomial terms for each element
@@ -37,9 +36,7 @@ def poly1(Xin, XYparams):
     return Xbasis
 
 def XYfunc(Xm, Zn, XYparams, coeffs):
-    nx = 1
-    ny = 1
-    nz = 1
+    (pord, nx, ny, nz) = XYparams
     An = np.exp(Zn)
     XZin = np.append(Xm, An)
     XYbasis = np.append(1., XZin)
@@ -77,7 +74,7 @@ def GSSA(params, kbar, ellbar):
     damp = 0.01  # damping paramter for fixed point algorithm
     
     [alpha, beta, gamma, delta, chi, theta, tau, rho, sigma] = params
-    XYparams = (regtype, fittype, pord, nx, ny, nz, ccrit, damp, nx, ny, nz)
+    XYparams = (pord, nx, ny, nz)
 
     Xstart = kbar
     
@@ -99,7 +96,7 @@ def GSSA(params, kbar, ellbar):
     damp = .01
     XYold = np.ones((T-1, nx+ny))
 
-    while dist > 1e-6:
+    while dist > ccrit:
         count = count + 1
         X = np.zeros((T+1, nx))
         Y = np.zeros((T+1, ny))
@@ -157,6 +154,8 @@ def GSSA(params, kbar, ellbar):
                 damp = 1.
         else:
             damp = damp*.8
+            if damp < 0.001:
+                damp = 0.001
 
         distold = 1.*dist
     

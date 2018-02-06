@@ -63,7 +63,7 @@ def GSSA(params, kbar, ellbar):
     regtype = 'poly1' # functional form for X & Y functions 
     fittype = 'MVOLS'   # regression fitting method
     pord = 3  # order of polynomial for fitting function
-    ccrit = 1.0E-6  # convergence criteria for XY change
+    ccrit = 1.0E-8  # convergence criteria for XY change
     damp = 0.01  # damping paramter for fixed point algorithm
     
     [alpha, beta, gamma, delta, chi, theta, tau, rho, \
@@ -111,18 +111,18 @@ def GSSA(params, kbar, ellbar):
             x[t-1,:] = poly1(Xin[t-1,:], XYparams)
         X1 = X[0:T, :]
         Y1 = Y[0:T, :]
-        Lam1 = np.zeros((T-1, 1))
-        Lam2 = np.zeros((T-1, 1))
-        Lam3 = np.zeros((T-1, 1))
-        Gam1 = np.zeros((T-1, 1))
-        Gam2 = np.zeros((T-1, 1))
-        Gam3 = np.zeros((T-1, 1))
-        for t in range(0, T-1):
-            inmat = np.concatenate((X[t+2, :], X[t+1, :], X[t, :], Y[t+1, :], Y[t, :], Z[t+1, :], Z[t, :]))
-            Lam1[t], Lam2[t], Lam3[t], Gam1[t], Gam2[t], Gam3[t] = (Modeldyn(inmat, params) + 1)
-        Gam = np.hstack((Gam1, Gam2, Gam3))
-        print('Gam', Gam)
-        Lam = np.hstack((Lam1, Lam2, Lam3))
+        #Lam1 = np.zeros((T-1, 1))
+        #Lam2 = np.zeros((T-1, 1))
+        #Lam3 = np.zeros((T-1, 1))
+        #Gam1 = np.zeros((T-1, 1))
+        #Gam2 = np.zeros((T-1, 1))
+        #Gam3 = np.zeros((T-1, 1))
+        #for t in range(0, T-1):
+        #    inmat = np.concatenate((X[t+2, :], X[t+1, :], X[t, :], Y[t+1, :], Y[t, :], Z[t+1, :], Z[t, :]))
+        #    Lam1[t], Lam2[t], Lam3[t], Gam1[t], Gam2[t], Gam3[t] = (Modeldyn(inmat, params) + 1)
+        #Gam = np.hstack((Gam1, Gam2, Gam3))
+        #print('Gam', Gam)
+        #Lam = np.hstack((Lam1, Lam2, Lam3))
         # plot time series
         if count % 10 == 0:
             timeperiods = np.asarray(range(0,T))
@@ -137,12 +137,46 @@ def GSSA(params, kbar, ellbar):
             plt.show()    
         
         #Generate Gamma and lambda series
-        #B = (1+r-delta)*((1-pi2)*k2 + (1-pi3)*pi2*k3 + (1-pi4)*pi3*k4) \
-        #/(1+pi2+pi3+pi4)
-        #c1 = (1-tau)*(w*f1*l1) + B - k2p
-        #c2 = (1-tau)*(w*f2*l2) + B + (1+r-delta)*k2 - k3p
-        #c3 = (1-tau)*(w*f3*l3) + B + (1+r-delta)*k3 - k4p
-        #c4 = (1+r-delta)*k4 + B + T4
+        k2 = X[:, 0]
+        k3 = X[:, 1]
+        k4 = X[:, 2]
+        l1 = Y[:, 0]
+        l2 = Y[:, 1]
+        l3 = Y[:, 2]
+        for t in range(0, T+1):
+            if l1[t] > 0.9999:
+                l1[t] = 0.9999
+            elif l1[t] < 0.0001:
+                l1[t] = 0.0001
+            if l2[t] > 0.9999:
+                l2[t] = 0.9999
+            elif l2[t] < 0.0001:
+                l2[t] = 0.0001  
+            if l3[t] > 0.9999:
+                l3[t] = 0.9999
+            elif l3[t] < 0.0001:
+                l3[t] = 0.0001
+        K = k2 + pi2*k3 + pi3*k4
+        L = f1*l1 + pi2*f2*l2 + pi3*f3*l3
+        GDP = K**alpha*(np.exp(Z)*L)**(1-alpha)
+        r = alpha*GDP / K
+        w = (1-alpha)*GDP / L
+        T4 = tau*w*L
+        B = (1+r-delta)*((1-pi2)*k2 + (1-pi3)*pi2*k3 + (1-pi4)*pi3*k4) \
+        /(1+pi2+pi3+pi4)
+        c1 = (1-tau)*(w*f1*l1) + B - k2[1:T+1]
+        c2 = (1-tau)*(w*f2*l2) + B + (1+r-delta)*k2[0:T] - k3[1:T+1]
+        c3 = (1-tau)*(w*f3*l3) + B + (1+r-delta)*k3[0:T] - k4[1:T+1]
+        c4 = (1+r-delta)*k4 + B + T4
+        El1 = (c1[0:T-1]**(-gamma)*(1-tau)*w*f1) / (chi*l1**theta)
+        El2 = (c2[0:T-1]**(-gamma)*(1-tau)*w*f2) / (chi*l2**theta)
+        El3 = (c3[0:T-1]**(-gamma)*(1-tau)*w*f3) / (chi*l3**theta)
+        Ek2 = (c1**(-gamma)) / (beta*c2[1:T]**(-gamma)*(1 + r[1:T] - delta))
+        Ek3 = (c2**(-gamma)) / (beta*c3[1:T]**(-gamma)*(1 + r[1:T] - delta))
+        Ek4 = (c3**(-gamma)) / (beta*c4[1:T]**(-gamma)*(1 + r[1:T] - delta))
+        Gam = np.hstack((Ek2, Ek3, Ek4))
+        print('Gam', Gam)
+        Lam = np.hstack((El1, El2, El3))
 
     
         # update values for X and Y
