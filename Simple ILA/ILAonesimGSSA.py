@@ -11,7 +11,21 @@ import timeit
 
 from ILArunmc import runmc
 from ILAmcanalysis import mcanalysis
-from ILAsimGSSA import generateGSSA
+
+def generateGSSA(k, z, args):
+    from gssa import poly1
+    
+    (pord, nx, ny, nz, coeffs) = args
+    polyargs = (pord, nx, ny, nz)
+    An = np.exp(z)
+    XZin = np.append(k, An)
+    XYbasis = np.append(1., XZin)
+    for i in range(1, pord):
+        XYbasis = poly1(XZin, polyargs)
+    XYout = np.dot(XYbasis, coeffs)
+    Xn = XYout[0:nx]
+    Y = XYout[nx:nx+ny]
+    return Xn, Y
 
 name = 'ILAonesimGSSA'
 
@@ -29,10 +43,10 @@ infile.close()
 
 
 # unpack
-[kbar1, Ybar1, wbar1, rbar1, Tbar1, cbar1, ibar1, ubar1] = bar1
-[kbar2, Ybar2, wbar2, rbar2, Tbar2, cbar2, ibar2, ubar2] = bar2
-[alpha, beta, tau, rho_z, sigma_z] = params1
-tau2 = params2[2]
+[kbar1, ellbar1, Ybar1, wbar1, rbar1, Tbar1, cbar1, ibar1, ubar1] = bar1
+[kbar2, ellbar2, Ybar2, wbar2, rbar2, Tbar2, cbar2, ibar2, ubar2] = bar2
+[alpha, beta, gamma, delta, chi, theta, tau2, rho_z, sigma_z] = params1
+tau2 = params2[6]
 (zbar, Zbar, NN, nx, ny, nz, logX, Sylv) = LINparams
     
 # create args lists
@@ -51,13 +65,13 @@ initial = (kbar1, zhist[0])
 ts = 20
 simargs = (initial, zhist, nobs, ts, generateGSSA, args1, args2, params1, \
            params2) 
-khist, Yhist, whist, rhist, Thist, chist, ihist, uhist = polsim(simargs)
+khist, ellhist, Yhist, whist, rhist, Thist, chist, ihist, uhist = polsim(simargs)
 
 # SAVE AND PLOT SIMULATIOn
 
 # write histories
 output = open(name + '.pkl', 'wb')
-alldata = (khist, Yhist, whist, rhist, Thist, chist, ihist, uhist)
+alldata = (khist, ellhist, Yhist, whist, rhist, Thist, chist, ihist, uhist)
 pkl.dump(alldata, output)
 output.close()
 

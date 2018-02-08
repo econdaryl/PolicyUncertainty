@@ -37,7 +37,7 @@ def polsim(simargs):
     
     Returns
     --------
-    For the following variables x in (k, z, Y, w, r, T, c, i, u):
+    For the following variables x in (k, ell, z, Y, w, r, T, c, i, u):
         xhist: history of simulated values
 
     '''

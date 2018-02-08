@@ -27,7 +27,7 @@ def ILAonesimplots(dataplot, name):
         z - productivity
         Y - GDP
         w - wage
-        r - rental
+        r - rental rate
         T - tax revenue
         c - consumption
         i - investment
