@@ -68,8 +68,8 @@ infile.close()
 XYbar1 = (kbar1, ellbar1)
 XYbar2 = (kbar2, ellbar2)
 
-args1 = (coeffs1, XYbar1)  ##
-args2 = (coeffs2, XYbar2)  ##
+args1 = (coeffs1, XYbar1)  
+args2 = (coeffs2, XYbar2)
 
 # -----------------------------------------------------------------------------
 # RUN MONTE CARLOS

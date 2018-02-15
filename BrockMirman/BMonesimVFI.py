@@ -47,7 +47,7 @@ def generateVFI(k, z, args):
     
 # load steady state values and parameters
 infile = open('BMfindss.pkl', 'rb')
-(bar1, bar2, params1, params2, LINparams) = pkl.load(infile)
+(bar1, bar2, params1, params2, VFIparams) = pkl.load(infile)
 infile.close()
 
 infile = open('BMsolveVFI.pkl', 'rb')
@@ -59,7 +59,7 @@ infile.close()
 [kbar2, Ybar2, wbar2, rbar2, Tbar2, cbar2, ibar2, ubar2] = bar2
 [alpha, beta, tau, rho_z, sigma_z] = params1
 tau2 = params2[2]
-(zbar, Zbar, NN, nx, ny, nz, logX, Sylv) = LINparams
+(zbar, Zbar, NN, nx, ny, nz, logX, Sylv) = VFIparams
     
 # create args lists
 XYbar1 = kbar1
