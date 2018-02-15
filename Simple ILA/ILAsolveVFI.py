@@ -68,7 +68,7 @@ ellhigh = ellbar1 + elladd
 ellnpts = 11
 ellgrid = np.linspace(elllow, ellhigh, num = ellnpts)
 
-readVF = True
+readVF = False
 
 # initialize VF and PF
 if readVF:
@@ -86,7 +86,7 @@ Pf1 = np.zeros((knpts, znpts))
 Jf1 = np.zeros((knpts, znpts))
 
 # set VF iteration parameters
-ccrit = 1.0E-5
+ccrit = 1.0E-8
 count = 0
 dist = 100.
 maxwhile = 4000
