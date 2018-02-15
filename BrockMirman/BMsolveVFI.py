@@ -83,7 +83,8 @@ count = 0
 dist = 100.
 maxwhile = 4000
 
-## I have questions on this part.
+
+
 # run the program to get the value function (VF1) 
 nconv = True 
 while (nconv):
