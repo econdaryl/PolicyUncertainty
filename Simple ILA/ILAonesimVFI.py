@@ -7,6 +7,7 @@ VFI method (for only one time)
 
 import numpy as np
 import pickle as pkl
+import matplotlib.pyplot as plt
 import timeit
 
 from ILArunmc import runmc
@@ -66,6 +67,7 @@ tau2 = params2[6]
 # create args lists
 XYbar1 = (kbar1, ellbar1)
 XYbar2 = (kbar2, ellbar2)
+
 args1 = (coeffs1, XYbar1)
 args2 = (coeffs2, XYbar2)
 
@@ -74,23 +76,25 @@ infile = open('ILAzhist.pkl', 'rb')
 (nobs, zhist) = pkl.load(infile)
 infile.close()
 
+#------------------------------------------------------------------------------
 # RUN SINGLE SIMULATION
 from ILAonepolsim import polsim
 initial = (kbar1, zhist[0])
 ts = 20
 simargs = (initial, zhist, nobs, ts, generateVFI, args1, args2, params1, \
            params2) 
-khist, Yhist, whist, rhist, Thist, chist, ihist, uhist = polsim(simargs)
+khist, ellhist, Yhist, whist, rhist, Thist, chist, ihist, uhist = polsim(simargs)
 
-# SAVE AND PLOT SIMULATIOn
+# SAVE AND PLOT SIMULATION
 
 # write histories
 output = open(name + '.pkl', 'wb')
-alldata = (khist, Yhist, whist, rhist, Thist, chist, ihist, uhist, zhist)
+alldata = (khist, ellhist, Yhist, whist, rhist, Thist, chist, ihist, uhist)
 pkl.dump(alldata, output)
 output.close()
 
-"""
+
 from ILAonesimplots import ILAonesimplots
 ILAonesimplots(alldata, name)
-"""
+
+

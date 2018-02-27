@@ -7,6 +7,7 @@ linearization method
 
 import numpy as np
 import pickle as pkl
+import matplotlib.pyplot as plt
 import timeit
 
 from ILArunmc import runmc
@@ -43,7 +44,6 @@ def generateVFI(k, z, args):
     
     return kp, ell
 
-
 # -----------------------------------------------------------------------------
 # LOAD VALUES FROM SS AND VALUE FUNCTION ITERATION
     
@@ -52,17 +52,17 @@ infile = open('ILAfindss.pkl', 'rb')
 (bar1, bar2, params1, params2, VFIparams) = pkl.load(infile)
 infile.close()
 
+# load VFI coeffs
+infile = open('ILAsolveVFI.pkl', 'rb')
+(coeffs1, coeffs2, timesolve) = pkl.load(infile)
+infile.close()
+
 # unpack
 [kbar1, ellbar1, Ybar1, wbar1, rbar1, Tbar1, cbar1, ibar1, ubar1] = bar1
 [kbar2, ellbar2, Ybar2, wbar2, rbar2, Tbar2, cbar2, ibar2, ubar2] = bar2
 [alpha, beta, gamma, delta, chi, theta, tau, rho_z, sigma_z] = params1
 tau2 = params2[6]
 (zbar, Zbar, NN, nx, ny, nz, logX, Sylv) = VFIparams
-
-# load VFI coeffs
-infile = open('ILAsolveVFI.pkl', 'rb')
-(coeffs1, coeffs2, timesolve) = pkl.load(infile)
-infile.close()
 
 # create args lists
 XYbar1 = (kbar1, ellbar1)
@@ -154,3 +154,4 @@ alldata = (preddata, avgdata, uppdata, lowdata, foreperc, zforperc, \
 pkl.dump(alldata, output)
 
 output.close()
+

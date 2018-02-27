@@ -68,7 +68,7 @@ ellhigh = ellbar1 + elladd
 ellnpts = 11
 ellgrid = np.linspace(elllow, ellhigh, num = ellnpts)
 
-readVF = False
+readVF = True
 
 # initialize VF and PF
 if readVF:
@@ -133,9 +133,10 @@ kgrid[int((knpts-1)/2)], 'and is', Pf1[int((knpts-1)/2), int((znpts-1)/2)])
 
 # generate a history of Z's
 nobs = 150
-Zhist = np.zeros((nobs,1))
+### wrong equation???
+zhist = np.zeros((nobs,1))
 for t in range(1, nobs):
-    Zhist[t,0] = rho_z*Zhist[t,0] + sigma_z*np.random.normal(0., 1.)
+    zhist[t,0] = rho_z * zhist[t,0] + sigma_z * np.random.normal(0., 1.)
     
 # put SS values and starting values into numpy vectors
 XYbar = np.array([kbar1, ellbar1])
@@ -301,4 +302,106 @@ coeffs2 = (Vf2, Pf2, Jf2, coeffsPF2, coeffsJF2)
 pkl.dump((coeffs1, coeffs2, timesolve), output)
 
 output.close()
+
+
+#------------------------------------------------------------------------------
+## Additional Work: plot grid approximation of policy functions and jump functions
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+
+# plot grid approximation of PF1
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_surface(kmesh, zmesh, Pf1)
+ax.view_init(30, 150)
+plt.title('PF1 Grid')
+plt.xlabel('k(t)')
+plt.ylabel('z(t)')
+plt.show()
+
+# plot grid approximation of PF2
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_surface(kmesh, zmesh, Pf2)
+ax.view_init(30, 150)
+plt.title('PF2 Grid')
+plt.xlabel('k(t)')
+plt.ylabel('z(t)')
+plt.show()
+
+# plot grid approximation of JF1
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_surface(kmesh, zmesh, Jf1)
+ax.view_init(30, 150)
+plt.title('JF1 Grid')
+plt.xlabel('k(t)')
+plt.ylabel('z(t)')
+plt.show()
+
+# plot grid approximation of JF2
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_surface(kmesh, zmesh, Jf2)
+ax.view_init(30, 150)
+plt.title('JF2 Grid')
+plt.xlabel('k(t)')
+plt.ylabel('z(t)')
+plt.show()
+
+## Get the polynomial approximations
+
+Pf1approx = 0.*Pf1
+Pf2approx = 0.*Pf2
+Jf1approx = 0.*Jf1
+Jf2approx = 0.*Jf2
+
+for i in range(0,knpts):
+    for j in range(0,znpts):
+        temp = np.array([[1.0], [kmesh[i,j]], [kmesh[i,j]**2], \
+                     [kmesh[i,j]**3], [zmesh[i,j]], [zmesh[i,j]**2], \
+                     [zmesh[i,j]**3], [kmesh[i,j]*zmesh[i,j]], \
+                     [zmesh[i,j]*kmesh[i,j]**2], [kmesh[i,j]*zmesh[i,j]**2]])
+        Pf1approx[i,j] = np.dot(np.transpose(coeffsPF1), temp)
+        Pf2approx[i,j] = np.dot(np.transpose(coeffsPF2), temp)
+        Jf1approx[i,j] = np.dot(np.transpose(coeffsJF1), temp)
+        Jf2approx[i,j] = np.dot(np.transpose(coeffsJF2), temp)
+    
+# plot polynomial approximations
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_surface(kmesh, zmesh, Pf1approx)
+ax.view_init(30, 150)
+plt.title('PF1 polynomial')
+plt.xlabel('k(t)')
+plt.ylabel('z(t)')
+plt.show()
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_surface(kmesh, zmesh, Pf2approx)
+ax.view_init(30, 150)
+plt.title('PF2 polynomial')
+plt.xlabel('k(t)')
+plt.ylabel('z(t)')
+plt.show()
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_surface(kmesh, zmesh, Jf1approx)
+ax.view_init(30, 150)
+plt.title('JF1 polynomial')
+plt.xlabel('k(t)')
+plt.ylabel('z(t)')
+plt.show()
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_surface(kmesh, zmesh, Jf2approx)
+ax.view_init(30, 150)
+plt.title('JF2 polynomial')
+plt.xlabel('k(t)')
+plt.ylabel('z(t)')
+plt.show()
  

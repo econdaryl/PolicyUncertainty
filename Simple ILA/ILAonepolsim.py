@@ -48,14 +48,14 @@ def polsim(simargs):
     
     # load steady state values and parameters
     infile = open('ILAfindss.pkl', 'rb')
-    (bar1, bar2, params1, params2, LINparams) = pkl.load(infile)
+    (bar1, bar2, params1, params2, VFIparams) = pkl.load(infile)
     infile.close()
     
     # unpack
     [kbar1, ellbar1, Ybar1, wbar1, rbar1, Tbar1, cbar1, ibar1, ubar1] = bar1
     [kbar2, ellbar2, Ybar2, wbar2, rbar2, Tbar2, cbar2, ibar2, ubar2] = bar2
     [alpha, beta, gamma, delta, chi, theta, tau, rho_z, sigma_z] = params1
-    (zbar, Zbar, NN, nx, ny, nz, logX, Sylv) = LINparams
+    (zbar, Zbar, NN, nx, ny, nz, logX, Sylv) = VFIparams
     
     # preallocate histories
     khist = np.zeros(nobs+1)
