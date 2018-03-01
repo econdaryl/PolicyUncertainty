@@ -47,7 +47,15 @@ def Modeldefs(Xp, X, Y, Z, params):
     T = tau*(w*ell + (r - delta)*k)
     c = (1-tau)*(w*ell + (r - delta)*k) + k + T - kp
     i = GDP - c
-    u = c**(1-gamma)/(1-gamma) - chi*ell**(1+theta)/(1+theta)
+    if c < 1E-06:
+        u = -1E+99
+    else:
+        if gamma == 1.:
+            u = np.log(c) - chi*ell**(1+theta)/(1+theta)
+        else:
+            u = (c**(1-gamma)-1)/(1-gamma) - chi*ell**(1+theta)/(1+theta)
+    if np.isnan(u):
+        u = -1E+99 
     return GDP, w, r, T, c, i, u
 
 
