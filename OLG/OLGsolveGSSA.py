@@ -82,28 +82,10 @@ coeffs1 = GSSA(params1, kbar1, lbar1)
 
 # -----------------------------------------------------------------------------
 # CHANGE POLICY
+kbar2 = (k2bar2, k3bar2, k4bar2)
+lbar2 = (l1bar2, l2bar2, l3bar2)
 
-# set up steady state input vector for baseline
-theta2 = np.array([k2bar2, k3bar2, k4bar2, k2bar2, k3bar2, k4bar2, k2bar2, \
-    k3bar2, k4bar2, l1bar2, l2bar2, l3bar2, l1bar2, l2bar2, l3bar2, 0., 0.])
-
-# find the new derivatives matrices
-[AA2, BB2, CC2, DD2, FF2, GG2, HH2, JJ2, KK2, LL2, MM2, WW2, TT2] = \
-    LinApp_Deriv(Modeldyn, params2, theta2, nx, ny, nz, logX)
-    
-# find the policy and jump function coefficients
-PP2, QQ2, UU2, RR2, SS2, VV2 = \
-    LinApp_Solve(AA2,BB2,CC2,DD2,FF2,GG2,HH2,JJ2,KK2,LL2,MM2,WW2,TT2,NN,Zbar, \
-                 Sylv)
-print ('policy change coeffs')
-print ('P: ', PP2)
-print ('Q: ', QQ2)
-print ('R: ', RR2)
-print ('S: ', SS2)
-print  (' ')
-
-# set up coefficient list
-coeffs2 = (PP2, QQ2, UU2, RR2, SS2, VV2)
+coeffs2 = GSSA(params2, kbar2, lbar2)
 
 # calculate time to solve for functions
 stopsolve = timeit.default_timer()

@@ -22,7 +22,7 @@ def poly1(Xin, XYparams):
     Includes polynomial terms up to order 'pord' for each element and quadratic 
     cross terms  One observation (row) at a time
     '''
-    (pord, nx, ny, nz) = XYparams
+    (pord, nx, ny, nz, kbar) = XYparams
     nX = nx + nz
     Xbasis = np.ones((1, 1))
     # generate polynomial terms for each element
@@ -38,7 +38,7 @@ def poly1(Xin, XYparams):
     return Xbasis
 
 def XYfunc(Xm, Zn, XYparams, coeffs):
-    (pord, nx, ny, nz) = XYparams
+    (pord, nx, ny, nz, kbar) = XYparams
     An = np.exp(Zn)
     XZin = np.append(Xm, An)
     #print('XZin', XZin)
@@ -55,15 +55,15 @@ def XYfunc(Xm, Zn, XYparams, coeffs):
     #print('Xn', Xn, 'Y', Y)
     #if np.isnan(Xn).any():
     #    sys.exit()
-    #for i in range(0, ny):
-    #    temp = Y[i] < 0.0001 or Y[i] > 0.9999
-    #    print(temp)
-    #    if Y[i] > 0.9999:
-    #        Y[i] = 0.9999
-    #    elif Y[i] < 0.0001:
-    #        Y[i] = 0.0001
-    #    else:
-    #        continue
+    for i in range(0, ny):
+        #temp = Xn[i] < -1. or Y[i] > 1.
+        #print(temp)
+        if Xn[i] > -1.:
+            Xn[i] = kbar[i]
+        elif Xn[i] < 1.:
+            Xn[i] = kbar[i]
+        else:
+            continue
     return Xn, Y
     
 def MVOLS(Y, X):
@@ -90,7 +90,7 @@ def GSSA(params, kbar, ellbar):
     nx = int(nx)
     ny = int(ny)
     nz = int(nz)
-    XYparams = (pord, nx, ny, nz)
+    XYparams = (pord, nx, ny, nz, kbar)
 
     Xstart = kbar
     
@@ -101,10 +101,10 @@ def GSSA(params, kbar, ellbar):
     if regtype == 'poly1':
         cnumb = int(pord*(nx+nz) + .5*(nx+nz-1)*(nx+nz-2))
         coeffs = np.array([[0., 0., 0., 0.95*ellbar1, 0.95*ellbar2, 0.95*ellbar3], \
-                           [0.99, 0., 0., 0., 0., 0.], \
-                           [0., 0.99, 0., 0., 0., 0.], \
-                           [0., 0., 0.99, 0., 0., 0.], \
-                           [0.001*kbar2, 0.001*kbar3, 0.001*kbar4, 0.05*ellbar1, 0.05*ellbar2, 0.05*ellbar3], \
+                           [0.95, 0., 0., 0., 0., 0.], \
+                           [0., 0.95, 0., 0., 0., 0.], \
+                           [0., 0., 0.95, 0., 0., 0.], \
+                           [0.05*kbar2, 0.05*kbar3, 0.05*kbar4, 0.05*ellbar1, 0.05*ellbar2, 0.05*ellbar3], \
                            [0., 0., 0., 0., 0., 0.], \
                            [0., 0., 0., 0., 0., 0.], \
                            [0., 0., 0., 0., 0., 0.], \
@@ -234,12 +234,13 @@ def GSSA(params, kbar, ellbar):
         
         if dist < distold:
             damp = damp*1.05
-            if damp > 1.:
-                damp = 1.
         else:
             damp = damp*.8
-            if damp > .001:
-                damp = .001
+        
+        if damp > 1.:
+            damp = 1.
+        elif damp < .001:
+            damp = .001
 
         distold = 1.*dist
     
