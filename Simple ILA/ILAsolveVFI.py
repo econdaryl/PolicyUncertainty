@@ -50,7 +50,7 @@ elladd = .05
 
 # set up Markov approximation of AR(1) process using Rouwenhorst method
 spread = 3.  # number of standard deviations above and below 0
-znpts = 11
+znpts = 21
 zstep = 4.*spread*sigma_z/(znpts-1)
 
 # Markov transition probabilities, current z in cols, next z in rows
@@ -59,13 +59,15 @@ Pimat, zgrid = rouwen(rho_z, 0., zstep, znpts)
 # discretize k
 klow = (1-kfact)*kbar1
 khigh = (1+kfact)*kbar1
-knpts = 11
+knpts = 21
 kgrid = np.linspace(klow, khigh, num = knpts)
 
 # discretize ell
 elllow = ellbar1 - elladd
 ellhigh = ellbar1 + elladd
-ellnpts = 11
+#elllow = 0.1
+#ellhigh = 0.9
+ellnpts = 21
 ellgrid = np.linspace(elllow, ellhigh, num = ellnpts)
 
 readVF = True
@@ -166,6 +168,8 @@ kgrid2 = np.linspace(klow, khigh, num = knpts)
 # discretize ell
 elllow = ellbar2 - elladd
 ellhigh = ellbar2 + elladd
+#elllow = 0
+#ellhigh = 1
 ellgrid2 = np.linspace(elllow, ellhigh, num = ellnpts)
 
 Vf2new = np.zeros((knpts, znpts))
