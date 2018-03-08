@@ -55,15 +55,15 @@ def XYfunc(Xm, Zn, XYparams, coeffs):
     #print('Xn', Xn, 'Y', Y)
     #if np.isnan(Xn).any():
     #    sys.exit()
-    for i in range(0, ny):
+    #for i in range(0, ny):
         #temp = Xn[i] < -1. or Y[i] > 1.
         #print(temp)
-        if Xn[i] > -1.:
-            Xn[i] = kbar[i]
-        elif Xn[i] < 1.:
-            Xn[i] = kbar[i]
-        else:
-            continue
+    #    if Xn[i] < (kbar[i] - 0.001):
+    #        Xn[i] = kbar[i] - 0.001
+    #    elif Xn[i] > (kbar[i] + 0.001):
+    #        Xn[i] = kbar[i] + 0.001
+    #    else:
+    #        continue
     return Xn, Y
     
 def MVOLS(Y, X):
@@ -75,8 +75,8 @@ def MVOLS(Y, X):
     coeffs = np.linalg.solve(XX, XY)
     return coeffs
  
-def GSSA(params, kbar, ellbar):
-    T = 100000
+def GSSA(params, kbar, ellbar, old, old_coeffs):
+    T = 10000
     regtype = 'poly1' # functional form for X & Y functions 
     fittype = 'MVOLS'   # regression fitting method
     pord = 3  # order of polynomial for fitting function
@@ -98,13 +98,13 @@ def GSSA(params, kbar, ellbar):
     Z = np.zeros((T,nz))
     for t in range(1,T):
         Z[t,:] = rho*Z[t-1] + np.random.randn(1)*sigma
-    if regtype == 'poly1':
+    if regtype == 'poly1' and old == False:
         cnumb = int(pord*(nx+nz) + .5*(nx+nz-1)*(nx+nz-2))
-        coeffs = np.array([[0., 0., 0., 0.95*ellbar1, 0.95*ellbar2, 0.95*ellbar3], \
+        coeffs = np.array([[0.05*kbar2, 0.05*kbar3, 0.05*kbar4, 0.95*ellbar1, 0.95*ellbar2, 0.95*ellbar3], \
                            [0.95, 0., 0., 0., 0., 0.], \
                            [0., 0.95, 0., 0., 0., 0.], \
                            [0., 0., 0.95, 0., 0., 0.], \
-                           [0.05*kbar2, 0.05*kbar3, 0.05*kbar4, 0.05*ellbar1, 0.05*ellbar2, 0.05*ellbar3], \
+                           [0., 0., 0., 0.05*ellbar1, 0.05*ellbar2, 0.05*ellbar3], \
                            [0., 0., 0., 0., 0., 0.], \
                            [0., 0., 0., 0., 0., 0.], \
                            [0., 0., 0., 0., 0., 0.], \
@@ -115,14 +115,16 @@ def GSSA(params, kbar, ellbar):
                            [0., 0., 0., 0., 0., 0.], \
                            [0., 0., 0., 0., 0., 0.], \
                            [0., 0., 0., 0., 0., 0.]])
-        #coeffs = np.ones((cnumb,(nx+ny)))*.01
+        #coeffs = np.ones((cnumb,(nx+ny)))*.02
         #for i in range(0, nx+ny) :
         #    coeffs[:, i] = coeffs[:, i]*(i+1)
-        #    for j in range(0, cnumb):
-        #        coeffs[j,i] = coeffs[j,i] + np.random.randn(1)*.005
+            #for j in range(0, cnumb):
+            #    coeffs[j,i] = coeffs[j,i] + np.random.randn(1)*.005
             #coeffs[:,i] = coeffs[:,i]*np.random.exponential(1)
             #for j in range(0, cnumb) :
             #    coeffs[j,i] = coeffs[j,i]*np.random.randn(1)*0.05
+    elif old == True:
+        coeffs = old_coeffs
     #print('coeffs', coeffs)
  
     dist = 1.
@@ -131,7 +133,7 @@ def GSSA(params, kbar, ellbar):
     damp = .01
     XYold = np.ones((T-1, nx+ny))
 
-    while dist > ccrit:
+    while dist > ccrit and count < 10000:
         count = count + 1
         X = np.zeros((T+1, nx))
         Y = np.zeros((T, ny))
@@ -157,17 +159,17 @@ def GSSA(params, kbar, ellbar):
         #print('Gam', Gam)
         #Lam = np.hstack((Lam1, Lam2, Lam3))
         # plot time series
-        if count % 1 == 0:
+        if count % 100 == 0:
             timeperiods = np.asarray(range(0,T))
             plt.subplot(2,1,1)
             plt.plot(timeperiods, X1, label='X')
             plt.axhline(y=kbar2, color='k')
-            plt.axhline(y=kbar3, color='w')
+            plt.axhline(y=kbar3, color='r')
             plt.axhline(y=kbar4, color='b')
             plt.subplot(2,1,2)
             plt.plot(timeperiods, Y, label='Y')
             plt.axhline(y=ellbar1, color='k')
-            plt.axhline(y=ellbar2, color='w')
+            plt.axhline(y=ellbar2, color='r')
             plt.axhline(y=ellbar3, color='b')
             plt.xlabel('time')
             plt.legend(loc=9, ncol=(nx+ny))
@@ -210,8 +212,8 @@ def GSSA(params, kbar, ellbar):
         El2 = (c2[0:T-1]**(-gamma)*(1-tau)*w[0:T-1]*f2) / (chi*l2[0:T-1]**theta)
         El3 = (c3[0:T-1]**(-gamma)*(1-tau)*w[0:T-1]*f3) / (chi*l3[0:T-1]**theta)
         Ek2 = (c1[0:T-1]**(-gamma)) / (beta*c2[1:T]**(-gamma)*(1 + r[1:T] - delta))
-        Ek3 = (c2[0:T-1]**(-gamma)) / (beta*c3[1:T]**(-gamma)*(1 + r[1:T] - delta))
-        Ek4 = (c3[0:T-1]**(-gamma)) / (beta*c4[1:T]**(-gamma)*(1 + r[1:T] - delta))
+        Ek3 = (beta*c3[1:T]**(-gamma)*(1 + r[1:T] - delta)) / (c2[0:T-1]**(-gamma))
+        Ek4 = (beta*c4[1:T]**(-gamma)*(1 + r[1:T] - delta)) / (c3[0:T-1]**(-gamma))
         # T-1-by-1
         Gam = np.hstack((Ek2, Ek3, Ek4))
         #print('Gam', Gam)
@@ -229,8 +231,8 @@ def GSSA(params, kbar, ellbar):
             coeffsnew = MVOLS(XY, x)
         
         dist = np.mean(np.abs(1-XY/XYold))
-        print('count ', count, 'distance', dist, 'distold', distold, \
-              'damp', damp, 'Gam', temp1, 'Lam', temp2)
+        print('count ', count, 'distance', dist, \
+              'Gam', temp1, 'Lam', temp2)
         
         if dist < distold:
             damp = damp*1.05
@@ -247,6 +249,6 @@ def GSSA(params, kbar, ellbar):
         # update coeffs
         XYold = XY
         coeffs = (1-damp)*coeffs + damp*coeffsnew
-        if count % 10 == 0:
+        if count % 100 == 0:
             print('coeffs', coeffs)
     return coeffs

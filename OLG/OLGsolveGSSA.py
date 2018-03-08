@@ -32,6 +32,10 @@ infile = open('OLGfindss.pkl', 'rb')
 (bar1, bar2, params1, params2, LINparams) = pkl.load(infile)
 infile.close()
 
+infile = open('OLGsolveGSSA1.pkl', 'rb')
+(coeffsa, coeffsb, timesolve) = pkl.load(infile)
+infile.close()
+
 # unpack
 [k2bar1, k3bar1, k4bar1, l1bar1, l2bar1, l3bar1, Kbar1, \
     Lbar1, GDPbar1, wbar1, rbar1, T4bar1, Bbar1, c1bar1, c2bar1, c3bar1, \
@@ -48,7 +52,8 @@ tau2 = params2[6]
 startsolve = timeit.default_timer()
 
 # set name for external files written
-name = 'OLGsolveGSSA'
+name = 'OLGsolveGSSA1'
+old = True
 
 # -----------------------------------------------------------------------------
 # BASELINE
@@ -77,7 +82,7 @@ print  (' ')
 kbar1 = (k2bar1, k3bar1, k4bar1)
 lbar1 = (l1bar1, l2bar1, l3bar1)
 # set up coefficient list
-coeffs1 = GSSA(params1, kbar1, lbar1)
+coeffs1 = GSSA(params1, kbar1, lbar1, old, coeffsa)
 
 
 # -----------------------------------------------------------------------------
@@ -85,7 +90,7 @@ coeffs1 = GSSA(params1, kbar1, lbar1)
 kbar2 = (k2bar2, k3bar2, k4bar2)
 lbar2 = (l1bar2, l2bar2, l3bar2)
 
-coeffs2 = GSSA(params2, kbar2, lbar2)
+coeffs2 = GSSA(params2, kbar2, lbar2, old, coeffsb)
 
 # calculate time to solve for functions
 stopsolve = timeit.default_timer()
