@@ -27,6 +27,10 @@ infile = open('BMfindss.pkl', 'rb')
 (bar1, bar2, params1, params2, LINparams) = pkl.load(infile)
 infile.close()
 
+infile = open('BMsolveGSSA.pkl', 'rb')
+(coeffsa, coeffsb, timesolve) = pkl.load(infile)
+infile.close()
+
 # unpack
 [kbar1, Ybar1, wbar1, rbar1, Tbar1, cbar1, ibar1, ubar1] = bar1
 [kbar2, Ybar2, wbar2, rbar2, Tbar2, cbar2, ibar2, ubar2] = bar2
@@ -42,15 +46,18 @@ name = 'BMsolveGSSA'
 
 # -----------------------------------------------------------------------------
 # BASELINE
-
+T = 10000
+pord = 2
+old = True
 # set up steady state input vector for baseline
-coeffs1 = GSSA(params1, kbar1)
+GSSAparams = (T, nx, ny, nz, pord, old)
+coeffs1 = GSSA(params1, kbar1, GSSAparams, coeffsa)
 
 # -----------------------------------------------------------------------------
 # CHANGE POLICY
 
 # set up coefficient list
-coeffs2 = GSSA(params2, kbar2)
+coeffs2 = GSSA(params2, kbar2, GSSAparams, coeffsb)
 
 # calculate time to solve for functions
 stopsolve = timeit.default_timer()

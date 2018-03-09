@@ -26,15 +26,9 @@ def poly1(Xin, XYparams):
     nX = nx + nz
     Xbasis = np.ones((1, 1))
     # generate polynomial terms for each element
-    for i in range(1, pord+1):
+    for i in range(1, 3):
         Xbasis = np.append(Xbasis, Xin**i)
         #print('Xbasis', Xbasis)
-    # generate cross terms
-    for i in range (0, nX):
-        #for j in range(nx, nX):
-        for j in range(i+1, nX):
-            temp = Xin[i]*Xin[j]
-            Xbasis = np.append(Xbasis, temp)
     return Xbasis
 
 def XYfunc(Xm, Zn, XYparams, coeffs):
@@ -43,13 +37,27 @@ def XYfunc(Xm, Zn, XYparams, coeffs):
     XZin = np.append(Xm, An)
     #print('XZin', XZin)
     XYbasis = np.append(1., XZin)
-    for i in range(1, pord+1):
+    for i in range(1, pord):
         XYbasis = poly1(XZin, XYparams)
     XYout = np.dot(XYbasis, coeffs)
     Xn = XYout[0:nx]
     Y = XYout[nx:nx+ny]
+    #temp = type(Y)
+    #print('Y is ', temp)
     Y[Y > 0.9999] = 0.9999
     Y[Y < 0.0001] = 0.0001
+    #print('Xn', Xn, 'Y', Y)
+    #if np.isnan(Xn).any():
+    #    sys.exit()
+    #for i in range(0, ny):
+        #temp = Xn[i] < -1. or Y[i] > 1.
+        #print(temp)
+    #    if Xn[i] < (kbar[i] - 0.001):
+    #        Xn[i] = kbar[i] - 0.001
+    #    elif Xn[i] > (kbar[i] + 0.001):
+    #        Xn[i] = kbar[i] + 0.001
+    #    else:
+    #        continue
     return Xn, Y
     
 def MVOLS(Y, X):
@@ -61,17 +69,16 @@ def MVOLS(Y, X):
     coeffs = np.linalg.solve(XX, XY)
     return coeffs
  
-def GSSA(params, kbar, ellbar, GSSAparams, old_coeffs):
+def GSSA(params, kbar, ellbar, old, old_coeffs):
+    T = 10000
     regtype = 'poly1' # functional form for X & Y functions 
     fittype = 'MVOLS'   # regression fitting method
+    pord = 3  # order of polynomial for fitting function
     ccrit = 1.0E-8  # convergence criteria for XY change
     damp = 0.01  # damping paramter for fixed point algorithm
     
     [alpha, beta, gamma, delta, chi, theta, tau, rho, \
     sigma, pi2, pi3, pi4, f1, f2, f3, nx, ny, nz] = params
-    (T, nx, ny, nz, pord, old) = GSSAparams
-    cnumb = int((pord+1)*(nx+nz) + .5*(nx+nz-1)*(nx+nz-2))
-    cnumb2 = int(3*(nx+nz) + .5*(nx+nz-1)*(nx+nz-2))
     (kbar2, kbar3, kbar4) = kbar
     (ellbar1, ellbar2, ellbar3) = ellbar
     nx = int(nx)
@@ -86,28 +93,20 @@ def GSSA(params, kbar, ellbar, GSSAparams, old_coeffs):
     for t in range(1,T):
         Z[t,:] = rho*Z[t-1] + np.random.randn(1)*sigma
     if regtype == 'poly1' and old == False:
-        coeffs = np.array([[0.05*kbar2, 0.05*kbar3, 0.05*kbar4, 0.95*ellbar1, 0.95*ellbar2, 0.95*ellbar3], \
+        cnumb = int(pord*(nx+nz) + .5*(nx+nz-1)*(nx+nz-2))
+        coeffs = np.array([[0., 0., 0., 0.95*ellbar1, 0.95*ellbar2, 0.95*ellbar3], \
                            [0.95, 0., 0., 0., 0., 0.], \
                            [0., 0.95, 0., 0., 0., 0.], \
                            [0., 0., 0.95, 0., 0., 0.], \
-                           [0., 0., 0., 0.05*ellbar1, 0.05*ellbar2, 0.05*ellbar3], \
-                           [0., 0., 0., 0., 0., 0.], \
-                           [0., 0., 0., 0., 0., 0.], \
-                           [0., 0., 0., 0., 0., 0.], \
-                           [0., 0., 0., 0., 0., 0.], \
-                           [0., 0., 0., 0., 0., 0.], \
-                           [0., 0., 0., 0., 0., 0.], \
+                           [0.1*kbar2, 0.05*kbar3, 0.05*kbar4, 0.04*ellbar1, 0.04*ellbar2, 0.04*ellbar3], \
                            [0., 0., 0., 0., 0., 0.], \
                            [0., 0., 0., 0., 0., 0.], \
                            [0., 0., 0., 0., 0., 0.], \
                            [0., 0., 0., 0., 0., 0.]])
-    elif old == True:
+    else:
         coeffs = old_coeffs
-    
-    if old == False & pord > 2:
-        A = np.zeros((cnumb-cnumb2, nx+ny))
-        coeffs = np.insert(coeffs, cnumb2-1, A)
-        
+    #print('coeffs', coeffs)
+ 
     dist = 1.
     distold = 2.
     count = 0
@@ -120,7 +119,7 @@ def GSSA(params, kbar, ellbar, GSSAparams, old_coeffs):
         Y = np.zeros((T, ny))
         Xin = np.zeros((T, nx+nz))
         A = np.exp(Z)
-        x = np.zeros((T,(pord*5)))
+        x = np.zeros((T,(pord*3)))
         X[0, :], Y[0, :] = XYfunc(Xstart, Z[0], XYparams, coeffs)
         for t in range(1,T+1):
             X[t, :], Y[t-1, :] = XYfunc(X[t-1, :], Z[t-1, :], XYparams, coeffs)

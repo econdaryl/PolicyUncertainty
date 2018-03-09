@@ -39,7 +39,7 @@ infile.close()
 A = np.array([[0., 0.], \
               [0., 0.]])
 coeffs2a = np.insert(coeffs2a, 2*pord-1, A)
-coeffs2a = np.insert(coeffs2a, 2*pord-1, A)
+coeffs2b = np.insert(coeffs2b, 2*pord-1, A)
 
 try:
     infile = open('ILAsolveGSSA_3.pkl', 'rb')

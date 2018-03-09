@@ -24,6 +24,7 @@ from LinApp_Solve import LinApp_Solve
 from gssa import GSSA
 from OLGfuncs import Modeldyn
 
+pord = 2
 # -----------------------------------------------------------------------------
 # READ IN VALUES FROM STEADY STATE CALCULATIONS
 
@@ -57,32 +58,13 @@ old = True
 
 # -----------------------------------------------------------------------------
 # BASELINE
-
-# set up steady state input vector for baseline
-theta1 = np.array([Kbar1, Kbar1, Kbar1, Lbar1, Lbar1, 0., 0.])
-'''
-theta1 = np.array([k2bar1, k3bar1, k4bar1, k2bar1, k3bar1, k4bar1, k2bar1, \
-#    k3bar1, k4bar1, l1bar1, l2bar1, l3bar1, l1bar1, l2bar1, l3bar1, 0., 0.])
-
-# find the derivatives matrices
-#AA1, BB1, CC1, DD1, FF1, GG1, HH1, JJ1, KK1, LL1, MM1, WW1, TT1 = \
-#    LinApp_Deriv(Modeldyn, params1, theta1, nx, ny, nz, logX)
-
-# find the policy and jump function coefficients
-PP1, QQ1, UU1, RR1, SS1, VV1 = \
-    LinApp_Solve(AA1,BB1,CC1,DD1,FF1,GG1,HH1,JJ1,KK1,LL1,MM1,WW1,TT1,NN,Zbar, \
-                 Sylv)
-print ('baseline coeffs')
-print ('P: ', PP1)
-print ('Q: ', QQ1)
-print ('R: ', RR1)
-print ('S: ', SS1)
-print  (' ')
-'''
+T = 10000
 kbar1 = (k2bar1, k3bar1, k4bar1)
 lbar1 = (l1bar1, l2bar1, l3bar1)
+GSSAparams = (T, nx, ny, nz, pord, old)
 # set up coefficient list
-coeffs1 = GSSA(params1, kbar1, lbar1, old, coeffsa)
+
+coeffs1 = GSSA(params1, kbar1, lbar1, GSSAparams, coeffsa)
 
 
 # -----------------------------------------------------------------------------
@@ -90,7 +72,7 @@ coeffs1 = GSSA(params1, kbar1, lbar1, old, coeffsa)
 kbar2 = (k2bar2, k3bar2, k4bar2)
 lbar2 = (l1bar2, l2bar2, l3bar2)
 
-coeffs2 = GSSA(params2, kbar2, lbar2, old, coeffsb)
+coeffs2 = GSSA(params2, kbar2, lbar2, GSSAparams, coeffsb)
 
 # calculate time to solve for functions
 stopsolve = timeit.default_timer()

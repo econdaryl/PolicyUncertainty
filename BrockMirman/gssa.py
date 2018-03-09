@@ -11,13 +11,11 @@ def poly1(Xin, XYparams):
     Includes polynomial terms up to order 'pord' for each element and quadratic 
     cross terms  One observation (row) at a time
     '''
-    pord = XYparams[0]
-    nx = XYparams[1]
-    nz = XYparams[3]
+    (pord, nx, ny, nz) = XYparams
     nX = nx + nz
     Xbasis = np.ones((1, 1))
     # generate polynomial terms for each element
-    for i in range(1, pord):
+    for i in range(1, pord+1):
         Xbasis = np.append(Xbasis, Xin**i)
     # generate cross terms
     for i in range (0, nX):
@@ -31,7 +29,7 @@ def XYfunc(Xm, Zn, XYparams, coeffs):
     An = np.exp(Zn)
     XZin = np.append(Xm, An)
     XYbasis = np.append(1., XZin)
-    for i in range(1, pord):
+    for i in range(1, pord+1):
         XYbasis = poly1(XZin, XYparams)
     Xn = np.dot(XYbasis, coeffs)
     return Xn
@@ -45,19 +43,16 @@ def MVOLS(Y, X):
     coeffs = np.dot(np.linalg.inv(XX), XY)
     return coeffs
 
-def GSSA(params, kbar):  
-    T = 10000
+def GSSA(params, kbar, GSSAparams, old_coeffs):  
     regtype = 'poly1' # functional form for X & Y functions 
     fittype = 'MVOLS'   # regression fitting method
-    pord = 3  # order of polynomial for fitting function
     ccrit = 1.0E-8  # convergence criteria for XY change
-    nx = 1
-    ny = 0
-    nz = 1
     damp = 0.01  # damping paramqter for fixed point algorithm
     
     [alpha, beta, tau, rho, sigma] = params
-    
+    (T, nx, ny, nz, pord, old) = GSSAparams
+    cnumb = int((pord+1)*(nx+nz) + .5*(nx+nz-1)*(nx+nz-2))
+    cnumb2 = int(3*(nx+nz) + .5*(nx+nz-1)*(nx+nz-2))
     Xstart = kbar
     
     #create history of Z's
@@ -65,14 +60,20 @@ def GSSA(params, kbar):
     for t in range(1,T):
         Z[t,:] = rho*Z[t-1] + np.random.randn(1)*sigma
     
-    if regtype == 'poly1':
+    if regtype == 'poly1' and old == False:
         coeffs = np.array([[ -2.04961035e-02], \
                            [  2.26920891e-01], \
                            [  1.17409797e-01], \
                            [ -6.27573544e-01], \
                            [ -4.88424960e-05], \
                            [  3.49581228e-01]])
+    elif old == True:
+        coeffs = old_coeffs
     
+    if old == False and pord > 2:
+        A = np.zeros((cnumb - cnumb2, nx+ny))
+        coeffs = np.insert(coeffs, cnumb2 - 1, A)
+        
     dist = 1.
     distold = 2.
     count = 0
@@ -85,14 +86,14 @@ def GSSA(params, kbar):
         X = np.zeros((T+1, nx))
         Xin = np.zeros((T, nx+nz))
         A = np.exp(Z)
-        x = np.zeros((T,6))
+        x = np.zeros((T,(pord*2+2)))
         X[0] = XYfunc(Xstart, Z[0], XYparams, coeffs)
         for t in range(1,T+1):
             X[t] = XYfunc(X[t-1], Z[t-1], XYparams, coeffs)
             Xin[t-1,:] = np.concatenate((X[t-1], A[t-1]))
             x[t-1,:] = poly1(Xin[t-1,:], XYparams)
         # plot time series
-        if count % 10 == 0:
+        if count % 100 == 0:
             X1 = X[0:T]
             timeperiods = np.asarray(range(0,T))
             plt.plot(timeperiods, X1, label='X')
@@ -131,7 +132,7 @@ def GSSA(params, kbar):
         # update coeffs
         Xold = 1*Xnew
         coeffs = (1-damp)*coeffs + damp*coeffsnew
-        if count % 10 == 0:
+        if count % 100 == 0:
             print('coeffs', coeffs)
         coeffs = (1-damp)*coeffs + damp*coeffsnew
         
