@@ -35,7 +35,8 @@ def mcanalysis(mcdata, preddata, bardata, histdata, name, nsim):
     #unpack data
     (k2mc, k3mc, k4mc, l1mc, l2mc, l3mc, zmc, Kmc, Lmc, GDPmc, \
         wmc, rmc, T4mc, Bmc, c1mc, c2mc, c3mc, c4mc, Cmc, Imc, u1mc, \
-        u2mc, u3mc, u4mc, foremeanmc, zformeanmc, RMsqEerrmc) = mcdata
+        u2mc, u3mc, u4mc, foremeanmc, forevarmc, zformeanmc, zforvarmc, \
+        RMsqEerrmc) = mcdata
     # calculate and report statistics and charts from Monte Carlos  
     (k2pred, k3pred, k4pred, l1pred, l2pred, l3pred, zpred, \
         Kpred, Lpred, GDPpred, wpred, rpred, T4pred, Bpred, c1pred, \
@@ -75,7 +76,9 @@ def mcanalysis(mcdata, preddata, bardata, histdata, name, nsim):
     u3mc = np.sort(u3mc, axis = 0)
     u4mc = np.sort(u4mc, axis = 0)
     foremeanmc = np.sort(foremeanmc, axis = 0)
+    forevarmc = np.sort(forevarmc, axis = 0)
     zformeanmc = np.sort(zformeanmc, axis = 0)
+    zforvarmc = np.sort(zforvarmc, axis = 0)
     
     # find the average values for each variable in each time period across 
     # Monte Carlos
@@ -104,7 +107,9 @@ def mcanalysis(mcdata, preddata, bardata, histdata, name, nsim):
     u3avg = np.mean(u3mc, axis = 0)
     u4avg = np.mean(u4mc, axis = 0)
     foremeanavg = np.mean(np.abs(foremeanmc), axis = 0)
+    forevaravg = np.mean(np.abs(forevarmc), axis = 0)
     zformeanavg = np.mean(np.abs(zformeanmc), axis = 0)
+    zforvaravg = np.mean(np.abs(zforvarmc), axis = 0)
     RMsqEerravg = np.mean(np.abs(RMsqEerrmc), axis = 0)
     
     # find the rows for desired confidence bands
@@ -138,7 +143,9 @@ def mcanalysis(mcdata, preddata, bardata, histdata, name, nsim):
     u3upp = u3mc[high,:]
     u4upp = u4mc[high,:]
     foremeanupp = foremeanmc[high,:]
+    forevarupp = forevarmc[high,:]
     zformeanupp = zformeanmc[high,:]
+    zforvarupp = zforvarmc[high,:]
     
     k2low = k2mc[low,:]
     k3low = k3mc[low,:]
@@ -165,7 +172,9 @@ def mcanalysis(mcdata, preddata, bardata, histdata, name, nsim):
     u3low = u3mc[low,:]
     u4low = u4mc[low,:]
     foremeanlow = foremeanmc[low,:]
+    forevarlow = forevarmc[low,:]
     zformeanlow = zformeanmc[low,:]
+    zforvarlow = zforvarmc[low,:]
     
     # create a list of time series to plot
     dataplot = np.array([k2pred/k2bar, k2upp/k2bar, k2low/k2bar, k2hist/k2bar,\
@@ -200,14 +209,14 @@ def mcanalysis(mcdata, preddata, bardata, histdata, name, nsim):
     avgdata = (k2avg, k3avg, k4avg, l1avg, l2avg, l3avg, zavg, Kavg, Lavg, \
                GDPavg, wavg, ravg, T4avg, Bavg, c1avg, c2avg, c3avg, c4avg, \
                Cavg, Iavg, u1avg, u2avg, u3avg, u4avg, foremeanavg, \
-               zformeanavg, RMsqEerravg) 
+               forevaravg, zformeanavg, zforvaravg, RMsqEerravg) 
     uppdata = (k2upp, k3upp, k4upp, l1upp, l2upp, l3upp, zupp, Kupp, Lupp, \
                GDPupp, wupp, rupp, T4upp, Bupp, c1upp, c2upp, c3upp, c4upp, \
                Cupp, Iupp, u1upp, u2upp, u3upp, u4upp, \
-               foremeanupp, zformeanupp) 
+               foremeanupp, forevarupp, zformeanupp, zforvarupp) 
     lowdata = (k2low, k3low, k4low, l1low, l2low, l3low, zlow, Klow, Llow, \
                GDPlow, wlow, rlow, T4low, Blow, c1low, c2low, c3low, c4low, \
                Clow, Ilow, u1low, u2low, u3low, u4low, \
-               foremeanlow, zformeanlow) 
+               foremeanlow, forevarlow, zformeanlow, zforvarlow) 
     
     return avgdata, uppdata, lowdata

@@ -94,7 +94,9 @@ def runmc(simargs, nsim, nobs, repincr):
     imc = np.zeros((nsim, nobs))
     umc = np.zeros((nsim, nobs)) 
     foremeanmc = np.zeros((nsim, 9)) 
+    forevarmc = np.zeros((nsim, 9)) 
     zformeanmc = np.zeros((nsim, 9))
+    zforvarmc = np.zeros((nsim, 9))
     RMsqEerrmc = np.zeros((nsim, nx+ny))
                                        
     # run remaining simulations                                
@@ -117,7 +119,7 @@ def runmc(simargs, nsim, nobs, repincr):
             ifhist[t] = np.abs(ifhist[t] - ihist[t])
             ufhist[t] = np.abs(ufhist[t] - uhist[t])
             
-        # caclulate mean 1-period ahead forecast errors
+        # calculate mean 1-period ahead forecast errors
         foremean = np.array([np.mean(kfhist[1:nobs]),
                              np.mean(zfhist[1:nobs]), 
                              np.mean(Yfhist[1:nobs]),
@@ -128,7 +130,18 @@ def runmc(simargs, nsim, nobs, repincr):
                              np.mean(ifhist[1:nobs]), 
                              np.mean(ufhist[1:nobs])])  
     
-        # caclulate mean period zero forecast errors
+        # calculate mean 1-period ahead forecast variances
+        forevar = np.array([np.mean(kfhist[1:nobs]**2),
+                             np.mean(zfhist[1:nobs]**2), 
+                             np.mean(Yfhist[1:nobs]**2),
+                             np.mean(wfhist[1:nobs]**2), 
+                             np.mean(rfhist[1:nobs]**2),
+                             np.mean(Tfhist[1:nobs]**2), 
+                             np.mean(cfhist[1:nobs]**2),
+                             np.mean(ifhist[1:nobs]**2), 
+                             np.mean(ufhist[1:nobs]**2)])  
+    
+        # calculate mean period zero forecast errors
         zformean = np.array([np.mean(khist[1:nobs] - kpred[1:nobs]),
                              np.mean(zhist[1:nobs] - zpred[1:nobs]), 
                              np.mean(Yhist[1:nobs] - Ypred[1:nobs]),
@@ -138,6 +151,16 @@ def runmc(simargs, nsim, nobs, repincr):
                              np.mean(chist[1:nobs] - cpred[1:nobs]),
                              np.mean(ihist[1:nobs] - ipred[1:nobs]), 
                              np.mean(uhist[1:nobs] - upred[1:nobs])])  
+        # calculate mean period zero forecast errors
+        zforvar = np.array([np.mean((khist[1:nobs] - kpred[1:nobs])**2),
+                             np.mean((zhist[1:nobs] - zpred[1:nobs])**2), 
+                             np.mean((Yhist[1:nobs] - Ypred[1:nobs])**2),
+                             np.mean((whist[1:nobs] - wpred[1:nobs])**2), 
+                             np.mean((rhist[1:nobs] - rpred[1:nobs])**2),
+                             np.mean((Thist[1:nobs] - Tpred[1:nobs])**2), 
+                             np.mean((chist[1:nobs] - cpred[1:nobs])**2),
+                             np.mean((ihist[1:nobs] - ipred[1:nobs])**2), 
+                             np.mean((uhist[1:nobs] - upred[1:nobs])**2)])  
             
         # store results in Monte Carlo matrices
         kmc[i,:] = khist
@@ -150,11 +173,13 @@ def runmc(simargs, nsim, nobs, repincr):
         imc[i,:] = ihist
         umc[i,:] = uhist
         foremeanmc[i,:] = foremean
+        forevarmc[i,:] = forevar
         zformeanmc[i,:] = zformean
+        zforvarmc[i,:] = zforvar
         RMsqEerrmc[i,:] = np.mean(RMsqEerrhist[1:nobs,:])
         
         mcdata = (kmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc, \
-                  foremeanmc, zformeanmc, RMsqEerrmc)
+                  foremeanmc, forevarmc, zformeanmc, zforvarmc, RMsqEerrmc)
         
         histdata = (khist, zhist, Yhist, whist, rhist, Thist, chist, \
                     ihist, uhist)
