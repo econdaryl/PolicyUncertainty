@@ -88,11 +88,11 @@ args2 = (coeffs2, XYbar2)
 startsim = timeit.default_timer()
 
 # specify the number of observations per simulation
-nobs = 20
+nobs = 120
 # specify the period policy shifts
-ts = 2
+ts = 20
 # specify the number of simulations
-nsim = 100
+nsim = 100000
 # specify the increment between MC reports
 repincr = 100
 
@@ -129,26 +129,31 @@ avgdata, uppdata, lowdata = \
 (k2avg, k3avg, k4avg, l1avg, l2avg, l3avg, zavg, Kavg, Lavg, \
     GDPavg, wavg, ravg, T4avg, Bavg, c1avg, c2avg, c3avg, c4avg, \
     Cavg, Iavg, u1avg, u2avg, u3avg, u4avg, foremeanavg, \
-    zformeanavg, RMsqEerravg) = avgdata
+    forevaravg, zformeanavg, zforvaravg, RMsqEerravg) = avgdata
 (k2upp, k3upp, k4upp, l1upp, l2upp, l3upp, zupp, Kupp, Lupp, \
     GDPupp, wupp, rupp, T4upp, Bupp, c1upp, c2upp, c3upp, c4upp, \
     Cupp, Iupp, u1upp, u2upp, u3upp, u4upp, \
-    foremeanupp, zformeanupp) = uppdata
+    foremeanupp, forevarupp, zformeanupp, zforvarup) = uppdata
 (k2low, k3low, k4low, l1low, l2low, l3low, zlow, Klow, Llow, \
     GDPlow, wlow, rlow, T4low, Blow, c1low, c2low, c3low, c4low, \
     Clow, Ilow, u1low, u2low, u3low, u4low, \
-    foremeanlow, zformeanlow) = lowdata
+    foremeanlow, forevarlow, zformeanlow, zformvarlow) = lowdata
     
-foreperc = np.delete(foremeanavg, 6, 0)/np.abs(bar1)
+foreperc = np.delete(foremeanavg, 2, 0)/np.abs(bar1)
 print('1-period-ahead average forecast errors')
 print(foreperc)
 
-zforperc = np.delete(zformeanavg, 6, 0)/np.abs(bar1)
+forevarc = (np.delete(forevaravg, 2, 0))**.5/np.abs(bar1)
+print('1-period-ahead RMSE forecast errors')
+print(forevarc)
+
+zforperc = np.delete(zformeanavg, 2, 0)/np.abs(bar1)
 print('period-0 average forecast errors')
 print(zforperc)
 
-print('root mean squared Euler errors')
-print(RMsqEerravg)
+zforvarc = (np.delete(zformeanavg, 2, 0))**.5/np.abs(bar1)
+print('period-0 RMSE forecast errors')
+print(zforvarc)
 
 # -----------------------------------------------------------------------------
 # SAVE RESULTS
@@ -159,8 +164,8 @@ output = open(name + '.pkl', 'wb')
 pkl.dump(timesim, output)
 
 # write monte carlo results
-alldata = (preddata, avgdata, uppdata, lowdata, foreperc, zforperc, \
-           RMsqEerravg, act)
+alldata = (preddata, avgdata, uppdata, lowdata, foreperc, forevarc, zforperc, \
+           zforvarc, RMsqEerravg, act)
 pkl.dump(alldata, output)
 
 output.close()

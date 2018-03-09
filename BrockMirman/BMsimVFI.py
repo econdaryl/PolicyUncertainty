@@ -114,32 +114,39 @@ print('time to simulate', nsim, 'monte carlos: ', timesim)
 # load data for plots
 bardata = (kbar1, zbar, Ybar1, wbar1, rbar1, Tbar1, cbar1, ibar1, 
            ubar1)
-
+  
 avgdata, uppdata, lowdata = \
     mcanalysis(mcdata, preddata, bardata, histdata, name, nsim)
-
+    
 # unpack
 (kavg, zavg, Yavg, wavg, ravg, Tavg, cavg, iavg, uavg, foremeanavg, \
- zformeanavg, MsqEerravg) = avgdata
-(kupp, zupp, Yupp, wupp, rupp, Tupp, cupp, iupp, uupp, foremeanupp,\
- zforemeanupp) = uppdata
+     forevaravg, zformeanavg, zforvaravg, RMsqEerravg) = avgdata
+(kupp, zupp, Yupp, wupp, rupp, Tupp, cupp, iupp, uupp, foremeanupp, \
+     forevarupp, zformeanupp, zforvarupp) = uppdata
 (klow, zlow, Ylow, wlow, rlow, Tlow, clow, ilow, ulow, foremeanlow, \
- zforemeanlow) = lowdata
-
+     forevarlow, zformeanlow, zformvarlow) = lowdata
+    
 foreperc = np.delete(foremeanavg, 2, 0)/np.abs(bar1)
-print('1 period average forecast errors')
+print('1-period-ahead average forecast errors')
 print(foreperc)
+
+forevarc = (np.delete(forevaravg, 2, 0))**.5/np.abs(bar1)
+print('1-period-ahead RMSE forecast errors')
+print(forevarc)
 
 zforperc = np.delete(zformeanavg, 2, 0)/np.abs(bar1)
 print('period-0 average forecast errors')
 print(zforperc)
 
+zforvarc = (np.delete(zformeanavg, 2, 0))**.5/np.abs(bar1)
+print('period-0 RMSE forecast errors')
+print(zforvarc)
+
 print('root mean squared Euler errors')
-print(MsqEerravg)
+print(RMsqEerravg)
 
 # -----------------------------------------------------------------------------
 # SAVE RESULTS
-import pickle as pkl
 
 output = open(name + '.pkl', 'wb')
 
@@ -147,8 +154,8 @@ output = open(name + '.pkl', 'wb')
 pkl.dump(timesim, output)
 
 # write monte carlo results
-alldata = (preddata, avgdata, uppdata, lowdata, foreperc, zforperc, \
-           MsqEerravg, act)
+alldata = (preddata, avgdata, uppdata, lowdata, foreperc, forevarc, zforvarc, \
+           zforperc, RMsqEerravg, act)
 pkl.dump(alldata, output)
 
 output.close()
