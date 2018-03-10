@@ -21,7 +21,7 @@ import pickle as pkl
 from LinApp_Deriv import LinApp_Deriv
 from LinApp_Solve import LinApp_Solve
 # from LinApp_SSL import LinApp_SSL
-from gssa import GSSA
+from gssa_nocross import GSSA
 from OLGfuncs import Modeldyn
 
 pord = 2
@@ -33,7 +33,7 @@ infile = open('OLGfindss.pkl', 'rb')
 (bar1, bar2, params1, params2, LINparams) = pkl.load(infile)
 infile.close()
 
-infile = open('OLGsolveGSSA1.pkl', 'rb')
+infile = open('OLGsolveGSSA.pkl', 'rb')
 (coeffsa, coeffsb, timesolve) = pkl.load(infile)
 infile.close()
 
@@ -53,12 +53,12 @@ tau2 = params2[6]
 startsolve = timeit.default_timer()
 
 # set name for external files written
-name = 'OLGsolveGSSA1'
+name = 'OLGsolveGSSA'
 old = True
 
 # -----------------------------------------------------------------------------
 # BASELINE
-T = 10000
+T = 50000
 kbar1 = (k2bar1, k3bar1, k4bar1)
 lbar1 = (l1bar1, l2bar1, l3bar1)
 GSSAparams = (T, nx, ny, nz, pord, old)

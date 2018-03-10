@@ -192,7 +192,7 @@ def GSSA(params, kbar, ellbar, GSSAparams, old_coeffs):
         El1 = (c1[0:T-1]**(-gamma)*(1-tau)*w[0:T-1]*f1) / (chi*l1[0:T-1]**theta)
         El2 = (c2[0:T-1]**(-gamma)*(1-tau)*w[0:T-1]*f2) / (chi*l2[0:T-1]**theta)
         El3 = (c3[0:T-1]**(-gamma)*(1-tau)*w[0:T-1]*f3) / (chi*l3[0:T-1]**theta)
-        Ek2 = (c1[0:T-1]**(-gamma)) / (beta*c2[1:T]**(-gamma)*(1 + r[1:T] - delta))
+        Ek2 = (beta*c2[1:T]**(-gamma)*(1 + r[1:T] - delta)) / (c1[0:T-1]**(-gamma))
         Ek3 = (beta*c3[1:T]**(-gamma)*(1 + r[1:T] - delta)) / (c2[0:T-1]**(-gamma))
         Ek4 = (beta*c4[1:T]**(-gamma)*(1 + r[1:T] - delta)) / (c3[0:T-1]**(-gamma))
         # T-1-by-1
