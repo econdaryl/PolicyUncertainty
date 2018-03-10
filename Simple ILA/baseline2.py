@@ -12,7 +12,7 @@ import timeit
 from ILArunmc import runmc
 from ILAmcanalysis import mcanalysis
 
-name = 'baseline_Anthonylaptop'
+name = 'baseline_Kerklaptop2'
 
 def generateLIN(k, z, args):
     from LinApp_Sim import LinApp_Sim
