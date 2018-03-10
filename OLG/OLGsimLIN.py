@@ -139,19 +139,19 @@ avgdata, uppdata, lowdata = \
     Clow, Ilow, u1low, u2low, u3low, u4low, \
     foremeanlow, forevarlow, zformeanlow, zformvarlow) = lowdata
     
-foreperc = np.delete(foremeanavg, 2, 0)/np.abs(bar1)
+foreperc = np.delete(foremeanavg, 1, 0)/np.abs(bar1)
 print('1-period-ahead average forecast errors')
 print(foreperc)
 
-forevarc = (np.delete(forevaravg, 2, 0))**.5/np.abs(bar1)
+forevarc = (np.delete(forevaravg, 1, 0))**.5/np.abs(bar1)
 print('1-period-ahead RMSE forecast errors')
 print(forevarc)
 
-zforperc = np.delete(zformeanavg, 2, 0)/np.abs(bar1)
+zforperc = np.delete(zformeanavg, 1, 0)/np.abs(bar1)
 print('period-0 average forecast errors')
 print(zforperc)
 
-zforvarc = (np.delete(zformeanavg, 2, 0))**.5/np.abs(bar1)
+zforvarc = (np.delete(zformeanavg, 1, 0))**.5/np.abs(bar1)
 print('period-0 RMSE forecast errors')
 print(zforvarc)
 
