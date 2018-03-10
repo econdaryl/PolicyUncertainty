@@ -12,7 +12,7 @@ import timeit
 from OLGrunmc import runmc
 from OLGmcanalysis import mcanalysis
 
-name = 'OLGsimLIN_KD'
+name = 'OLGsimLIN_KH'
 
 def generateLIN(k, z, args):
     from LinApp_Sim import LinApp_Sim
@@ -88,9 +88,9 @@ args2 = (coeffs2, XYbar2)
 startsim = timeit.default_timer()
 
 # specify the number of observations per simulation
-nobs = 120
+nobs = 20
 # specify the period policy shifts
-ts = 20
+ts = 2
 # specify the number of simulations
 nsim = 100000
 # specify the increment between MC reports
@@ -139,19 +139,19 @@ avgdata, uppdata, lowdata = \
     Clow, Ilow, u1low, u2low, u3low, u4low, \
     foremeanlow, forevarlow, zformeanlow, zformvarlow) = lowdata
     
-foreperc = np.delete(foremeanavg, 1, 0)/np.abs(bar1)
+foreperc = np.delete(foremeanavg, 6, 0)/np.abs(bar1)
 print('1-period-ahead average forecast errors')
 print(foreperc)
 
-forevarc = (np.delete(forevaravg, 1, 0))**.5/np.abs(bar1)
+forevarc = (np.delete(forevaravg, 6, 0))**.5/np.abs(bar1)
 print('1-period-ahead RMSE forecast errors')
 print(forevarc)
 
-zforperc = np.delete(zformeanavg, 1, 0)/np.abs(bar1)
+zforperc = np.delete(zformeanavg, 6, 0)/np.abs(bar1)
 print('period-0 average forecast errors')
 print(zforperc)
 
-zforvarc = (np.delete(zformeanavg, 1, 0))**.5/np.abs(bar1)
+zforvarc = (np.delete(zformeanavg, 6, 0))**.5/np.abs(bar1)
 print('period-0 RMSE forecast errors')
 print(zforvarc)
 
