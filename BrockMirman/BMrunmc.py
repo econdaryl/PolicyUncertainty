@@ -107,17 +107,17 @@ def runmc(simargs, nsim, nobs, repincr):
         uhist, kfhist, zfhist, Yfhist, wfhist, rfhist, Tfhist, \
         cfhist, ifhist, ufhist, RMsqEerrhist = polsim(simargs)
             
-        # replace 1-period ahead forecast with abs value of forecast error
+        # replace 1-period ahead forecast with abs % value of forecast error
         for t in range(1, nobs):
-            kfhist[t] = np.abs(kfhist[t] - khist[t])
-            zfhist[t] = np.abs(zfhist[t] - zhist[t])
-            Yfhist[t] = np.abs(Yfhist[t] - Yhist[t])
-            wfhist[t] = np.abs(wfhist[t] - whist[t])
-            rfhist[t] = np.abs(rfhist[t] - rhist[t])
-            Tfhist[t] = np.abs(Tfhist[t] - Thist[t])
-            cfhist[t] = np.abs(cfhist[t] - chist[t])
-            ifhist[t] = np.abs(ifhist[t] - ihist[t])
-            ufhist[t] = np.abs(ufhist[t] - uhist[t])
+            kfhist[t] = np.abs(kfhist[t]/khist[t]-1)
+            zfhist[t] = np.abs(zfhist[t]/zhist[t]-1)
+            Yfhist[t] = np.abs(Yfhist[t]/Yhist[t]-1)
+            wfhist[t] = np.abs(wfhist[t]/whist[t]-1)
+            rfhist[t] = np.abs(rfhist[t]/rhist[t]-1)
+            Tfhist[t] = np.abs(Tfhist[t]/Thist[t]-1)
+            cfhist[t] = np.abs(cfhist[t]/chist[t]-1)
+            ifhist[t] = np.abs(ifhist[t]/ihist[t]-1)
+            ufhist[t] = np.abs(ufhist[t]/uhist[t]-1)
             
         # calculate mean 1-period ahead forecast errors
         foremean = np.array([np.mean(kfhist[1:nobs]),
@@ -142,25 +142,25 @@ def runmc(simargs, nsim, nobs, repincr):
                              np.mean(ufhist[1:nobs]**2)])  
     
         # calculate mean period zero forecast errors
-        zformean = np.array([np.mean(khist[1:nobs] - kpred[1:nobs]),
-                             np.mean(zhist[1:nobs] - zpred[1:nobs]), 
-                             np.mean(Yhist[1:nobs] - Ypred[1:nobs]),
-                             np.mean(whist[1:nobs] - wpred[1:nobs]), 
-                             np.mean(rhist[1:nobs] - rpred[1:nobs]),
-                             np.mean(Thist[1:nobs] - Tpred[1:nobs]), 
-                             np.mean(chist[1:nobs] - cpred[1:nobs]),
-                             np.mean(ihist[1:nobs] - ipred[1:nobs]), 
-                             np.mean(uhist[1:nobs] - upred[1:nobs])])  
+        zformean = np.array([np.mean(khist[1:nobs]/kpred[1:nobs]-1),
+                             np.mean(zhist[1:nobs]/zpred[1:nobs]-1), 
+                             np.mean(Yhist[1:nobs]/Ypred[1:nobs]-1),
+                             np.mean(whist[1:nobs]/wpred[1:nobs]-1), 
+                             np.mean(rhist[1:nobs]/rpred[1:nobs]-1),
+                             np.mean(Thist[1:nobs]/Tpred[1:nobs]-1), 
+                             np.mean(chist[1:nobs]/cpred[1:nobs]-1),
+                             np.mean(ihist[1:nobs]/ipred[1:nobs]-1), 
+                             np.mean(uhist[1:nobs]/upred[1:nobs]-1)])  
         # calculate mean period zero forecast errors
-        zforvar = np.array([np.mean((khist[1:nobs] - kpred[1:nobs])**2),
-                             np.mean((zhist[1:nobs] - zpred[1:nobs])**2), 
-                             np.mean((Yhist[1:nobs] - Ypred[1:nobs])**2),
-                             np.mean((whist[1:nobs] - wpred[1:nobs])**2), 
-                             np.mean((rhist[1:nobs] - rpred[1:nobs])**2),
-                             np.mean((Thist[1:nobs] - Tpred[1:nobs])**2), 
-                             np.mean((chist[1:nobs] - cpred[1:nobs])**2),
-                             np.mean((ihist[1:nobs] - ipred[1:nobs])**2), 
-                             np.mean((uhist[1:nobs] - upred[1:nobs])**2)])  
+        zforvar = np.array([np.mean((khist[1:nobs]/kpred[1:nobs]-1)**2),
+                             np.mean((zhist[1:nobs]/zpred[1:nobs]-1)**2), 
+                             np.mean((Yhist[1:nobs]/Ypred[1:nobs]-1)**2),
+                             np.mean((whist[1:nobs]/wpred[1:nobs]-1)**2), 
+                             np.mean((rhist[1:nobs]/rpred[1:nobs]-1)**2),
+                             np.mean((Thist[1:nobs]/Tpred[1:nobs]-1)**2), 
+                             np.mean((chist[1:nobs]/cpred[1:nobs]-1)**2),
+                             np.mean((ihist[1:nobs]/ipred[1:nobs]-1)**2), 
+                             np.mean((uhist[1:nobs]/upred[1:nobs]-1)**2)])  
             
         # store results in Monte Carlo matrices
         kmc[i,:] = khist

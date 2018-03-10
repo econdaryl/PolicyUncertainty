@@ -158,30 +158,30 @@ def runmc(simargs, nsim, nobs, repincr):
             
         # replace 1-period ahead forecast with abs value of forecast error
         for t in range(1, nobs):
-            k2fhist[t] = np.abs(k2fhist[t] - k2hist[t])
-            k3fhist[t] = np.abs(k3fhist[t] - k3hist[t])
-            k4fhist[t] = np.abs(k4fhist[t] - k4hist[t])
-            l1fhist[t] = np.abs(l1fhist[t] - l1hist[t])
-            l2fhist[t] = np.abs(l2fhist[t] - l2hist[t])
-            l3fhist[t] = np.abs(l3fhist[t] - l3hist[t])
-            zfhist[t]  = np.abs(zfhist[t]  - zhist[t])
-            Kfhist[t]  = np.abs(Kfhist[t]  - Khist[t])
-            Lfhist[t]  = np.abs(Lfhist[t]  - Lhist[t])
-            GDPfhist[t] = np.abs(GDPfhist[t] - GDPhist[t])
-            wfhist[t]  = np.abs(wfhist[t]  - whist[t])
-            rfhist[t]  = np.abs(rfhist[t]  - rhist[t])
-            T4fhist[t] = np.abs(T4fhist[t] - T4hist[t])
-            Bfhist[t]  = np.abs(Bfhist[t]  - Bhist[t])
-            c1fhist[t] = np.abs(c1fhist[t] - c1hist[t])
-            c2fhist[t] = np.abs(c2fhist[t] - c2hist[t])
-            c3fhist[t] = np.abs(c3fhist[t] - c3hist[t])
-            c4fhist[t] = np.abs(c4fhist[t] - c4hist[t])
-            Cfhist[t]  = np.abs(Cfhist[t]  - Chist[t])
-            Ifhist[t]  = np.abs(Ifhist[t]  - Ihist[t])
-            u1fhist[t] = np.abs(u1fhist[t] - u1hist[t])
-            u2fhist[t] = np.abs(u2fhist[t] - u2hist[t])
-            u3fhist[t] = np.abs(u3fhist[t] - u3hist[t])
-            u4fhist[t] = np.abs(u4fhist[t] - u4hist[t])
+            k2fhist[t] = np.abs(k2fhist[t]/k2hist[t]-1)
+            k3fhist[t] = np.abs(k3fhist[t]/k3hist[t]-1)
+            k4fhist[t] = np.abs(k4fhist[t]/k4hist[t]-1)
+            l1fhist[t] = np.abs(l1fhist[t]/l1hist[t]-1)
+            l2fhist[t] = np.abs(l2fhist[t]/l2hist[t]-1)
+            l3fhist[t] = np.abs(l3fhist[t]/l3hist[t]-1)
+            zfhist[t]  = np.abs(zfhist[t] / zhist[t]-1)
+            Kfhist[t]  = np.abs(Kfhist[t] / Khist[t]-1)
+            Lfhist[t]  = np.abs(Lfhist[t] / Lhist[t]-1)
+            GDPfhist[t] = np.abs(GDPfhist[t]/GDPhist[t]-1)
+            wfhist[t]  = np.abs(wfhist[t] / whist[t]-1)
+            rfhist[t]  = np.abs(rfhist[t] / rhist[t]-1)
+            T4fhist[t] = np.abs(T4fhist[t]/T4hist[t]-1)
+            Bfhist[t]  = np.abs(Bfhist[t] / Bhist[t]-1)
+            c1fhist[t] = np.abs(c1fhist[t]/c1hist[t]-1)
+            c2fhist[t] = np.abs(c2fhist[t]/c2hist[t]-1)
+            c3fhist[t] = np.abs(c3fhist[t]/c3hist[t]-1)
+            c4fhist[t] = np.abs(c4fhist[t]/c4hist[t]-1)
+            Cfhist[t]  = np.abs(Cfhist[t] / Chist[t]-1)
+            Ifhist[t]  = np.abs(Ifhist[t] / Ihist[t]-1)
+            u1fhist[t] = np.abs(u1fhist[t]/u1hist[t]-1)
+            u2fhist[t] = np.abs(u2fhist[t]/u2hist[t]-1)
+            u3fhist[t] = np.abs(u3fhist[t]/u3hist[t]-1)
+            u4fhist[t] = np.abs(u4fhist[t]/u4hist[t]-1)
             
         # calculate mean 1-period ahead forecast errors
         foremean = np.array([np.mean(k2fhist[1:nobs]),
@@ -236,56 +236,56 @@ def runmc(simargs, nsim, nobs, repincr):
                              np.mean(u4fhist[1:nobs]**2)])  
     
         # calculate mean period zero forecast errors
-        zformean = np.array([np.mean(k2hist[1:nobs] - k2pred[1:nobs]),
-                             np.mean(k3hist[1:nobs] - k3pred[1:nobs]),
-                             np.mean(k4hist[1:nobs] - k4pred[1:nobs]),
-                             np.mean(l1hist[1:nobs] - l1pred[1:nobs]),
-                             np.mean(l2hist[1:nobs] - l2pred[1:nobs]),
-                             np.mean(l3hist[1:nobs] - l3pred[1:nobs]),
-                             np.mean(zhist[1:nobs]  - zpred[1:nobs]), 
-                             np.mean(Khist[1:nobs]  - Kpred[1:nobs]),
-                             np.mean(Lhist[1:nobs]  - Lpred[1:nobs]),
-                             np.mean(GDPhist[1:nobs] - GDPpred[1:nobs]),
-                             np.mean(whist[1:nobs]  - wpred[1:nobs]), 
-                             np.mean(rhist[1:nobs]  - rpred[1:nobs]),
-                             np.mean(T4hist[1:nobs] - T4pred[1:nobs]),
-                             np.mean(Bhist[1:nobs]  - Bpred[1:nobs]),
-                             np.mean(c1hist[1:nobs] - c1pred[1:nobs]),
-                             np.mean(c2hist[1:nobs] - c2pred[1:nobs]),
-                             np.mean(c3hist[1:nobs] - c3pred[1:nobs]),
-                             np.mean(c4hist[1:nobs] - c4pred[1:nobs]),
-                             np.mean(Chist[1:nobs]  - Cpred[1:nobs]), 
-                             np.mean(Ihist[1:nobs]  - Ipred[1:nobs]),
-                             np.mean(u1hist[1:nobs] - u1pred[1:nobs]),
-                             np.mean(u2hist[1:nobs] - u2pred[1:nobs]),
-                             np.mean(u3hist[1:nobs] - u3pred[1:nobs]),
-                             np.mean(u4hist[1:nobs] - u4pred[1:nobs])])  
+        zformean = np.array([np.mean(k2hist[1:nobs]/k2pred[1:nobs]-1),
+                             np.mean(k3hist[1:nobs]/k3pred[1:nobs]-1),
+                             np.mean(k4hist[1:nobs]/k4pred[1:nobs]-1),
+                             np.mean(l1hist[1:nobs]/l1pred[1:nobs]-1),
+                             np.mean(l2hist[1:nobs]/l2pred[1:nobs]-1),
+                             np.mean(l3hist[1:nobs]/l3pred[1:nobs]-1),
+                             np.mean(zhist[1:nobs] / zpred[1:nobs]-1), 
+                             np.mean(Khist[1:nobs] / Kpred[1:nobs]-1),
+                             np.mean(Lhist[1:nobs] / Lpred[1:nobs]-1),
+                             np.mean(GDPhist[1:nobs]/GDPpred[1:nobs]-1),
+                             np.mean(whist[1:nobs] / wpred[1:nobs]-1), 
+                             np.mean(rhist[1:nobs] / rpred[1:nobs]-1),
+                             np.mean(T4hist[1:nobs]/T4pred[1:nobs]-1),
+                             np.mean(Bhist[1:nobs] / Bpred[1:nobs]-1),
+                             np.mean(c1hist[1:nobs]/c1pred[1:nobs]-1),
+                             np.mean(c2hist[1:nobs]/c2pred[1:nobs]-1),
+                             np.mean(c3hist[1:nobs]/c3pred[1:nobs]-1),
+                             np.mean(c4hist[1:nobs]/c4pred[1:nobs]-1),
+                             np.mean(Chist[1:nobs] / Cpred[1:nobs]-1), 
+                             np.mean(Ihist[1:nobs] / Ipred[1:nobs]-1),
+                             np.mean(u1hist[1:nobs]/u1pred[1:nobs]-1),
+                             np.mean(u2hist[1:nobs]/u2pred[1:nobs]-1),
+                             np.mean(u3hist[1:nobs]/u3pred[1:nobs]-1),
+                             np.mean(u4hist[1:nobs]/u4pred[1:nobs]-1)])  
 
         # calculate mean period zero forecast variances
-        zforvar = np.array([np.mean((k2hist[1:nobs] - k2pred[1:nobs])**2),
-                             np.mean((k3hist[1:nobs] - k3pred[1:nobs])**2),
-                             np.mean((k4hist[1:nobs] - k4pred[1:nobs])**2),
-                             np.mean((l1hist[1:nobs] - l1pred[1:nobs])**2),
-                             np.mean((l2hist[1:nobs] - l2pred[1:nobs])**2),
-                             np.mean((l3hist[1:nobs] - l3pred[1:nobs])**2),
-                             np.mean((zhist[1:nobs]  - zpred[1:nobs])**2), 
-                             np.mean((Khist[1:nobs]  - Kpred[1:nobs])**2),
-                             np.mean((Lhist[1:nobs]  - Lpred[1:nobs])**2),
-                             np.mean((GDPhist[1:nobs] - GDPpred[1:nobs])**2),
-                             np.mean((whist[1:nobs]  - wpred[1:nobs])**2), 
-                             np.mean((rhist[1:nobs]  - rpred[1:nobs])**2),
-                             np.mean((T4hist[1:nobs] - T4pred[1:nobs])**2),
-                             np.mean((Bhist[1:nobs]  - Bpred[1:nobs])**2),
-                             np.mean((c1hist[1:nobs] - c1pred[1:nobs])**2),
-                             np.mean((c2hist[1:nobs] - c2pred[1:nobs])**2),
-                             np.mean((c3hist[1:nobs] - c3pred[1:nobs])**2),
-                             np.mean((c4hist[1:nobs] - c4pred[1:nobs])**2),
-                             np.mean((Chist[1:nobs]  - Cpred[1:nobs])**2), 
-                             np.mean((Ihist[1:nobs]  - Ipred[1:nobs])**2),
-                             np.mean((u1hist[1:nobs] - u1pred[1:nobs])**2),
-                             np.mean((u2hist[1:nobs] - u2pred[1:nobs])**2),
-                             np.mean((u3hist[1:nobs] - u3pred[1:nobs])**2),
-                             np.mean((u4hist[1:nobs] - u4pred[1:nobs])**2)])  
+        zforvar = np.array([np.mean((k2hist[1:nobs]/ k2pred[1:nobs]-1)**2),
+                             np.mean((k3hist[1:nobs]/k3pred[1:nobs]-1)**2),
+                             np.mean((k4hist[1:nobs]/k4pred[1:nobs]-1)**2),
+                             np.mean((l1hist[1:nobs]/l1pred[1:nobs]-1)**2),
+                             np.mean((l2hist[1:nobs]/l2pred[1:nobs]-1)**2),
+                             np.mean((l3hist[1:nobs]/l3pred[1:nobs]-1)**2),
+                             np.mean((zhist[1:nobs] / zpred[1:nobs]-1)**2), 
+                             np.mean((Khist[1:nobs] / Kpred[1:nobs]-1)**2),
+                             np.mean((Lhist[1:nobs] / Lpred[1:nobs]-1)**2),
+                             np.mean((GDPhist[1:nobs]/GDPpred[1:nobs]-1)**2),
+                             np.mean((whist[1:nobs] / wpred[1:nobs]-1)**2), 
+                             np.mean((rhist[1:nobs] / rpred[1:nobs]-1)**2),
+                             np.mean((T4hist[1:nobs]/T4pred[1:nobs]-1)**2),
+                             np.mean((Bhist[1:nobs] / Bpred[1:nobs]-1)**2),
+                             np.mean((c1hist[1:nobs]/c1pred[1:nobs]-1)**2),
+                             np.mean((c2hist[1:nobs]/c2pred[1:nobs]-1)**2),
+                             np.mean((c3hist[1:nobs]/c3pred[1:nobs]-1)**2),
+                             np.mean((c4hist[1:nobs]/c4pred[1:nobs]-1)**2),
+                             np.mean((Chist[1:nobs] / Cpred[1:nobs]-1)**2), 
+                             np.mean((Ihist[1:nobs] / Ipred[1:nobs]-1)**2),
+                             np.mean((u1hist[1:nobs]/u1pred[1:nobs]-1)**2),
+                             np.mean((u2hist[1:nobs]/u2pred[1:nobs]-1)**2),
+                             np.mean((u3hist[1:nobs]/u3pred[1:nobs]-1)**2),
+                             np.mean((u4hist[1:nobs]/u4pred[1:nobs]-1)**2)])  
             
         # store results in Monte Carlo matrices
         k2mc[i,:] = k2hist
