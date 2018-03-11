@@ -12,7 +12,7 @@ import timeit
 from OLGrunmc import runmc
 from OLGmcanalysis import mcanalysis
 
-name = 'OLGsimLIN_KH'
+name = 'OLGsimLIN_KL'
 
 def generateLIN(k, z, args):
     from LinApp_Sim import LinApp_Sim
