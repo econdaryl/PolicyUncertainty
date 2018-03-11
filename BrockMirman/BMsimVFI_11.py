@@ -12,7 +12,7 @@ import timeit
 from BMrunmc import runmc
 from BMmcanalysis import mcanalysis
 
-name = 'BMsimVFI'
+name = 'BMsimVFI_11'
 
 def generateVFI(k, z, args):
     
@@ -59,7 +59,7 @@ tau2 = params2[2]
 (zbar, Zbar, NN, nx, ny, nz, logX, Sylv) = VFIparams
 
 # load VFI coeffs
-infile = open('BMsolveVFI.pkl', 'rb')
+infile = open('BMsolveVFI_11.pkl', 'rb')
 (coeffs1, coeffs2, timesolve) = pkl.load(infile)
 infile.close()
 
@@ -80,7 +80,7 @@ nobs = 120
 # specify the period policy shifts
 ts = 20
 # specify the number of simulations
-nsim = 100
+nsim = 100000
 # specify the increment between MC reports
 repincr = 100
 

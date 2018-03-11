@@ -38,7 +38,7 @@ tau2 = params2[2]
 startsolve = timeit.default_timer()
 
 # set name for external files written
-name = 'BMsolveVFI'
+name = 'BMsolveVFI_KL'
 
 # -----------------------------------------------------------------------------
 # BASELINE
@@ -61,7 +61,7 @@ khigh = (1+kfact)*kbar1
 knpts = 11
 kgrid = np.linspace(klow, khigh, num = knpts)
 
-readVF = True
+readVF = False
 
 # initialize VF and PF
 if readVF:
@@ -72,7 +72,7 @@ if readVF:
     (Vf2, Pf2, coeffsPF2) = coeffs2
     infile.close()
 else:
-    Vf1 = np.ones((knpts, znpts)) * (-100000000000)
+    Vf1 = np.ones((knpts, znpts)) * (-0.)
 
 Vf1new = np.zeros((knpts, znpts))
 Pf1 = np.zeros((knpts, znpts))
