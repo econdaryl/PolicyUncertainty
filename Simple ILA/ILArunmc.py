@@ -187,7 +187,7 @@ def runmc(simargs, nsim, nobs, repincr):
         forevarmc[i,:] = forevar
         zformeanmc[i,:] = zformean
         zforvarmc[i,:] = zforvar
-        RMsqEerrmc[i,:] = np.mean(RMsqEerrhist[1:nobs,:])
+        RMsqEerrmc[i,:] = np.mean(RMsqEerrhist[1:nobs,:],0)
         
         mcdata = (kmc, ellmc, zmc, Ymc, wmc, rmc, Tmc, cmc, imc, umc, \
                   foremeanmc, forevarmc, zformeanmc, zforvarmc, RMsqEerrmc)

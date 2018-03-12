@@ -22,7 +22,7 @@ def poly1(Xin, XYparams):
     Includes polynomial terms up to order 'pord' for each element and quadratic 
     cross terms  One observation (row) at a time
     '''
-    (pord, nx, ny, nz, kbar) = XYparams
+    (pord, nx, ny, nz) = XYparams
     nX = nx + nz
     Xbasis = np.ones((1, 1))
     # generate polynomial terms for each element
@@ -38,10 +38,9 @@ def poly1(Xin, XYparams):
     return Xbasis
 
 def XYfunc(Xm, Zn, XYparams, coeffs):
-    (pord, nx, ny, nz, kbar) = XYparams
+    (pord, nx, ny, nz) = XYparams
     An = np.exp(Zn)
     XZin = np.append(Xm, An)
-    #print('XZin', XZin)
     XYbasis = np.append(1., XZin)
     for i in range(1, pord+1):
         XYbasis = poly1(XZin, XYparams)
@@ -77,7 +76,7 @@ def GSSA(params, kbar, ellbar, GSSAparams, old_coeffs):
     nx = int(nx)
     ny = int(ny)
     nz = int(nz)
-    XYparams = (pord, nx, ny, nz, kbar)
+    XYparams = (pord, nx, ny, nz)
 
     Xstart = kbar
     
@@ -106,7 +105,7 @@ def GSSA(params, kbar, ellbar, GSSAparams, old_coeffs):
     
     if old == False & pord > 2:
         A = np.zeros((cnumb-cnumb2, nx+ny))
-        coeffs = np.insert(coeffs, cnumb2-1, A)
+        coeffs = np.insert(coeffs, cnumb2-1, A, axis=0)
         
     dist = 1.
     distold = 2.
@@ -120,7 +119,7 @@ def GSSA(params, kbar, ellbar, GSSAparams, old_coeffs):
         Y = np.zeros((T, ny))
         Xin = np.zeros((T, nx+nz))
         A = np.exp(Z)
-        x = np.zeros((T,(pord*5)))
+        x = np.zeros((T,(cnumb)))
         X[0, :], Y[0, :] = XYfunc(Xstart, Z[0], XYparams, coeffs)
         for t in range(1,T+1):
             X[t, :], Y[t-1, :] = XYfunc(X[t-1, :], Z[t-1, :], XYparams, coeffs)
@@ -192,7 +191,7 @@ def GSSA(params, kbar, ellbar, GSSAparams, old_coeffs):
         El1 = (c1[0:T-1]**(-gamma)*(1-tau)*w[0:T-1]*f1) / (chi*l1[0:T-1]**theta)
         El2 = (c2[0:T-1]**(-gamma)*(1-tau)*w[0:T-1]*f2) / (chi*l2[0:T-1]**theta)
         El3 = (c3[0:T-1]**(-gamma)*(1-tau)*w[0:T-1]*f3) / (chi*l3[0:T-1]**theta)
-        Ek2 = (beta*c2[1:T]**(-gamma)*(1 + r[1:T] - delta)) / (c1[0:T-1]**(-gamma))
+        Ek2 = (c1[0:T-1]**(-gamma)) / (beta*c2[1:T]**(-gamma)*(1 + r[1:T] - delta))
         Ek3 = (beta*c3[1:T]**(-gamma)*(1 + r[1:T] - delta)) / (c2[0:T-1]**(-gamma))
         Ek4 = (beta*c4[1:T]**(-gamma)*(1 + r[1:T] - delta)) / (c3[0:T-1]**(-gamma))
         # T-1-by-1

@@ -12,16 +12,14 @@ The coefficients and time to solve are written to the file, ILAsolveGSSA.pkl.
 The baseline values have a 1 at the end of the variable name.
 The values after the policy change have a 2 at the end. 
 """
-
 import numpy as np
 import timeit
 import pickle as pkl
-
 # import the modules from LinApp
 from LinApp_Deriv import LinApp_Deriv
 from LinApp_Solve import LinApp_Solve
 # from LinApp_SSL import LinApp_SSL
-from gssa_nocross import GSSA
+from gssa import GSSA
 from OLGfuncs import Modeldyn
 
 pord = 2
@@ -33,9 +31,21 @@ infile = open('OLGfindss.pkl', 'rb')
 (bar1, bar2, params1, params2, LINparams) = pkl.load(infile)
 infile.close()
 
-infile = open('OLGsolveGSSA.pkl', 'rb')
+infile = open('OLGsolveGSSA1.pkl', 'rb')
 (coeffsa, coeffsb, timesolve) = pkl.load(infile)
 infile.close()
+
+A = np.zeros((6,6))
+coeffsa = np.insert(coeffsa, 9, A, axis=0)
+coeffsb = np.insert(coeffsb, 9, A, axis=0)
+
+try:
+    infile = open('OLGsolveGSSA.pkl', 'rb')
+    (coeffs2a, coeffs2b, timesolve) = pkl.load(infile)
+    coeffs_old = False
+except FileNotFoundError:
+    coeffs_old = True
+    pass
 
 # unpack
 [k2bar1, k3bar1, k4bar1, l1bar1, l2bar1, l3bar1, Kbar1, \
@@ -63,17 +73,19 @@ kbar1 = (k2bar1, k3bar1, k4bar1)
 lbar1 = (l1bar1, l2bar1, l3bar1)
 GSSAparams = (T, nx, ny, nz, pord, old)
 # set up coefficient list
-
-coeffs1 = GSSA(params1, kbar1, lbar1, GSSAparams, coeffsa)
-
+if coeffs_old == True:
+    coeffs1 = GSSA(params1, kbar1, lbar1, GSSAparams, coeffsa)
+else:
+    coeffs1 = GSSA(params1, kbar1, lbar1, GSSAparams, coeffs2a)
 
 # -----------------------------------------------------------------------------
 # CHANGE POLICY
 kbar2 = (k2bar2, k3bar2, k4bar2)
 lbar2 = (l1bar2, l2bar2, l3bar2)
-
-coeffs2 = GSSA(params2, kbar2, lbar2, GSSAparams, coeffsb)
-
+if coeffs_old == True:
+    coeffs2 = GSSA(params2, kbar2, lbar2, GSSAparams, coeffsb)
+else:
+    coeffs2 = GSSA(params2, kbar2, lbar2, GSSAparams, coeffs2b)
 # calculate time to solve for functions
 stopsolve = timeit.default_timer()
 timesolve =  stopsolve - startsolve

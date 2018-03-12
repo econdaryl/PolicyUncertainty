@@ -22,6 +22,7 @@ def generateGSSA(k, z, args):
         XYbasis = poly1(XZin, args)
     Xn = np.dot(XYbasis, coeffs)
     return Xn
+
 # -----------------------------------------------------------------------------
 # LOAD VALUES FROM SS AND LINEARIZATION
     

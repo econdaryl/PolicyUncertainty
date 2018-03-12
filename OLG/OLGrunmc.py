@@ -316,7 +316,7 @@ def runmc(simargs, nsim, nobs, repincr):
         forevarmc[i,:] = forevar
         zformeanmc[i,:] = zformean
         zforvarmc[i,:] = zforvar
-        RMsqEerrmc[i,:] = np.mean(RMsqEerrhist[1:nobs,:])
+        RMsqEerrmc[i,:] = np.mean(RMsqEerrhist[1:nobs,:],0)
         
         mcdata = (k2mc, k3mc, k4mc, l1mc, l2mc, l3mc, zmc, Kmc, Lmc, GDPmc, \
             wmc, rmc, T4mc, Bmc, c1mc, c2mc, c3mc, c4mc, Cmc, Imc, u1mc, \
@@ -332,5 +332,7 @@ def runmc(simargs, nsim, nobs, repincr):
             Kpred, Lpred, GDPpred, wpred, rpred, T4pred, Bpred, c1pred, \
             c2pred, c3pred, c4pred, Cpred, Ipred, u1pred, u2pred, u3pred, \
             u4pred)
+        
+    print(RMsqEerrmc)
         
     return mcdata, histdata, preddata, act
