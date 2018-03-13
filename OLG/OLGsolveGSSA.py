@@ -42,6 +42,7 @@ coeffsb = np.insert(coeffsb, 9, A, axis=0)
 try:
     infile = open('OLGsolveGSSA.pkl', 'rb')
     (coeffs2a, coeffs2b, timesolve) = pkl.load(infile)
+    infile.close()
     coeffs_old = False
 except FileNotFoundError:
     coeffs_old = True
@@ -77,7 +78,6 @@ if coeffs_old == True:
     coeffs1 = GSSA(params1, kbar1, lbar1, GSSAparams, coeffsa)
 else:
     coeffs1 = GSSA(params1, kbar1, lbar1, GSSAparams, coeffs2a)
-
 # -----------------------------------------------------------------------------
 # CHANGE POLICY
 kbar2 = (k2bar2, k3bar2, k4bar2)
