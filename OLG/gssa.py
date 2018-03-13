@@ -11,8 +11,6 @@ Economics vol. 2, pp. 173-210.
 '''
 import numpy as np
 import matplotlib.pyplot as plt
-from OLGfuncs import Modeldyn
-import sys
 '''
 We test the algorithm with a simple DSGE model with endogenous labor.
 '''
