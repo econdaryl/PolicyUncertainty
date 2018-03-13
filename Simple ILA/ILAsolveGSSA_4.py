@@ -23,7 +23,7 @@ import pickle as pkl
 # import the modules from GSSA
 from gssa import GSSA
 
-pord = 2
+pord = 4
 # -----------------------------------------------------------------------------
 # READ IN VALUES FROM STEADY STATE CALCULATIONS
 
@@ -32,9 +32,23 @@ infile = open('ILAfindss.pkl', 'rb')
 (bar1, bar2, params1, params2, GSSAparams) = pkl.load(infile)
 infile.close()
 
-infile = open('ILAsolveGSSA.pkl', 'rb')
-(coeffsa, coeffsb, timesolve) = pkl.load(infile)
+infile = open('ILAsolveGSSA_3.pkl', 'rb')
+(coeffs3a, coeffs3b, timesolve) = pkl.load(infile)
 infile.close()
+
+A = np.array([[0., 0.], \
+              [0., 0.]])
+coeffs3a = np.insert(coeffs3a, 2*pord-1, A)
+coeffs3a = np.insert(coeffs3a, 2*pord-1, A)
+
+try:
+    infile = open('ILAsolveGSSA_4.pkl', 'rb')
+    (coeffs4a, coeffs4b, timesolve) = pkl.load(infile)
+    infile.close()
+    old_pord = False
+except FileNotFoundError:
+    old_pord = True
+    pass
 
 # unpack
 [kbar1, ellbar1, Ybar1, wbar1, rbar1, Tbar1, cbar1, ibar1, ubar1] = bar1
@@ -47,7 +61,7 @@ tau2 = params2[6]
 startsolve = timeit.default_timer()
 
 # set name for external files written
-name = 'ILAsolveGSSA'
+name = 'ILAsolveGSSA_4'
 
 # -----------------------------------------------------------------------------
 # BASELINE
@@ -55,13 +69,18 @@ T = 10000
 old = True
 GSSAparams = (T, nx, ny, nz, pord, old)
 # find the policy and jump function coefficients
-coeffs1 = GSSA(params1, kbar1, ellbar1, GSSAparams, coeffsa)
-
+if old_pord == True:
+    coeffs1 = GSSA(params1, kbar1, ellbar1, GSSAparams, coeffs3a)
+elif old_pord == False:
+    coeffs1 = GSSA(params1, kbar1, ellbar1, GSSAparams, coeffs4a)
 # -----------------------------------------------------------------------------
 # CHANGE POLICY
 
 # find the policy and jump function coefficients
-coeffs2 = GSSA(params2, kbar2, ellbar2, GSSAparams, coeffsb)
+if old_pord == True:
+    coeffs2 = GSSA(params2, kbar2, ellbar2, GSSAparams, coeffs3b)
+elif old_pord == False:
+    coeffs2 = GSSA(params2, kbar2, ellbar2, GSSAparams, coeffs4b)
 print ('baseline coeffs')
 print (coeffs1)
 print  (' ')
