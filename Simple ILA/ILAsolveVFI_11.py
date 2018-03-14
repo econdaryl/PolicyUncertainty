@@ -38,7 +38,7 @@ tau2 = params2[6]
 startsolve = timeit.default_timer()
 
 # set name for external files written
-name = 'ILAsolveVFI_11'
+name = 'ILAsolveVFI_11_KL'
 
 # -----------------------------------------------------------------------------
 # BASELINE
@@ -68,7 +68,7 @@ ellhigh = ellbar1 + elladd
 ellnpts = 11
 ellgrid = np.linspace(elllow, ellhigh, num = ellnpts)
 
-readVF = True
+readVF = False
 
 # initialize VF and PF
 if readVF:
@@ -79,7 +79,7 @@ if readVF:
     (Vf2, Pf2, Jf2, coeffsPF2, coeffsJF2) = coeffs2
     infile.close()
 else:
-    Vf1 = np.ones((knpts, znpts)) * (-100000000000)
+    Vf1 = np.ones((knpts, znpts)) * (-0.)
 
 Vf1new = np.zeros((knpts, znpts))
 Pf1 = np.zeros((knpts, znpts))
@@ -329,7 +329,7 @@ fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 ax.plot_surface(kmesh, zmesh, Jf1)
 ax.view_init(30, 150)
-plt.title('JF1 Grid'
+plt.title('JF1 Grid')
 plt.xlabel('k(t)')
 plt.ylabel('z(t)')
 plt.show()

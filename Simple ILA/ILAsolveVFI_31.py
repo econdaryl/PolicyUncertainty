@@ -81,7 +81,7 @@ if readVF:
     (Vf2, Pf2, Jf2, coeffsPF2, coeffsJF2) = coeffs2
     infile.close()
 else:
-    Vf1 = np.ones((knpts, znpts)) * (-100000000000)
+    Vf1 = np.ones((knpts, znpts)) * (0.)
 
 Vf1new = np.zeros((knpts, znpts))
 Pf1 = np.zeros((knpts, znpts))
