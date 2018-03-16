@@ -33,7 +33,7 @@ infile = open('ILAfindss.pkl', 'rb')
 infile.close()
 
 infile = open('ILAsolveGSSA.pkl', 'rb')
-(coeffsa, coeffsb, timesolve) = pkl.load(infile)
+(coeffsa, coeffsb, timesolvea) = pkl.load(infile)
 infile.close()
 
 # unpack
@@ -47,7 +47,7 @@ tau2 = params2[6]
 startsolve = timeit.default_timer()
 
 # set name for external files written
-name = 'ILAsolveGSSA'
+name = 'ILAsolveGSSA1'
 
 # -----------------------------------------------------------------------------
 # BASELINE

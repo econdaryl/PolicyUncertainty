@@ -32,14 +32,14 @@ infile = open('ILAfindss.pkl', 'rb')
 (bar1, bar2, params1, params2, GSSAparams) = pkl.load(infile)
 infile.close()
 
-infile = open('ILAsolveGSSA.pkl', 'rb')
+infile = open('ILAsolveGSSA1.pkl', 'rb')
 (coeffs2a, coeffs2b, timesolve) = pkl.load(infile)
 infile.close()
 
 A = np.array([[0., 0.], \
               [0., 0.]])
-coeffs2a = np.insert(coeffs2a, 2*pord-1, A)
-coeffs2b = np.insert(coeffs2b, 2*pord-1, A)
+coeffs2a = np.insert(coeffs2a, 2*pord-1, A, axis=0)
+coeffs2b = np.insert(coeffs2b, 2*pord-1, A, axis=0)
 
 try:
     infile = open('ILAsolveGSSA_3.pkl', 'rb')
@@ -49,7 +49,6 @@ try:
 except FileNotFoundError:
     old_pord = True
     pass
-
 # unpack
 [kbar1, ellbar1, Ybar1, wbar1, rbar1, Tbar1, cbar1, ibar1, ubar1] = bar1
 [kbar2, ellbar2, Ybar2, wbar2, rbar2, Tbar2, cbar2, ibar2, ubar2] = bar2
@@ -61,7 +60,7 @@ tau2 = params2[6]
 startsolve = timeit.default_timer()
 
 # set name for external files written
-name = 'ILAsolveGSSA_3'
+name = 'ILAsolveGSSA_3(1)'
 
 # -----------------------------------------------------------------------------
 # BASELINE
