@@ -37,7 +37,7 @@ def generateGSSA(k, z, args):
     A = np.exp(z)
     Xin = np.append(k, A)
     Xvec = np.ones((1,1))
-    for i in range(1, pord):
+    for i in range(1, pord+1):
         Xvec = np.append(Xvec, Xin**i)
     for i in range (0, nX):
         for j in range(i+1, nX):
@@ -46,12 +46,10 @@ def generateGSSA(k, z, args):
     XYout = np.dot(Xvec, coeffs)
     kp = XYout[0:nx]
     ell = XYout[nx:nx+ny]
-    if kp < 0:
-        kp = np.array([0])
     if ell > 0.9999:
         ell = np.array([0.9999])
-    elif ell < 0:
-        ell = np.array([0])
+    elif ell < 0.0001:
+        ell = np.array([0.0001])
     return kp, ell
 
 
@@ -69,7 +67,7 @@ infile.close()
 [alpha, beta, gamma, delta, chi, theta, tau, rho_z, sigma_z] = params1
 tau2 = params2[6]
 (zbar, Zbar, NN, nx, ny, nz, logX, Sylv) = GSSAparams
-pord = 3
+pord = 2
 # load GSSA coeffs
 infile = open('ILAsolveGSSA.pkl', 'rb')
 (coeffs1, coeffs2, timesolve) = pkl.load(infile)

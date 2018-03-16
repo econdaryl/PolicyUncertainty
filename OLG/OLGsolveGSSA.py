@@ -15,12 +15,7 @@ The values after the policy change have a 2 at the end.
 import numpy as np
 import timeit
 import pickle as pkl
-# import the modules from LinApp
-from LinApp_Deriv import LinApp_Deriv
-from LinApp_Solve import LinApp_Solve
-# from LinApp_SSL import LinApp_SSL
 from gssa import GSSA
-from OLGfuncs import Modeldyn
 
 pord = 2
 # -----------------------------------------------------------------------------
