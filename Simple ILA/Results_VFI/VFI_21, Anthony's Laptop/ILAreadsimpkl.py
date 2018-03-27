@@ -7,7 +7,7 @@ Created on Fri Mar  9 17:05:09 2018
 """
 import pickle as pkl
 
-name = 'BMsimLIN'
+name = 'ILAsimVFI_21_AL'
 
 # load steady state values and parameters
 infile = open(name + '.pkl', 'rb')
@@ -16,5 +16,5 @@ alldata = pkl.load(infile)
 
 infile.close()
 
-(preddata, avgdata, uppdata, lowdata, foreperc, forevarc, zforvarc, \
-           zforperc, RMsqEerravg, act) = alldata
+(preddata, avgdata, uppdata, lowdata, foreperc, forevarc, zforperc, \
+           zforvarc, RMsqEerravg, act) = alldata

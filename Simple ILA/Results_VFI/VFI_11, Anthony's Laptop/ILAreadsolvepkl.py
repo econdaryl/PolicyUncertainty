@@ -7,7 +7,7 @@ Created on Fri Mar  9 17:05:09 2018
 """
 import pickle as pkl
 
-name = 'BMsolveVFI'
+name = 'ILAsolveVFI_11_AL'
 
 # load steady state values and parameters
 infile = open(name + '.pkl', 'rb')
