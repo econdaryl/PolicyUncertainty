@@ -13,7 +13,7 @@ import timeit
 from ILArunmc import runmc
 from ILAmcanalysis import mcanalysis
 
-name = 'ILAsimGSSA'
+name = 'ILAsimGSSA_3'
 
 def generateGSSA(k, z, args):
    
@@ -67,9 +67,9 @@ infile.close()
 [alpha, beta, gamma, delta, chi, theta, tau, rho_z, sigma_z] = params1
 tau2 = params2[6]
 (zbar, Zbar, NN, nx, ny, nz, logX, Sylv) = GSSAparams
-pord = 2
+pord = 3
 # load GSSA coeffs
-infile = open('ILAsolveGSSA.pkl', 'rb')
+infile = open('Results_GSSA\\pord=3, tau1 = .05, tau2 = .055, OfficePC\\ILAsolveGSSA_3.pkl', 'rb')
 (coeffs1, coeffs2, timesolve) = pkl.load(infile)
 infile.close()
 
