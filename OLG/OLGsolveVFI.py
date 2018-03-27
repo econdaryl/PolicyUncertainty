@@ -4,8 +4,8 @@
 This program reads in paramter values and steady states from the file, 
 ILAfindss.pkl.
 
-It then calculates the value function coefficients for the policy and jump function
-approximations using the VFI method.
+It then calculates the linear coefficients for the policy and jump function
+approximations using the LinApp toolkit.
 
 The coefficients and time to solve are written to the file, ILAsolveVFI.pkl.
 
@@ -13,41 +13,53 @@ The baseline values have a 1 at the end of the variable name.
 The values after the policy change have a 2 at the end. 
 """
 
-
 import numpy as np
 import timeit
 import pickle as pkl
 
-from ILAfuncs import Modeldefs
+from OLGfuncs import Modeldyn
 
 # -----------------------------------------------------------------------------
 # READ IN VALUES FROM STEADY STATE CALCULATIONS
 
 # load steady state values and parameters
-infile = open('ILAfindss.pkl', 'rb')
+infile = open('OLGfindss.pkl', 'rb')
 (bar1, bar2, params1, params2, VFIparams) = pkl.load(infile)
 infile.close()
 
 # unpack
-[kbar1, ellbar1, Ybar1, wbar1, rbar1, Tbar1, cbar1, ibar1, ubar1] = bar1
-[kbar2, ellbar2, Ybar2, wbar2, rbar2, Tbar2, cbar2, ibar2, ubar2] = bar2
-[alpha, beta, gamma, delta, chi, theta, tau, rho_z, sigma_z] = params1
+[k2bar1, k3bar1, k4bar1, l1bar1, l2bar1, l3bar1, Kbar1, \
+    Lbar1, GDPbar1, wbar1, rbar1, T4bar1, Bbar1, c1bar1, c2bar1, c3bar1, \
+    c4bar1, Cbar1, Ibar1, u1bar1, u2bar1, u3bar1, u4bar1] = bar1
+[k2bar2, k3bar2, k4bar2, l1bar2, l2bar2, l3bar2, Kbar2, \
+    Lbar2, GDPbar2, wbar2, rbar2, T4bar2, Bbar2, c1bar2, c2bar2, c3bar2, \
+    c4bar2, Cbar2, Ibar2, u1bar2, u2bar2, u3bar2, u4bar2] = bar2
+[alpha, beta, gamma, delta, chi, theta, tau, rho_z, \
+    sigma_z, pi2, pi3, pi4, f1, f2, f3, nx, ny, nz] = params1
 tau2 = params2[6]
 (zbar, Zbar, NN, nx, ny, nz, logX, Sylv) = VFIparams
+
+inmat1 = [Xpp, Xp, X, Yp, Y, Zp, Z]  
+inmat2 = [Xpp, Xp, X, Yp, Y, Zp, Z]  
 
 # set clock for time to calcuate functions
 startsolve = timeit.default_timer()
 
 # set name for external files written
-name = 'ILAsolveVFI_11'
+name = 'OLGsolveVFI_11'
 
 # -----------------------------------------------------------------------------
 # BASELINE
 
+# set up steady state input vector for baseline
+theta1 = np.array([k2bar1, k3bar1, k4bar1, k2bar1, k3bar1, k4bar1, k2bar1, \
+    k3bar1, k4bar1, l1bar1, l2bar1, l3bar1, l1bar1, l2bar1, l3bar1, 0., 0.])
+
 from rouwen import rouwen
 
-kfact= .025
-ellfact = .015
+kfact= .05
+elladd = .05
+
 # set up Markov approximation of AR(1) process using Rouwenhorst method
 spread = 3.  # number of standard deviations above and below 0
 znpts = 11
@@ -57,18 +69,18 @@ zstep = 4.*spread*sigma_z/(znpts-1)
 Pimat, zgrid = rouwen(rho_z, 0., zstep, znpts)
 
 # discretize k
-klow = (1-kfact)*kbar1
-khigh = (1+kfact)*kbar1
+klow = (1-kfact)*k2bar1  # changes
+khigh = (1+kfact)*k2bar1 # changes
 knpts = 11
 kgrid = np.linspace(klow, khigh, num = knpts)
 
 # discretize ell
-elllow = (1-ellfact)*ellbar1
-ellhigh = (1+ellfact)*ellbar1
+elllow = l1bar1 - elladd  # what about l2bar1 and l3bar1?
+ellhigh = l1bar1 + elladd # what about l2bar1 and l3bar1?
 ellnpts = 11
 ellgrid = np.linspace(elllow, ellhigh, num = ellnpts)
 
-readVF = True
+readVF = False
 
 # initialize VF and PF
 if readVF:
@@ -91,7 +103,7 @@ count = 0
 dist = 100.
 maxwhile = 4000
 
-# run the program to get the value function (VF1)
+# run the program to get the value function (VF1)    - ask Dr. Phillips
 nconv = True 
 while (nconv):
     count = count + 1
@@ -102,8 +114,7 @@ while (nconv):
             maxval = -100000000000
             for i3 in range(0, knpts): # over k_t+1
                 for i4 in range(0, ellnpts): # over ell_t
-                    Y, w, r, T, c, i, u = Modeldefs(kgrid[i3], kgrid[i1], \
-                        ellgrid[i4], zgrid[i2], params1)
+                    Y, w, r, T, c, i, u = Modeldyn(inmat1, params1)
                     temp = u
                     for i5 in range(0, znpts): # over z_t+1
                         temp = temp + beta * Vf1[i3,i5] * Pimat[i5,i2]
@@ -116,8 +127,7 @@ while (nconv):
                         Vf1new[i1, i2] = temp
                         Pf1[i1, i2] = kgrid[i3]
                         Jf1[i1, i2] = ellgrid[i4]
-
-    # calculate the new distance measure, we use maximum absolute difference
+        # calculate the new distance measure, we use maximum absolute difference
     dist = np.amax(np.abs(Vf1 - Vf1new))
     if dist < ccrit:
         nconv = False
@@ -129,13 +139,12 @@ while (nconv):
 
 print ('Converged after', count, 'iterations') 
 print ('Policy function at (', (knpts-1)/2, ',', (znpts-1)/2, ') should be', \
-kgrid[int((knpts-1)/2)], 'and is', Pf1[int((knpts-1)/2), int((znpts-1)/2)])
+kgrid[int((knpts-1)/2)], 'and is', Pf1[int((knpts-1)/2), int((znpts-1)/2)])                 
     
 # put SS values and starting values into numpy vectors
-XYbar = np.array([kbar1, ellbar1])
-X0 = np.array([kbar1])
-Y0 = np.array([ellbar1])
-
+XYbar = np.array([k2bar1, l1bar1])
+X0 = np.array([k2bar1])
+Y0 = np.array([l1bar1])   
 
 
 # -----------------------------------------------------------------------------
@@ -149,27 +158,27 @@ zmesh, kmesh = np.meshgrid(zgrid, kgrid)
 if readVF:
     Vf2 = 1.*Vf2
 else:
-    Vf2 = Vf1*1.
-
-# discretize k
-klow = (1-kfact)*kbar2
-khigh = (1+kfact)*kbar2
-kgrid2 = np.linspace(klow, khigh, num = knpts)
-
-# discretize ell
-elllow = ellbar2 - elladd
-ellhigh = ellbar2 + elladd
+    Vf2 = Vf1*1. 
+    
+ # discretize k
+klow = (1-kfact)*k2bar2   # what about k3bar2, k4bar2?
+khigh = (1+kfact)*k2bar2  # what about k3bar2, k4bar2?
+kgrid2 = np.linspace(klow, khigh, num = knpts)   
+    
+ # discretize ell
+elllow = l1bar2 - elladd  # what about k3bar2, k4bar2?
+ellhigh = l1bar2 + elladd # what about k3bar2, k4bar2?
 
 ellgrid2 = np.linspace(elllow, ellhigh, num = ellnpts)
 
 Vf2new = np.zeros((knpts, znpts))
 Pf2 = np.zeros((knpts, znpts))
-Jf2 = np.zeros((knpts, znpts))
-
+Jf2 = np.zeros((knpts, znpts))   
+    
 # set VF iteration parameters
 count = 0
 dist = 100.
-
+    
 # run the program to get the value function (VF2)
 nconv = True
 while (nconv):
@@ -181,8 +190,7 @@ while (nconv):
             maxval = -100000000000
             for i3 in range(0, knpts): # over k_t+1
                 for i4 in range(0, ellnpts): # over ell_t
-                    Y, w, r, T, c, i, u = Modeldefs(kgrid2[i3], kgrid2[i1], \
-                        ellgrid2[i4], zgrid[i2], params2)
+                    Y, w, r, T, c, i, u = Modeldyn(inmat2, params2)
                     temp = u
                     for i5 in range(0, znpts): # over z_t+1
                         temp = temp + beta * Vf2[i3,i5] * Pimat[i5,i2]
@@ -298,103 +306,18 @@ pkl.dump((coeffs1, coeffs2, timesolve), output)
 output.close()
 
 
-#------------------------------------------------------------------------------
-## Additional Work: plot grid approximation of policy functions and jump functions
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
 
-# plot grid approximation of PF1
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-ax.plot_surface(kmesh, zmesh, Pf1)
-ax.view_init(30, 150)
-plt.title('PF1 Grid')
-plt.xlabel('k(t)')
-plt.ylabel('z(t)')
-plt.show()
 
-# plot grid approximation of PF2
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-ax.plot_surface(kmesh, zmesh, Pf2)
-ax.view_init(30, 150)
-plt.title('PF2 Grid')
-plt.xlabel('k(t)')
-plt.ylabel('z(t)')
-plt.show()
 
-# plot grid approximation of JF1
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-ax.plot_surface(kmesh, zmesh, Jf1)
-ax.view_init(30, 150)
-plt.title('JF1 Grid')
-plt.xlabel('k(t)')
-plt.ylabel('z(t)')
-plt.show()
 
-# plot grid approximation of JF2
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-ax.plot_surface(kmesh, zmesh, Jf2)
-ax.view_init(30, 150)
-plt.title('JF2 Grid')
-plt.xlabel('k(t)')
-plt.ylabel('z(t)')
-plt.show()
 
-## Get the polynomial approximations
 
-Pf1approx = 0.*Pf1
-Pf2approx = 0.*Pf2
-Jf1approx = 0.*Jf1
-Jf2approx = 0.*Jf2
 
-for i in range(0,knpts):
-    for j in range(0,znpts):
-        temp = np.array([[1.0], [kmesh[i,j]], [kmesh[i,j]**2], \
-                     [kmesh[i,j]**3], [zmesh[i,j]], [zmesh[i,j]**2], \
-                     [zmesh[i,j]**3], [kmesh[i,j]*zmesh[i,j]], \
-                     [zmesh[i,j]*kmesh[i,j]**2], [kmesh[i,j]*zmesh[i,j]**2]])
-        Pf1approx[i,j] = np.dot(np.transpose(coeffsPF1), temp)
-        Pf2approx[i,j] = np.dot(np.transpose(coeffsPF2), temp)
-        Jf1approx[i,j] = np.dot(np.transpose(coeffsJF1), temp)
-        Jf2approx[i,j] = np.dot(np.transpose(coeffsJF2), temp)
     
-# plot polynomial approximations
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-ax.plot_surface(kmesh, zmesh, Pf1approx)
-ax.view_init(30, 150)
-plt.title('PF1 polynomial')
-plt.xlabel('k(t)')
-plt.ylabel('z(t)')
-plt.show()
+    
+    
+    
 
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-ax.plot_surface(kmesh, zmesh, Pf2approx)
-ax.view_init(30, 150)
-plt.title('PF2 polynomial')
-plt.xlabel('k(t)')
-plt.ylabel('z(t)')
-plt.show()
 
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-ax.plot_surface(kmesh, zmesh, Jf1approx)
-ax.view_init(30, 150)
-plt.title('JF1 polynomial')
-plt.xlabel('k(t)')
-plt.ylabel('z(t)')
-plt.show()
 
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-ax.plot_surface(kmesh, zmesh, Jf2approx)
-ax.view_init(30, 150)
-plt.title('JF2 polynomial')
-plt.xlabel('k(t)')
-plt.ylabel('z(t)')
-plt.show()
