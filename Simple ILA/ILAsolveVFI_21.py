@@ -38,7 +38,7 @@ tau2 = params2[6]
 startsolve = timeit.default_timer()
 
 # set name for external files written
-name = 'ILAsolveVFI_21'
+name = 'ILAsolveVFI_21_AL'
 
 # -----------------------------------------------------------------------------
 # BASELINE
@@ -46,7 +46,7 @@ name = 'ILAsolveVFI_21'
 from rouwen import rouwen
 
 kfact= .05
-elladd = .075
+ellfact = .015
 
 # set up Markov approximation of AR(1) process using Rouwenhorst method
 spread = 3.  # number of standard deviations above and below 0
@@ -63,10 +63,8 @@ knpts = 21
 kgrid = np.linspace(klow, khigh, num = knpts)
 
 # discretize ell
-elllow = ellbar1 - elladd
-ellhigh = ellbar1 + elladd
-#elllow = 0.1
-#ellhigh = 0.9
+elllow = (1-ellfact)*ellbar1
+ellhigh = (1+ellfact)*ellbar1
 ellnpts = 21
 ellgrid = np.linspace(elllow, ellhigh, num = ellnpts)
 
@@ -74,7 +72,7 @@ readVF = True
 
 # initialize VF and PF
 if readVF:
-    infile = open('ILAsolveVFI_21.pkl', 'rb')
+    infile = open('ILAsolveVFI_21_AL.pkl', 'rb')
     pickled = pkl.load(infile)
     (coeffs1, coeffs2, timesolve) = pickled
     (Vf1, Pf1, Jf1, coeffsPF1, coeffsJF1) = coeffs1 
@@ -166,8 +164,8 @@ khigh = (1+kfact)*kbar2
 kgrid2 = np.linspace(klow, khigh, num = knpts)
 
 # discretize ell
-elllow = ellbar2 - elladd
-ellhigh = ellbar2 + elladd
+elllow = (1-ellfact)*ellbar2
+ellhigh = (1+ellfact)*ellbar2
 #elllow = 0
 #ellhigh = 1
 ellgrid2 = np.linspace(elllow, ellhigh, num = ellnpts)

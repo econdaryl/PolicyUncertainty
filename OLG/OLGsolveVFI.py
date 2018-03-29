@@ -17,7 +17,7 @@ import numpy as np
 import timeit
 import pickle as pkl
 
-from OLGfuncs import Modeldyn
+from OLGfuncs import Modeldefs
 
 # -----------------------------------------------------------------------------
 # READ IN VALUES FROM STEADY STATE CALCULATIONS
@@ -39,9 +39,6 @@ infile.close()
 tau2 = params2[6]
 (zbar, Zbar, NN, nx, ny, nz, logX, Sylv) = VFIparams
 
-inmat1 = [Xpp, Xp, X, Yp, Y, Zp, Z]  
-inmat2 = [Xpp, Xp, X, Yp, Y, Zp, Z]  
-
 # set clock for time to calcuate functions
 startsolve = timeit.default_timer()
 
@@ -62,7 +59,7 @@ elladd = .05
 
 # set up Markov approximation of AR(1) process using Rouwenhorst method
 spread = 3.  # number of standard deviations above and below 0
-znpts = 11
+znpts = 5
 zstep = 4.*spread*sigma_z/(znpts-1)
 
 # Markov transition probabilities, current z in cols, next z in rows
@@ -71,13 +68,13 @@ Pimat, zgrid = rouwen(rho_z, 0., zstep, znpts)
 # discretize k
 klow = (1-kfact)*k2bar1  # changes
 khigh = (1+kfact)*k2bar1 # changes
-knpts = 11
+knpts = 5
 kgrid = np.linspace(klow, khigh, num = knpts)
 
 # discretize ell
 elllow = l1bar1 - elladd  # what about l2bar1 and l3bar1?
 ellhigh = l1bar1 + elladd # what about l2bar1 and l3bar1?
-ellnpts = 11
+ellnpts = 5
 ellgrid = np.linspace(elllow, ellhigh, num = ellnpts)
 
 readVF = False
@@ -114,7 +111,7 @@ while (nconv):
             maxval = -100000000000
             for i3 in range(0, knpts): # over k_t+1
                 for i4 in range(0, ellnpts): # over ell_t
-                    Y, w, r, T, c, i, u = Modeldyn(inmat1, params1)
+                    Y, w, r, T, c, i, u = Modeldefs(, params1)
                     temp = u
                     for i5 in range(0, znpts): # over z_t+1
                         temp = temp + beta * Vf1[i3,i5] * Pimat[i5,i2]
@@ -190,7 +187,7 @@ while (nconv):
             maxval = -100000000000
             for i3 in range(0, knpts): # over k_t+1
                 for i4 in range(0, ellnpts): # over ell_t
-                    Y, w, r, T, c, i, u = Modeldyn(inmat2, params2)
+                    Y, w, r, T, c, i, u = Modeldefs(inmat2, params2)
                     temp = u
                     for i5 in range(0, znpts): # over z_t+1
                         temp = temp + beta * Vf2[i3,i5] * Pimat[i5,i2]
