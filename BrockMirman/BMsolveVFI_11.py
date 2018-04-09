@@ -3,12 +3,9 @@
 """
 This program reads in paramter values and steady states from the file, 
 ILAfindss.pkl.
-
 It then calculates the value function coefficients for the policy and jump function
 approximations using the VFI method.
-
 The coefficients and time to solve are written to the file, ILAsolveVFI.pkl.
-
 The baseline values have a 1 at the end of the variable name.
 The values after the policy change have a 2 at the end. 
 """
@@ -272,15 +269,3 @@ coeffs2 = (Vf2, Pf2, coeffsPF2)
 pkl.dump((coeffs1, coeffs2, timesolve), output)
 
 output.close()
-
-
-
-
-
-
-
-
-
-
-
-
