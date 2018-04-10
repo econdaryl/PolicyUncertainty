@@ -17,25 +17,25 @@ import numpy as np
 import timeit
 import pickle as pkl
 
-from OLGfuncs import Modeldefs
+from OLG3funcs import Modeldefs
 
 # -----------------------------------------------------------------------------
 # READ IN VALUES FROM STEADY STATE CALCULATIONS
 
 # load steady state values and parameters
-infile = open('OLGfindss.pkl', 'rb')
+infile = open('OLG3findss.pkl', 'rb')
 (bar1, bar2, params1, params2, VFIparams) = pkl.load(infile)
 infile.close()
 
 # unpack
-[k2bar1, k3bar1, k4bar1, l1bar1, l2bar1, l3bar1, Kbar1, \
+[k2bar1, k3bar1, l1bar1, l2bar1, Kbar1, \
     Lbar1, GDPbar1, wbar1, rbar1, T4bar1, Bbar1, c1bar1, c2bar1, c3bar1, \
-    c4bar1, Cbar1, Ibar1, u1bar1, u2bar1, u3bar1, u4bar1] = bar1
-[k2bar2, k3bar2, k4bar2, l1bar2, l2bar2, l3bar2, Kbar2, \
+    Cbar1, Ibar1, u1bar1, u2bar1, u3bar1] = bar1
+[k2bar2, k3bar2, l1bar2, l2bar2, Kbar2, \
     Lbar2, GDPbar2, wbar2, rbar2, T4bar2, Bbar2, c1bar2, c2bar2, c3bar2, \
-    c4bar2, Cbar2, Ibar2, u1bar2, u2bar2, u3bar2, u4bar2] = bar2
+    Cbar2, Ibar2, u1bar2, u2bar2, u3bar2] = bar2
 [alpha, beta, gamma, delta, chi, theta, tau, rho_z, \
-    sigma_z, pi2, pi3, pi4, f1, f2, f3, nx, ny, nz] = params1
+    sigma_z, pi2, pi3, f1, f2, nx, ny, nz] = params1
 tau2 = params2[6]
 (zbar, Zbar, NN, nx, ny, nz, logX, Sylv) = VFIparams
 
@@ -43,14 +43,14 @@ tau2 = params2[6]
 startsolve = timeit.default_timer()
 
 # set name for external files written
-name = 'OLGsolveVFI_11'
+name = 'OLG3solveVFI_5'
 
 # -----------------------------------------------------------------------------
 # BASELINE
 
 # set up steady state input vector for baseline
-theta1 = np.array([k2bar1, k3bar1, k4bar1, k2bar1, k3bar1, k4bar1, k2bar1, \
-    k3bar1, k4bar1, l1bar1, l2bar1, l3bar1, l1bar1, l2bar1, l3bar1, 0., 0.])
+theta1 = np.array([k2bar1, k3bar1, k2bar1, k3bar1, k2bar1, \
+                   k3bar1, l1bar1, l2bar1, l1bar1, l2bar1, 0., 0.])
 
 from rouwen import rouwen
 
@@ -93,10 +93,8 @@ else:
 Vf1new = np.zeros((knpts, znpts, knpts, znpts))
 Pf11 = np.zeros((knpts, znpts, knpts, znpts))
 Pf12 = np.zeros((knpts, znpts, knpts, znpts))
-Pf13 = np.zeros((knpts, znpts, knpts, znpts))
 Jf11 = np.zeros((knpts, znpts, knpts, znpts))
 Jf12 = np.zeros((knpts, znpts, knpts, znpts))
-Jf13 = np.zeros((knpts, znpts, knpts, znpts))
 
 # set VF iteration parameters
 ccrit = 1.0E-8
@@ -112,36 +110,32 @@ while (nconv):
         break
     for i1 in range(0, knpts): # over kt
         for i2 in range(0, knpts):
-            for i3 in range(0, knpts):     
-                for i4 in range(0, znpts): # over zt, searching the value for the stochastic shock
-                    maxval = -100000000000
-                    for i5 in range(0, knpts): # over k_t+1
-                        for i6 in range(0, knpts):
-                            for i7 in range(0, knpts):
-                                for i8 in range(0, ellnpts): # over ell_t
-                                    for i9 in range(0, ellnpts):
-                                        for i10 in range(0, ellnpts):
-                                            Xp = np.array([kgrid[i5], kgrid[i6], kgrid[i7]])
-                                            X = np.array([kgrid[i1], kgrid[i2], kgrid[i3]])
-                                            Y = np.array([ellgrid[i8], ellgrid[i9], ellgrid[i10]])
-                                            Z = np.array([zgrid[i4]])
-                                            Y, w, r, T, c, i, u = Modeldefs(Xp, X, Y, Z, params1)
-                                            temp = u
-                                            for i11 in range(0, znpts): # over z_t+1
-                                                temp = temp + beta * Vf1[i3,i5] * Pimat[i5,i2]
-                                            if np.iscomplex(temp):
-                                                temp = -1000000000
-                                            if np.isnan(temp):
-                                                temp = -1000000000
-                                            if temp > maxval:
-                                                maxval = temp
-                                                Vf1new[i1, i2] = temp
-                                                Pf11[i1, i2, i3, i4] = kgrid[i5]
-                                                Pf12[i1, i2, i3, i4] = kgrid[i6]
-                                                Pf13[i1, i2, i3, i4] = kgrid[i7]
-                                                Jf11[i1, i2, i3, i4] = ellgrid[i8]
-                                                Jf12[i1, i2, i3, i4] = ellgrid[i9]
-                                                Jf13[i1, i2, i3, i4] = ellgrid[i10]
+            for i3 in range(0, znpts): # over zt, searching the value for the stochastic shock
+                maxval = -100000000000
+                for i4 in range(0, knpts): # over k_t+1
+                    for i5 in range(0, knpts):
+                        for i6 in range(0, ellnpts): # over ell_t
+                            for i7 in range(0, ellnpts):
+                                Xp = np.array([kgrid[i4], kgrid[i5]])
+                                X = np.array([kgrid[i1], kgrid[i2]])
+                                Y = np.array([ellgrid[i6], ellgrid[i7]])
+                                Z = np.array([zgrid[i3]])
+                                Y, w, r, T, c, i, u = Modeldefs(Xp, X, Y, Z, params1)
+                                temp = u
+                                for i8 in range(0, znpts): # over z_t+1
+                                    temp = temp + beta * Vf1[i2,i4] * Pimat[i4,i1]
+                                if np.iscomplex(temp):
+                                    temp = -1000000000
+                                if np.isnan(temp):
+                                    temp = -1000000000
+                                if temp > maxval:
+                                    maxval = temp
+                                    Vf1new[i1, i2] = temp
+                                    Pf11[i1, i2, i3] = kgrid[i4]
+                                    Pf12[i1, i2, i3] = kgrid[i5] 
+                                    Jf11[i1, i2, i3] = ellgrid[i6]
+                                    Jf12[i1, i2, i3] = ellgrid[i7]
+            
         # calculate the new distance measure, we use maximum absolute difference
     dist = np.amax(np.abs(Vf1 - Vf1new))
     if dist < ccrit:
@@ -188,11 +182,9 @@ ellgrid2 = np.linspace(elllow, ellhigh, num = ellnpts)
 
 Vf2new = np.zeros((knpts, znpts))
 Pf21 = np.zeros((knpts, znpts, knpts, znpts))
-Pf22 = np.zeros((knpts, znpts, knpts, znpts))
-Pf23 = np.zeros((knpts, znpts, knpts, znpts))  
+Pf22 = np.zeros((knpts, znpts, knpts, znpts)) 
 Jf21 = np.zeros((knpts, znpts, knpts, znpts))
 Jf22 = np.zeros((knpts, znpts, knpts, znpts))
-Jf23 = np.zeros((knpts, znpts, knpts, znpts))
 # set VF iteration parameters
 count = 0
 dist = 100.
@@ -204,37 +196,32 @@ while (nconv):
     if count > maxwhile:
         break
     for i1 in range(0, knpts): # over kt
-        for i2 in range(0, knpts):    ## check if it's correct
-            for i3 in range(0, knpts):  ## check if it's correct   
-                for i4 in range(0, znpts): # over zt, searching the value for the stochastic shock
-                    maxval = -100000000000
-                    for i5 in range(0, knpts): # over k_t+1
-                        for i6 in range(0, knpts):
-                            for i7 in range(0, knpts):
-                                for i8 in range(0, ellnpts): # over ell_t
-                                    for i9 in range(0, ellnpts):
-                                        for i10 in range(0, ellnpts):
-                                            Xp2 = np.array([kgrid2[i5], kgrid2[i6], kgrid2[i7]])
-                                            X2 = np.array([kgrid2[i1], kgrid2[i2], kgrid2[i3]])
-                                            Y2 = np.array([ellgrid2[i8], ellgrid2[i9], ellgrid2[i10]])
-                                            Z2 = np.array([zgrid[i4]])
-                                            Y, w, r, T, c, i, u = Modeldefs(Xp2, X2, Y2, Z2, params2)
-                                            temp = u
-                                            for i11 in range(0, znpts): # over z_t+1
-                                                temp = temp + beta * Vf1[i3,i5] * Pimat[i5,i2]
-                                            if np.iscomplex(temp):
-                                                temp = -1000000000
-                                            if np.isnan(temp):
-                                                temp = -1000000000
-                                            if temp > maxval:
-                                                maxval = temp
-                                                Vf2new[i1, i2] = temp
-                                                Pf21[i1, i2, i3, i4] = kgrid2[i5]
-                                                Pf22[i1, i2, i3, i4] = kgrid2[i6]
-                                                Pf23[i1, i2, i3, i4] = kgrid2[i7]
-                                                Jf21[i1, i2, i3, i4] = ellgrid2[i8]
-                                                Jf22[i1, i2, i3, i4] = ellgrid2[i9]
-                                                Jf23[i1, i2, i3, i4] = ellgrid2[i10]
+        for i2 in range(0, knpts):
+            for i3 in range(0, znpts): # over zt, searching the value for the stochastic shock
+                maxval = -100000000000
+                for i4 in range(0, knpts): # over k_t+1
+                    for i5 in range(0, knpts):
+                        for i6 in range(0, ellnpts): # over ell_t
+                            for i7 in range(0, ellnpts):
+                                Xp2 = np.array([kgrid2[i4], kgrid2[i5]])
+                                X2 = np.array([kgrid2[i1], kgrid2[i2]])
+                                Y2 = np.array([ellgrid2[i6], ellgrid2[i7]])
+                                Z2 = np.array([zgrid[i4]])
+                                Y, w, r, T, c, i, u = Modeldefs(Xp2, X2, Y2, Z2, params2)
+                                temp = u
+                                for i8 in range(0, znpts): # over z_t+1
+                                    temp = temp + beta * Vf1[i2,i4] * Pimat[i4,i1]
+                                if np.iscomplex(temp):
+                                    temp = -1000000000
+                                if np.isnan(temp):
+                                    temp = -1000000000
+                                if temp > maxval:
+                                    maxval = temp
+                                    Vf2new[i1, i2] = temp
+                                    Pf21[i1, i2, i3] = kgrid2[i5]
+                                    Pf22[i1, i2, i3] = kgrid2[i6]
+                                    Jf21[i1, i2, i3] = ellgrid2[i7]
+                                    Jf22[i1, i2, i3] = ellgrid2[i8]
 
     # calculate the new distance measure, we use maximum absolute difference
     dist = np.amax(np.abs(Vf2 - Vf2new))
