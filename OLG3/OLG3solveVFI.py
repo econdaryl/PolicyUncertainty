@@ -88,13 +88,15 @@ if readVF:    ## Need to change the code because of epanded variables
     (Vf2, Pf2, Jf2, coeffsPF2, coeffsJF2) = coeffs2
     infile.close()
 else:
-    Vf1 = np.ones((knpts, znpts)) * (-100000000000)
+    Vf11 = np.ones((knpts, knpts, znpts)) * (-100000000000)
+    Vf12 = np.ones((knpts, knpts, znpts)) * (-100000000000)
 
-Vf1new = np.zeros((knpts, znpts, knpts, znpts))
-Pf11 = np.zeros((knpts, znpts, knpts, znpts))
-Pf12 = np.zeros((knpts, znpts, knpts, znpts))
-Jf11 = np.zeros((knpts, znpts, knpts, znpts))
-Jf12 = np.zeros((knpts, znpts, knpts, znpts))
+Vf11new = np.zeros((knpts, knpts, znpts))
+Vf12new = np.zeros((knpts, knpts, znpts))
+Pf11 = np.zeros((knpts, knpts, znpts))
+Pf12 = np.zeros((knpts, knpts, znpts))
+Jf11 = np.zeros((knpts, knpts, znpts))
+Jf12 = np.zeros((knpts, knpts, znpts))
 
 # set VF iteration parameters
 ccrit = 1.0E-8
@@ -111,7 +113,8 @@ while (nconv):
     for i1 in range(0, knpts): # over kt
         for i2 in range(0, knpts):
             for i3 in range(0, znpts): # over zt, searching the value for the stochastic shock
-                maxval = -100000000000
+                maxval1 = -100000000000
+                maxval2 = -100000000000
                 for i4 in range(0, knpts): # over k_t+1
                     for i5 in range(0, knpts):
                         for i6 in range(0, ellnpts): # over ell_t
@@ -120,40 +123,55 @@ while (nconv):
                                 X = np.array([kgrid[i1], kgrid[i2]])
                                 Y = np.array([ellgrid[i6], ellgrid[i7]])
                                 Z = np.array([zgrid[i3]])
-                                Y, w, r, T, c, i, u = Modeldefs(Xp, X, Y, Z, params1)
-                                temp = u
+                                K, L, GDP, w, r, T3, B, c1, c2, c3, C, I, \
+                                    u1, u2, u3 = Modeldefs(Xp, X, Y, Z, params1)
+                                temp1 = u1
+                                temp2 = u2
                                 for i8 in range(0, znpts): # over z_t+1
-                                    temp = temp + beta * Vf1[i2,i4] * Pimat[i4,i1]
-                                if np.iscomplex(temp):
-                                    temp = -1000000000
-                                if np.isnan(temp):
-                                    temp = -1000000000
-                                if temp > maxval:
-                                    maxval = temp
-                                    Vf1new[i1, i2] = temp
+                                    temp1 = temp1 + beta * Vf11[i4,i5,i8] * Pimat[i8,i3]
+                                    temp2 = temp2 + beta * Vf12[i4,i5,i8] * Pimat[i8,i3]
+                                if np.iscomplex(temp1):
+                                    temp1 = -1000000000
+                                if np.isnan(temp1):
+                                    temp1 = -1000000000
+                                if np.iscomplex(temp2):
+                                    temp2= -1000000000
+                                if np.isnan(temp2):
+                                    temp2 = -1000000000
+
+                                if temp1 > maxval1:
+                                    maxval1 = temp1
+                                    Vf11new[i1, i2] = temp1
                                     Pf11[i1, i2, i3] = kgrid[i4]
-                                    Pf12[i1, i2, i3] = kgrid[i5] 
                                     Jf11[i1, i2, i3] = ellgrid[i6]
+
+                                if temp2 > maxval2:
+                                    maxval2 = temp2
+                                    Vf12new[i1, i2] = temp2
+                                    Pf12[i1, i2, i3] = kgrid[i5] 
                                     Jf12[i1, i2, i3] = ellgrid[i7]
             
         # calculate the new distance measure, we use maximum absolute difference
-    dist = np.amax(np.abs(Vf1 - Vf1new))
+    dist1 = np.amax(np.abs(Vf11 - Vf11new))
+    dist2 = np.amax(np.abs(Vf12 - Vf12new))
+    
+    dist = np.max((dist1, dist2))
     if dist < ccrit:
         nconv = False
     # report the results of the current iteration
     print ('iteration: ', count, 'distance: ', dist)
     
     # replace the value function with the new one
-    Vf1 = 1.0*Vf1new
+    Vf11 = 1.0*Vf11new
+    Vf12 = 1.0*Vf12new
 
 print ('Converged after', count, 'iterations') 
-print ('Policy function at (', (knpts-1)/2, ',', (znpts-1)/2, ') should be', \
-kgrid[int((knpts-1)/2)], 'and is', Pf1[int((knpts-1)/2), int((znpts-1)/2)])                 
+               
     
 # put SS values and starting values into numpy vectors
-XYbar = np.array([k2bar1, l1bar1])
-X0 = np.array([k2bar1])
-Y0 = np.array([l1bar1])   
+XYbar = np.array([k2bar1, k3bar1, l1bar1, l2bar1])
+X0 = np.array([k2bar1, k3bar1])
+Y0 = np.array([l1bar1, l2bar1])   
 
 
 # -----------------------------------------------------------------------------
@@ -314,7 +332,7 @@ print('time to solve: ', timesolve)
 output = open(name + '.pkl', 'wb')
 
 # set up coefficient list before the policy change
-coeffs1 = (Vf1, Pf1, Jf1, coeffsPF1, coeffsJF1)
+coeffs1 = (Vf11, Vf12, Pf11, .... Jf1, coeffsPF1, coeffsJF1)
 
 # set up coefficient list after the policy change
 coeffs2 = (Vf2, Pf2, Jf2, coeffsPF2, coeffsJF2)
