@@ -19,6 +19,52 @@ import pickle as pkl
 
 from OLG3funcs import Modeldefs
 
+def fitfuncs(kgrid2, kgrid3, zgrid, nord, funclist):
+    
+    # unpack funclist
+    (Pf11, Pf12, Jf11, Jf12) = funclist
+
+    # fit PF1 and PF2, Jf1 and JF2 with polynomials
+    
+    # create meshgrid
+    kmesh2, kmesh3, zmesh = np.meshgrid(kgrid2, kgrid3, zgrid)
+    
+    # create independent variables matrix (X)
+    X = np.array([])
+    count = 0
+    for i in range(0, nord+1):
+        for j in range(0, nord+1-i):
+            for k in range(0, nord+1-i-j):
+                count = count + 1
+                temp = kmesh2**(i) * kmesh3**(j) * zmesh**(k)
+                temp = temp.flatten()
+                ncol = temp.size
+                X = np.append(X,temp)
+                X = X.reshape((count, ncol))
+    
+    # create 4 different dependent variables matrices (y's)
+    YPf11 = Pf11.flatten()
+    YPf12 = Pf12.flatten()
+    YJf11 = Jf11.flatten()
+    YJf12 = Jf12.flatten()
+
+    # get OLS coefficiens
+    coeffsPf11 = np.dot(np.linalg.inv(np.dot(X,np.transpose(X))),np.dot(X,YPf11))
+    coeffsPf11 = np.reshape(coeffsPf11,(-1,1))
+    
+    coeffsPf12 = np.dot(np.linalg.inv(np.dot(X,np.transpose(X))),np.dot(X,YPf12))
+    coeffsPf12 = np.reshape(coeffsPf12,(-1,1))
+    
+    coeffsJf11 = np.dot(np.linalg.inv(np.dot(X,np.transpose(X))),np.dot(X,YJf11))
+    coeffsJf11 = np.reshape(coeffsJf11,(-1,1))
+    
+    coeffsJf12 = np.dot(np.linalg.inv(np.dot(X,np.transpose(X))),np.dot(X,YJf12))
+    coeffsJf12 = np.reshape(coeffsJf12,(-1,1))
+    
+    return coeffsPf11, coeffsPf12, coeffsJf11, coeffsJf12
+
+
+
 # -----------------------------------------------------------------------------
 # READ IN VALUES FROM STEADY STATE CALCULATIONS
 
@@ -59,7 +105,7 @@ elladd = .05
 
 # set up Markov approximation of AR(1) process using Rouwenhorst method
 spread = 3.  # number of standard deviations above and below 0
-znpts = 5
+znpts = 3
 zstep = 4.*spread*sigma_z/(znpts-1)
 
 # Markov transition probabilities, current z in cols, next z in rows
@@ -68,24 +114,26 @@ Pimat, zgrid = rouwen(rho_z, 0., zstep, znpts)
 # discretize k
 klow = (1-kfact)*k2bar1  # changes
 khigh = (1+kfact)*k2bar1 # changes
-knpts = 5
+knpts = 3
 kgrid = np.linspace(klow, khigh, num = knpts)
 
 # discretize ell
 elllow = l1bar1 - elladd  # what about l2bar1 and l3bar1?
 ellhigh = l1bar1 + elladd # what about l2bar1 and l3bar1?
-ellnpts = 5
+ellnpts = 3
 ellgrid = np.linspace(elllow, ellhigh, num = ellnpts)
 
-readVF = False
+readVF = True
 
 # initialize VF and PF
 if readVF:    ## Need to change the code because of epanded variables
-    infile = open('ILAsolveVFI_11.pkl', 'rb')
+    infile = open('OLG3solveVFI_5.pkl', 'rb')
     pickled = pkl.load(infile)
     (coeffs1, coeffs2, timesolve) = pickled
-    (Vf11, Vf12, Pf11, Pf12, Jf11, Pf12, coeffsPF1, coeffsJF1) = coeffs1 
-    (Vf21, Vf22, Pf21, Pf22, Jf21, Jf22, coeffsPF2, coeffsJF2) = coeffs2
+    (Vf11, Vf12, Pf11, Pf12, Jf11, Jf12, coeffsPf11, coeffsPf12, coeffsJf11, \
+        coeffsJf12) = coeffs1 
+    (Vf21, Vf22, Pf21, Pf22, Jf21, Jf22, coeffsPf21, coeffsPf22, coeffsJf21, \
+        coeffsJf22) = coeffs2
     infile.close()
 else:
     Vf11 = np.ones((knpts, knpts, znpts)) * (-100000000000)
@@ -274,83 +322,18 @@ Pfdiff = Pf21 - Pf22
 Jfdiff = Jf21 - Jf22
 
 # fit PF1 and PF2, Jf1 and JF2 with polynomials
+# run fitfuncs
+nord = 2
 
-# create meshgrid
-kmesh, zmesh = np.meshgrid(kgrid, zgrid)
+funclist = (Pf11, Pf12, Jf11, Jf12) 
 
-# create independent variables matrix (X)
-X = np.ones(knpts*znpts)
+coeffsPf11, coeffsPf12, coeffsJf11, coeffsJf12 = \
+    fitfuncs(kgrid, kgrid, zgrid, nord, funclist)
+    
+funclist = (Pf21, Pf22, Jf21, Jf22) 
 
-temp = kmesh.flatten()
-X = np.vstack((X,temp))
-
-temp = kmesh**2
-temp = temp.flatten()
-X = np.vstack((X,temp))
-
-temp = kmesh**3
-temp = temp.flatten()
-X = np.vstack((X,temp))
-
-temp = zmesh.flatten()
-X = np.vstack((X,temp))
-
-temp = zmesh**2
-temp = temp.flatten()
-X = np.vstack((X,temp))
-
-temp = zmesh**3
-temp = temp.flatten()
-X = np.vstack((X,temp))
-
-temp = kmesh*zmesh
-temp = temp.flatten()
-X = np.vstack((X,temp))
-
-temp = kmesh**2*zmesh
-temp = temp.flatten()
-X = np.vstack((X,temp))
-
-temp = kmesh*zmesh**2
-temp = temp.flatten()
-X = np.vstack((X,temp))
-
-# create 4 different dependent variables matrices (y's)
-YPF11 = Pf11.reshape((25,5))
-YPF12 = Pf12.reshape((25,5))
-YJF11 = Jf11.reshape((25,5))
-YJF12 = Jf12.reshape((25,5))
-YPF21 = Pf21.reshape((25,5))
-YPF22 = Pf22.reshape((25,5))
-YJF21 = Jf21.reshape((25,5))
-YJF22 = Jf22.reshape((25,5))
-
-
-# get OLS coefficient
-coeffsPF11 = np.dot(np.linalg.inv(np.dot(X,np.transpose(X))),np.dot(X,YPF11))
-coeffsPF11 = coeffsPF11.reshape((10,1))
-
-coeffsPF12 = np.dot(np.linalg.inv(np.dot(X,np.transpose(X))),np.dot(X,YPF12))
-coeffsPF12 = coeffsPF12.reshape((10,1))
-
-coeffsJF11 = np.dot(np.linalg.inv(np.dot(X,np.transpose(X))),np.dot(X,YJF11))
-coeffsJF11 = coeffsJF11.reshape((10,1))
-
-coeffsJF12 = np.dot(np.linalg.inv(np.dot(X,np.transpose(X))),np.dot(X,YJF12))
-coeffsJF12 = coeffsJF12.reshape((10,1))
-
-coeffsPF21 = np.dot(np.linalg.inv(np.dot(X,np.transpose(X))),np.dot(X,YPF21))
-coeffsPF21 = coeffsPF2.reshape((10,1))
-
-coeffsPF22 = np.dot(np.linalg.inv(np.dot(X,np.transpose(X))),np.dot(X,YPF22))
-coeffsPF22 = coeffsPF2.reshape((10,1))
-
-coeffsJF21 = np.dot(np.linalg.inv(np.dot(X,np.transpose(X))),np.dot(X,YJF21))
-coeffsJF21 = coeffsJF2.reshape((10,1))
-
-coeffsJF22 = np.dot(np.linalg.inv(np.dot(X,np.transpose(X))),np.dot(X,YJF22))
-coeffsJF22 = coeffsJF2.reshape((10,1))
-
+coeffsPf21, coeffsPf22, coeffsJf21, coeffsJf22 = \
+    fitfuncs(kgrid2, kgrid2, zgrid, nord, funclist)
 
 # calculate time to solve for functions
 stopsolve = timeit.default_timer()
@@ -364,10 +347,10 @@ print('time to solve: ', timesolve)
 output = open(name + '.pkl', 'wb')
 
 # set up coefficient list before the policy change
-coeffs1 = (Vf11, Vf12, Pf11, Pf12, Jf11, Jf12, coeffsPF11, coeffsPF12, coeffsJF11, coeffsJF12)
+coeffs1 = (Vf11, Vf12, Pf11, Pf12, Jf11, Jf12, coeffsPf11, coeffsPf12, coeffsJf11, coeffsJf12)
 
 # set up coefficient list after the policy change
-coeffs2 = (Vf21, Vf22, Pf21, Pf22, Jf21, Jf22, coeffsPF21, coeffsPF22, coeffsJF2, coeffsJF22)
+coeffs2 = (Vf21, Vf22, Pf21, Pf22, Jf21, Jf22, coeffsPf21, coeffsPf22, coeffsJf21, coeffsJf22)
 
 # write timing
 pkl.dump((coeffs1, coeffs2, timesolve), output)
