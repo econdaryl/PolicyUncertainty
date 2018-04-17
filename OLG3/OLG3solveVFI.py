@@ -100,12 +100,12 @@ theta1 = np.array([k2bar1, k3bar1, k2bar1, k3bar1, k2bar1, \
 
 from rouwen import rouwen
 
-kfact= .05
-elladd = .05
+kfact= .2
+elladd = .2
 
 # set up Markov approximation of AR(1) process using Rouwenhorst method
 spread = 3.  # number of standard deviations above and below 0
-znpts = 3
+znpts = 5
 zstep = 4.*spread*sigma_z/(znpts-1)
 
 # Markov transition probabilities, current z in cols, next z in rows
@@ -114,13 +114,13 @@ Pimat, zgrid = rouwen(rho_z, 0., zstep, znpts)
 # discretize k
 klow = (1-kfact)*k2bar1  # changes
 khigh = (1+kfact)*k2bar1 # changes
-knpts = 3
+knpts = 5
 kgrid = np.linspace(klow, khigh, num = knpts)
 
 # discretize ell
 elllow = l1bar1 - elladd  # what about l2bar1 and l3bar1?
 ellhigh = l1bar1 + elladd # what about l2bar1 and l3bar1?
-ellnpts = 3
+ellnpts = 5
 ellgrid = np.linspace(elllow, ellhigh, num = ellnpts)
 
 readVF = True
